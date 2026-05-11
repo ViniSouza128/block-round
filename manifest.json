@@ -1,0 +1,14 @@
+{
+  "name": "Block Round",
+  "short_name": "Block Round",
+  "description": "A Minecraft-flavoured pixel-perfect generator for circles, ellipses, spheres and ellipsoids. Not affiliated with Mojang/Microsoft.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#1a1208",
+  "theme_color": "#FFEC4F",
+  "icons": [
+    { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
