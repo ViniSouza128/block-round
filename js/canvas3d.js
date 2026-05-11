@@ -536,10 +536,22 @@ function creeperBoundsExtraY(){
   return creeperIsActive() ? Math.ceil(CREEPER_TOTAL_H) : 0;
 }
 
-/* Procedural "creeper.png" entity skin atlas (64×32 px), drawn once into
-   a CanvasTexture and shared by every body part. Mottled-green base
-   tinted to match the real Minecraft creeper texture, plus the iconic
-   black eye-and-mouth pattern painted on the head's front region.
+/* Creeper skin atlas (64×32 px) — PROCEDURALLY drawn, not a copy of the
+   real Mojang creeper.png binary. We don't ship the actual entity file
+   (we'd need a redistribution licence we don't have); instead, the
+   pattern below reconstructs the visual character of the real texture
+   from primitives:
+     • a 7-shade green palette spanning the same range as Mojang's
+       (from #2E641D very dark up to #74D654 highlight)
+     • a base mid-green wash, then per-pixel speckles weighted toward
+       darker shades (matches the speckly look real creeper.png has)
+     • larger 2-px chunks of contrasting shade scattered on top
+       (matches the patchy clusters visible on the real model)
+     • the canonical black eye-and-mouth pattern painted into the
+       head-front region (atlas coords 8..15, 8..15)
+   The visual result is close enough that a casual viewer reads it as
+   "a real creeper"; the model proportions and UV layout below are
+   pixel-exact replicas of the entity model.
 
    Atlas layout matches the canonical Minecraft creeper.png:
      HEAD  top (8,0,8,8)   bottom (16,0,8,8)
@@ -561,16 +573,71 @@ function _getCreeperAtlasMat(){
   c.width = CREEPER_ATLAS_W; c.height = CREEPER_ATLAS_H;
   const ctx = c.getContext('2d');
 
-  // Six greens — palette roughly matched to the actual creeper.png.
-  const GREENS = ['#3a7d22', '#43912a', '#4a9e30', '#54ad37', '#5fbe3f', '#6acc48'];
-  // Fill the atlas with a deterministic mottled green; the same body
-  // tile texture is sampled by every part via UV mapping, so a single
-  // continuous pattern gives the creeper a uniform skin appearance.
+  // 7-shade palette: very-dark → dark → mid-dark → BASE → mid-light →
+  // light → highlight. Indices align with the weighted distribution
+  // used below in the speckle pass.
+  const PALETTE = [
+    '#2e641d',  // 0 very dark   (rare, deep shadows)
+    '#3a7d22',  // 1 dark
+    '#43912a',  // 2 mid-dark
+    '#54ad37',  // 3 BASE
+    '#5fbe3f',  // 4 mid-light
+    '#6acc48',  // 5 light
+    '#74d654',  // 6 highlight   (rare, brightest pops)
+  ];
+  // Hash → palette index with a distribution centred on BASE so the
+  // skin reads as "mostly-green-with-speckles" rather than uniform noise.
+  //   00..0F (~6%)  →  0  very dark
+  //   10..2F (~12%) →  1  dark
+  //   30..5F (~19%) →  2  mid-dark
+  //   60..9F (~25%) →  3  base
+  //   A0..C7 (~16%) →  4  mid-light
+  //   C8..EF (~16%) →  5  light
+  //   F0..FF (~6%)  →  6  highlight
+  const shadeFor = (h) => {
+    if (h < 0x10) return 0;
+    if (h < 0x30) return 1;
+    if (h < 0x60) return 2;
+    if (h < 0xA0) return 3;
+    if (h < 0xC8) return 4;
+    if (h < 0xF0) return 5;
+    return 6;
+  };
+
+  // Pass 1 — wash the whole atlas in the base shade so any thin
+  // anti-aliasing artefacts at face boundaries fall back to a sensible
+  // green rather than transparent.
+  ctx.fillStyle = PALETTE[3];
+  ctx.fillRect(0, 0, CREEPER_ATLAS_W, CREEPER_ATLAS_H);
+
+  // Pass 2 — per-pixel speckle, deterministic hash. Same input → same
+  // texture every reload, so the creeper looks identical session over
+  // session. Two prime-mix hashes XORed to spread the bits well.
   for (let y = 0; y < CREEPER_ATLAS_H; y++){
     for (let x = 0; x < CREEPER_ATLAS_W; x++){
-      const h = ((x * 7) ^ (y * 13) ^ ((x + y) * 5)) & 0xff;
-      ctx.fillStyle = GREENS[(h >> 5) % GREENS.length];
+      const h = (((x * 374761393) ^ (y * 668265263) ^ ((x * y + 1) * 2246822519)) >>> 0) & 0xff;
+      ctx.fillStyle = PALETTE[shadeFor(h)];
       ctx.fillRect(x, y, 1, 1);
+    }
+  }
+
+  // Pass 3 — chunky 2×1 / 1×2 / 2×2 patches that mimic the larger
+  // dark-green blobs visible on the real creeper.png. A second hash
+  // decides patch size and shade independently of pass 2.
+  for (let y = 0; y < CREEPER_ATLAS_H; y += 2){
+    for (let x = 0; x < CREEPER_ATLAS_W; x += 2){
+      const h = (((x * 1597) ^ (y * 31397) ^ ((x + y) * 6151)) >>> 0) & 0xff;
+      // Only ~30 % of cells get a patch; the rest keep their speckle
+      // values from pass 2.
+      if (h > 0x4D) continue;
+      // Patch shape from low bits, patch shade from high bits.
+      const shape = h & 0x3;        // 0..3
+      const shade = ((h >> 2) & 0x7);
+      ctx.fillStyle = PALETTE[shade > 6 ? 6 : shade];
+      if      (shape === 0) ctx.fillRect(x,   y,   2, 1);
+      else if (shape === 1) ctx.fillRect(x,   y,   1, 2);
+      else if (shape === 2) ctx.fillRect(x,   y,   2, 2);
+      else                  ctx.fillRect(x+1, y+1, 1, 1);  // tiny accent
     }
   }
 
@@ -648,32 +715,100 @@ const CREEPER_LEG_UV = [
   [12, 20, 4, 6],  // -Z back
 ];
 
-/* Animation: very slow head Y-sway and gentle leg X-sway driven by a
-   continuous rAF that keeps running while the creeper exists in the
-   scene. Pivot-groups for each leg + the head are what let us rotate
-   them around their joints (legs around their tops, head around its
-   centre) instead of their geometric origins. */
+/* Animation — two layered behaviours running off the same rAF:
+     • Idle micro-motion: very slow head Y-sway and gentle leg X-sway
+       so the creeper never looks frozen.
+     • Eye-contact cycle (every 6 s): the creeper smoothly turns its
+       whole body toward the camera, holds the gaze, then eases back to
+       neutral. The body rotation is what pivots the head + legs as one
+       unit (Y around the creeper's own axis), so the user perceives an
+       intentional "the creeper just looked at me" beat.
+
+   Pivot groups: the head and each leg are wrapped in their own
+   THREE.Group so we can rotate them around their joints (legs around
+   their tops, head around its centre) instead of their geometric
+   origins. The body root group's rotation drives the look-at-camera
+   turn. */
+const CREEPER_CYCLE_S = 6.0;   // seconds — one full look cycle
+const CREEPER_RISE_S  = 1.5;   // ease into camera-gaze
+const CREEPER_HOLD_S  = 2.0;   // dwell at the gaze
+const CREEPER_FALL_S  = 1.5;   // ease back to neutral
+
 let _creeperGroup    = null;   // current creeper THREE.Group (or null)
 let _creeperParts    = null;   // { head, legs:[fl,fr,bl,br] } pivot groups
 let _creeperAnimRaf  = null;
 let _creeperAnimT0   = 0;
 let _creeperWasShown = false;  // tracks creeperIsActive() across update3D
 let _creeperWasTnt   = false;  // tracks state.mcBlock === 'tnt' across updates
+
+/* Cubic ease-in-out so the body acceleration into and out of the gaze
+   feels organic — no abrupt linear ramp. */
+function _easeInOut(x){
+  return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+}
+
+/* Look-blend in [0..1] given the cycle-local time t.
+   Phase plan (one 6 s cycle):
+     0.0 .. 1.5   rise from 0 → 1  (turning to face the camera)
+     1.5 .. 3.5   hold at 1        (locked gaze; the "stare" beat)
+     3.5 .. 5.0   fall from 1 → 0  (turning back to neutral)
+     5.0 .. 6.0   idle at 0        (one-second breather between cycles) */
+function _creeperLookBlend(t){
+  const ct = ((t % CREEPER_CYCLE_S) + CREEPER_CYCLE_S) % CREEPER_CYCLE_S;
+  if (ct < CREEPER_RISE_S){
+    return _easeInOut(ct / CREEPER_RISE_S);
+  }
+  if (ct < CREEPER_RISE_S + CREEPER_HOLD_S){
+    return 1;
+  }
+  if (ct < CREEPER_RISE_S + CREEPER_HOLD_S + CREEPER_FALL_S){
+    const ft = (ct - CREEPER_RISE_S - CREEPER_HOLD_S) / CREEPER_FALL_S;
+    return 1 - _easeInOut(ft);
+  }
+  return 0;  // idle tail
+}
+
 function _creeperAnimTick(){
   if (!_creeperGroup || !_creeperGroup.parent){
     _creeperAnimRaf = null;
     return;
   }
   const t = (performance.now() - _creeperAnimT0) * 0.001;
-  // Head: ±6° around Y at ~0.18 Hz. Subtle horizontal "scan".
-  _creeperParts.head.rotation.y = Math.sin(t * 2 * Math.PI * 0.18) * (6 * Math.PI / 180);
-  // Legs: ±4° around X at ~0.5 Hz, alternating pairs for a faint sway.
-  const sway = Math.sin(t * 2 * Math.PI * 0.5) * (4 * Math.PI / 180);
+
+  // Angle (around Y) that points the creeper's local +Z (its FACE) at
+  // the camera. We project onto the XZ plane — the creeper keeps its
+  // feet planted; the gaze is a horizontal "eye-line meets the user"
+  // rather than a tilted head-tip. atan2(x, z) is correct because a
+  // rotation.y of θ maps local +Z to world (sinθ, 0, cosθ); solving
+  // sinθ = camX/|cam|, cosθ = camZ/|cam| gives θ = atan2(camX, camZ).
+  const targetAngle = (camera3D)
+    ? Math.atan2(camera3D.position.x, camera3D.position.z)
+    : 0;
+
+  const blend = _creeperLookBlend(t);
+
+  // Body — interpolate between neutral (0) and full camera-facing.
+  // Continuous targetAngle means if the user orbits the camera DURING
+  // the gaze hold, the creeper smoothly tracks them; that intentional
+  // "watching me" feel was the whole point of the easter egg.
+  _creeperGroup.rotation.y = blend * targetAngle;
+
+  // Head idle sway — scaled down as the gaze intensifies so the head
+  // looks "locked on" while staring, then re-engages the sway as the
+  // body returns to neutral.
+  const idleSway = Math.sin(t * 2 * Math.PI * 0.18) * (6 * Math.PI / 180);
+  _creeperParts.head.rotation.y = idleSway * (1 - blend);
+
+  // Legs — also damped during the gaze so the body reads as deliberate
+  // (a 30 % residual sway keeps it from looking like a paused GIF).
+  const legSway = Math.sin(t * 2 * Math.PI * 0.5) * (4 * Math.PI / 180);
+  const legAmp  = 1 - 0.7 * blend;
   const [fl, fr, bl, br] = _creeperParts.legs;
-  fl.rotation.x =  sway;
-  br.rotation.x =  sway;
-  fr.rotation.x = -sway;
-  bl.rotation.x = -sway;
+  fl.rotation.x =  legSway * legAmp;
+  br.rotation.x =  legSway * legAmp;
+  fr.rotation.x = -legSway * legAmp;
+  bl.rotation.x = -legSway * legAmp;
+
   scheduleRender3D();
   _creeperAnimRaf = requestAnimationFrame(_creeperAnimTick);
 }
