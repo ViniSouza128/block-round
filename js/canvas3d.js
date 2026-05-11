@@ -749,6 +749,12 @@ const CREEPER_FALL_S     = 2.25;  // slow, natural return — 3× the rise
 const CREEPER_BREATHER_S = 12.6;  // idle pause before the next stare (was 7 s, +80 %)
 const CREEPER_CYCLE_S    = CREEPER_RISE_S + CREEPER_HOLD_S
                          + CREEPER_FALL_S + CREEPER_BREATHER_S;  // 16.6 s
+// Grace period after the creeper first appears before its very first
+// stare. The user spawns the easter egg; we let them admire the model
+// for a beat before the creeper "notices" them. Implemented by
+// pre-aging the animation clock so the first tick lands inside the
+// breather phase with this many seconds remaining until the rise.
+const CREEPER_INITIAL_DELAY_S = 6.0;
 
 // White brightness pulse — the "primed/swell flash" the real creeper
 // fires when it locks onto a player and starts its detonation
@@ -966,10 +972,20 @@ function buildEasterEggCreeper(Dx, Dy, Dz, cx, cy, cz){
 
   // Wire the animation loop. Stored module-scope so the rAF tick can
   // mutate the right parts and stop when the group is removed.
-  _creeperGroup   = root;
-  _creeperParts   = { head: headPivot, legs };
-  _creeperAnimT0  = performance.now();
-  _creeperLastCyc = -1;   // forces the first tick (t≈0, idx=0) to fire the fuse
+  _creeperGroup  = root;
+  _creeperParts  = { head: headPivot, legs };
+  // Pre-age the clock so the first tick sits inside the breather phase
+  // with exactly CREEPER_INITIAL_DELAY_S seconds left before the very
+  // first rise. At wall-clock t=0 the cycleLocalT is (CYCLE - DELAY) —
+  // deep in the idle tail — so no fuse, no flash, no body rotation
+  // happens for the grace period. The first stare lands at t = DELAY.
+  _creeperAnimT0  = performance.now()
+                  - (CREEPER_CYCLE_S - CREEPER_INITIAL_DELAY_S) * 1000;
+  // Cycle index 0 has effectively "already happened" during pre-age,
+  // so the fuse trigger waits for the transition to cycle 1 (which
+  // lines up with the end of the grace period — exactly when the
+  // first rise begins).
+  _creeperLastCyc = 0;
   _creeperAnimRaf = requestAnimationFrame(_creeperAnimTick);
 }
 

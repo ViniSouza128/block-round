@@ -77,9 +77,11 @@ Threshold) are available.
     8×8×8 px, body 4×12×8 px, four legs at 4×6×4 px each.
     Total height 1.625 blocks, footprint 0.5 × 0.5 block — sits
     centred on the figure's top face.
-  - **Eye-contact cycle** — every **16.6 s** the creeper briefly
-    turns its whole body to face the camera, holds the gaze for
-    ~1 s, then drifts back to neutral on a long slow arc, all on
+  - **Eye-contact cycle** — after a **6 s grace period** when the
+    creeper first appears (let the user admire the model before the
+    creeper "notices" them), then every **16.6 s** the creeper
+    briefly turns its whole body to face the camera, holds the gaze
+    for ~1 s, then drifts back to neutral on a long slow arc, all on
     cubic ease-in-out so the motion feels organic. During the gaze
     the head/leg micro-sway damps down (the creeper looks locked-
     on, not paused), and the camera-tracking is continuous — if the
