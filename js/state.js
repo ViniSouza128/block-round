@@ -126,11 +126,20 @@ const MC_BLOCKS = {
   moss:          { src: _tex('moss_block'),        name: 'Moss' },
 
   // ===== WOOD VARIANTS ===================================================
+  // Planks (single-texture, all 6 faces identical).
   darkOak:       { src: _tex('dark_oak_planks'),   name: 'Dark Oak' },
   birch:         { src: _tex('birch_planks'),      name: 'Birch' },
   spruce:        { src: _tex('spruce_planks'),     name: 'Spruce' },
   jungle:        { src: _tex('jungle_planks'),     name: 'Jungle' },
   acacia:        { src: _tex('acacia_planks'),     name: 'Acacia' },
+  // Logs — bark on the four sides, end-grain on top and bottom. The
+  // 3D renderer wires up the multi-face material in canvas3d.js
+  // (getMaterial3D). The picker icon shows the bark texture.
+  birch_log:    { src: _tex('log_birch'),         name: 'Birch Log'    },
+  spruce_log:   { src: _tex('log_spruce'),        name: 'Spruce Log'   },
+  jungle_log:   { src: _tex('log_jungle'),        name: 'Jungle Log'   },
+  acacia_log:   { src: _tex('log_acacia'),        name: 'Acacia Log'   },
+  dark_oak_log: { src: _tex('log_big_oak'),       name: 'Dark Oak Log' },
 
   // ===== LIGHT ============================================================
   glowstone:     { src: _tex('glowstone'),         name: 'Glowstone' },

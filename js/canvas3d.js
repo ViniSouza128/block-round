@@ -38,6 +38,18 @@ let voxelEdges3D  = null;
    toggleEdges3D() can flip the edge overlay without rebuilding the
    voxel mesh (and therefore without restarting any sand/gravel fall). */
 let _lastVoxels3D = null, _lastDims3D = null;
+
+/* Geometry signature — concatenation of every state field that, if changed,
+   forces a fresh voxel mesh. Anything not in this list (camera ops, edge
+   overlay, center cross, 2D-only flags, focus state, …) MUST NOT rebuild,
+   otherwise an in-progress sand/gravel fall gets erased. */
+let _lastGeomSig3D = null;
+function _geomSig3D(){
+  return [
+    state.shape, state.size, state.width, state.height, state.depth,
+    state.cut, state.axis, state.render, state.algo, state.mcBlock, state.mode
+  ].join('|');
+}
 let distance3D = 70;
 let theta3D = Math.PI / 4;
 let phi3D = Math.PI / 3;
@@ -69,34 +81,56 @@ function getTexture3D(key){
   _texCache.set(key, tex);
   return tex;
 }
+/* Multi-face blocks. In real Minecraft a lot of blocks render different
+   textures on top/sides/bottom — these are the ones we wire up here.
+   The face order Three.js expects on a BoxGeometry is
+       [+X, -X, +Y, -Y, +Z, -Z]
+   i.e. [right, left, top, bottom, front, back]. For most "natural"
+   blocks we want [side, side, top, bottom, side, side]. Textures come
+   straight from the Mojang bedrock-samples drop into textures.js. */
+const MULTI_FACE_3D = {
+  // [+X, -X, +Y, -Y, +Z, -Z] keyed against MC_TEX entries.
+  grass:        ['grass_side', 'grass_side', 'grass', 'dirt', 'grass_side', 'grass_side'],
+  oak_log:      ['oak_log', 'oak_log', 'oak_log_top', 'oak_log_top', 'oak_log', 'oak_log'],
+  birch_log:    ['log_birch', 'log_birch', 'log_birch_top', 'log_birch_top', 'log_birch', 'log_birch'],
+  spruce_log:   ['log_spruce', 'log_spruce', 'log_spruce_top', 'log_spruce_top', 'log_spruce', 'log_spruce'],
+  jungle_log:   ['log_jungle', 'log_jungle', 'log_jungle_top', 'log_jungle_top', 'log_jungle', 'log_jungle'],
+  acacia_log:   ['log_acacia', 'log_acacia', 'log_acacia_top', 'log_acacia_top', 'log_acacia', 'log_acacia'],
+  dark_oak_log: ['log_big_oak', 'log_big_oak', 'log_big_oak_top', 'log_big_oak_top', 'log_big_oak', 'log_big_oak'],
+  // Pumpkin: stem on top, plain-side on the 4 sides, stem on bottom too.
+  // (Carved-pumpkin face is `pumpkin_face_off`; we use the plain side here
+  // since the picker shows just "pumpkin" without a directional face.)
+  pumpkin:      ['pumpkin_side', 'pumpkin_side', 'pumpkin_top', 'pumpkin_top', 'pumpkin_side', 'pumpkin_side'],
+  // Hay & Bone: end-grain on top/bottom, bark-like side on the 4 sides.
+  hay:          ['hay_block_side', 'hay_block_side', 'hay_block_top', 'hay_block_top', 'hay_block_side', 'hay_block_side'],
+  bone:         ['bone_block_side', 'bone_block_side', 'bone_block_top', 'bone_block_top', 'bone_block_side', 'bone_block_side'],
+  // Melon: striped top/bottom, plain green side around.
+  melon:        ['melon_side', 'melon_side', 'melon_top', 'melon_top', 'melon_side', 'melon_side'],
+  // Quartz: smooth top, fluted side, smooth bottom (different from top).
+  quartz:       ['quartz_block_side', 'quartz_block_side', 'quartz_block_top', 'quartz_block_bottom', 'quartz_block_side', 'quartz_block_side'],
+  // Sandstone: smooth cap on top, chiselled side, smooth base on bottom.
+  sandstone:    ['sandstone', 'sandstone', 'sandstone_top', 'sandstone_bottom', 'sandstone', 'sandstone'],
+};
+
 /* Returns either a single material or an array of six materials so a single
-   BoxGeometry can use distinct textures per face. The face order Three.js
-   expects is [+X, -X, +Y, -Y, +Z, -Z] — i.e. right, left, top, bottom,
-   front, back. Multi-face blocks (grass, oak_log, …) plus alpha blocks
-   (glass, ice) get their own cached entries. */
+   BoxGeometry can render distinct textures per face. Multi-face entries
+   come from MULTI_FACE_3D above; alpha blocks (glass, ice) get an alphaTest
+   material; everything else gets a plain single-texture Lambert. */
 function getMaterial3D(key){
   if (_matCache.has(key)) return _matCache.get(key);
 
-  // Grass block: green on top, dirt on bottom, mossy side on the four sides
-  if (key === 'grass'){
-    const top    = new THREE.MeshLambertMaterial({ map: getTexture3D('grass') });
-    const side   = new THREE.MeshLambertMaterial({ map: getTexture3D('grass_side') });
-    const bottom = new THREE.MeshLambertMaterial({ map: getTexture3D('dirt') });
-    const mats = [side, side, top, bottom, side, side];
+  if (MULTI_FACE_3D[key]){
+    const faceTextures = MULTI_FACE_3D[key];
+    const mats = faceTextures.map(texKey => new THREE.MeshLambertMaterial({
+      map: getTexture3D(texKey),
+    }));
     _matCache.set(key, mats);
     return mats;
   }
 
-  // Oak log: bark on the 4 sides, end-grain on top & bottom
-  if (key === 'oak_log'){
-    const side = new THREE.MeshLambertMaterial({ map: getTexture3D('oak_log') });
-    const end  = new THREE.MeshLambertMaterial({ map: getTexture3D('oak_log_top') });
-    const mats = [side, side, end, end, side, side];
-    _matCache.set(key, mats);
-    return mats;
-  }
-
-  // Alpha-channel blocks: keep transparency so panes/cracks show through.
+  // Glass / Ice — alphaTest keeps panes see-through while the frame stays
+  // solid. The actual same-material face culling for "MC-style" rendering
+  // happens in buildTransparentMesh() in update3D.
   if (key === 'glass' || key === 'ice'){
     const tex = getTexture3D(key);
     const mat = new THREE.MeshLambertMaterial({
@@ -157,10 +191,10 @@ function updateCamera3D(){
   scheduleRender3D();
 }
 function resetCamera3D(){ theta3D = Math.PI / 4; phi3D = Math.PI / 3; autoZoom3D(); }
-/* Fit the figure's bounding sphere into the camera frustum with a small
-   margin. The bounding-sphere radius is half the box-diagonal; needed
-   distance is R / sin(fov/2). Use the more-constrained of vertical and
-   horizontal FOV so wide aspect-ratio frames don't crop tall ellipsoids. */
+/* Fit the projected silhouette of the bounding box at the current orbit
+   angle. Tighter than fitting the bounding sphere — flat ellipsoids
+   (e.g. 16 × 9 × 16) end up filling the frame instead of leaving an
+   obvious black halo around them. */
 function autoZoom3D(){
   if (!camera3D) return;
   const isEllipse = state.shape === 'ellipse';
@@ -168,14 +202,34 @@ function autoZoom3D(){
   const Dy = isEllipse ? state.height : state.size;
   const Dz = isEllipse ? state.depth : state.size;
 
-  const R = 0.5 * Math.sqrt(Dx*Dx + Dy*Dy + Dz*Dz);
+  const dir = new THREE.Vector3(
+    Math.sin(phi3D) * Math.cos(theta3D),
+    Math.cos(phi3D),
+    Math.sin(phi3D) * Math.sin(theta3D)
+  );
+  const view = dir.clone().negate();
+  const worldUp = new THREE.Vector3(0, 1, 0);
+  const right = new THREE.Vector3().crossVectors(view, worldUp);
+  if (right.lengthSq() < 1e-6) right.set(1, 0, 0);
+  right.normalize();
+  const up = new THREE.Vector3().crossVectors(right, view).normalize();
+
+  const hx = Dx / 2, hy = Dy / 2, hz = Dz / 2;
+  let maxR = 0, maxU = 0;
+  const corner = new THREE.Vector3();
+  for (const sx of [-1, 1]) for (const sy of [-1, 1]) for (const sz of [-1, 1]){
+    corner.set(sx * hx, sy * hy, sz * hz);
+    const r = Math.abs(corner.dot(right));
+    const u = Math.abs(corner.dot(up));
+    if (r > maxR) maxR = r;
+    if (u > maxU) maxU = u;
+  }
+
   const vFov = camera3D.fov * Math.PI / 180;
   const hFov = 2 * Math.atan(Math.tan(vFov / 2) * camera3D.aspect);
-  const distV = R / Math.sin(vFov / 2);
-  const distH = R / Math.sin(hFov / 2);
-  // No artificial floor — small ellipsoids should let the camera get
-  // genuinely close so the figure fills the frame proportionally.
-  distance3D = Math.max(2, Math.max(distV, distH) * 1.10);
+  const distV = maxU / Math.tan(vFov / 2);
+  const distH = maxR / Math.tan(hFov / 2);
+  distance3D = Math.max(2, Math.max(distV, distH) * 1.15);
   updateCamera3D();
 }
 
@@ -187,6 +241,63 @@ function disposeVoxelGroup(){
     // Materials are cached in _matCache / _wireMat — don't dispose per rebuild
   });
   voxelGroup3D = null;
+}
+
+/* Minecraft-style transparent block rendering. For glass / ice voxels we
+   build ONE merged BufferGeometry per material containing only the faces
+   that are NOT shared with another voxel of the same material:
+     • Two adjacent glass blocks share an internal face — both faces
+       culled, so the boundary between them disappears (just like MC).
+     • A glass voxel with air on one side keeps that face — you can see
+       the pane / frame.
+     • Air-separated glass blocks still each keep their facing faces, so
+       the user sees through the front pane to the back one's surface,
+       not into a hollow interior.
+   alphaTest:0.5 in the material then discards the panes inside the
+   frame texture, leaving the frame solid and the panes see-through. */
+function buildTransparentMesh(voxels, blockKey, cx, cy, cz){
+  if (!voxels.length) return null;
+  const set = new Set();
+  const sk = (x, y, z) => x + ',' + y + ',' + z;
+  for (const v of voxels) set.add(sk(v.x, v.y, v.z));
+
+  // Per face: normal, then four quad corners in CCW order seen from
+  // outside the cube. We emit two triangles per face below.
+  const FACES = [
+    { n:[ 1, 0, 0], q:[[ .5,-.5, .5],[ .5, .5, .5],[ .5, .5,-.5],[ .5,-.5,-.5]] }, // +X
+    { n:[-1, 0, 0], q:[[-.5,-.5,-.5],[-.5, .5,-.5],[-.5, .5, .5],[-.5,-.5, .5]] }, // -X
+    { n:[ 0, 1, 0], q:[[-.5, .5,-.5],[ .5, .5,-.5],[ .5, .5, .5],[-.5, .5, .5]] }, // +Y
+    { n:[ 0,-1, 0], q:[[-.5,-.5, .5],[ .5,-.5, .5],[ .5,-.5,-.5],[-.5,-.5,-.5]] }, // -Y
+    { n:[ 0, 0, 1], q:[[-.5,-.5, .5],[-.5, .5, .5],[ .5, .5, .5],[ .5,-.5, .5]] }, // +Z
+    { n:[ 0, 0,-1], q:[[ .5,-.5,-.5],[ .5, .5,-.5],[-.5, .5,-.5],[-.5,-.5,-.5]] }, // -Z
+  ];
+  const UV = [[0,0],[0,1],[1,1],[1,0]];
+
+  const positions = [];
+  const uvs = [];
+  const normals = [];
+  for (const v of voxels){
+    for (const f of FACES){
+      const nx = v.x + f.n[0], ny = v.y + f.n[1], nz = v.z + f.n[2];
+      if (set.has(sk(nx, ny, nz))) continue; // shared internal face — cull
+      // Triangulate the quad as (0,1,2) + (0,2,3).
+      const tri = [0,1,2, 0,2,3];
+      for (let i = 0; i < 6; i++){
+        const idx = tri[i];
+        const c = f.q[idx];
+        positions.push(v.x + c[0] - cx, v.y + c[1] - cy, v.z + c[2] - cz);
+        uvs.push(UV[idx][0], UV[idx][1]);
+        normals.push(f.n[0], f.n[1], f.n[2]);
+      }
+    }
+  }
+  if (!positions.length) return null;
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geo.setAttribute('uv',       new THREE.Float32BufferAttribute(uvs, 2));
+  geo.setAttribute('normal',   new THREE.Float32BufferAttribute(normals, 3));
+  return new THREE.Mesh(geo, getMaterial3D(blockKey));
 }
 
 /* Returns a single LineSegments containing the 12 cube edges of every
@@ -213,8 +324,14 @@ function buildVoxelEdges3D(voxels, cx, cy, cz){
   }
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  // Sand/gravel get a much fainter outline (25 % of the usual opacity)
+  // because the falling animation reads better when the cubes don't
+  // carry strong outlines — the grain texture itself sells the look.
+  const fadeBlocks = new Set(['sand', 'gravel']);
+  const baseOpacity = 0.55;
+  const opacity = fadeBlocks.has(state.mcBlock) ? baseOpacity * 0.25 : baseOpacity;
   const mat = new THREE.LineBasicMaterial({
-    color: 0x1a0e04, transparent: true, opacity: 0.55,
+    color: 0x1a0e04, transparent: true, opacity,
   });
   return new THREE.LineSegments(geo, mat);
 }
@@ -406,6 +523,18 @@ function _fall3DTick(cx, cy, cz){
 
 function update3D(){
   if (!_frame3DReady) return;
+  // DEFINITIVE sand-fall guard. update3D() is the only call path that
+  // tears down + rebuilds the voxel mesh. If the geometry signature
+  // hasn't actually changed, we short-circuit before the rebuild, so
+  // any click/drag/dblclick interaction can never accidentally erase
+  // an in-progress (or already-completed) sand or gravel fall.
+  const sig = _geomSig3D();
+  if (_lastGeomSig3D === sig && voxelGroup3D){
+    scheduleRender3D();
+    return;
+  }
+  _lastGeomSig3D = sig;
+
   disposeVoxelGroup();
   disposeCenterCross();
   _fall3DReset();
@@ -424,19 +553,36 @@ function update3D(){
   const geom = new THREE.BoxGeometry(1, 1, 1);
   const cx = (Dx - 1) / 2, cy = (Dy - 1) / 2, cz = (Dz - 1) / 2;
 
-  // Per-voxel mesh with the block's textured material. Wireframe is no
-  // longer a render style — the Grid corner button toggles the
-  // edges-overlay LineSegments below.
   const ext = computeVoxelColumnExtremes(voxels, Dx, Dz);
+
+  // Two render passes:
+  //   1. Transparent voxels (glass / ice) — built as a single merged
+  //      BufferGeometry per material with internal faces culled, so
+  //      adjacent same-material blocks read as a single solid pane
+  //      with no doubled seam (matches MC's actual rendering).
+  //   2. Everything else — per-voxel Mesh as before, also collected
+  //      so the sand/gravel fall animation can mutate their positions.
+  const transparentKeys = new Set(['glass', 'ice']);
+  const transparentVoxels = new Map();   // key → voxels[]
   const meshes = [];
   for (let i = 0; i < voxels.length; i++){
     const v = voxels[i];
-    const mat = getMaterial3D(pickBlockForVoxel(v, ext, Dz));
+    const blockKey = pickBlockForVoxel(v, ext, Dz);
+    if (transparentKeys.has(blockKey)){
+      if (!transparentVoxels.has(blockKey)) transparentVoxels.set(blockKey, []);
+      transparentVoxels.get(blockKey).push(v);
+      continue;
+    }
+    const mat = getMaterial3D(blockKey);
     const mesh = new THREE.Mesh(geom, mat);
     mesh.position.set(v.x - cx, v.y - cy, v.z - cz);
     voxelGroup3D.add(mesh);
     meshes.push(mesh);
   }
+  transparentVoxels.forEach((vs, key) => {
+    const m = buildTransparentMesh(vs, key, cx, cy, cz);
+    if (m) voxelGroup3D.add(m);
+  });
   if (FALL3D_BLOCKS.has(state.mcBlock)){
     _fall3DStart(voxels, meshes, 'mesh');
     _fall3DRaf = requestAnimationFrame(() => _fall3DTick(cx, cy, cz));
