@@ -783,8 +783,22 @@ const CREEPER_PITCH_CLAMP = Math.PI / 3;
 // at the user, the walk state machine freezes. After the stare
 // ends, the walk resumes with a brief pause before the next step
 // — feels like the creeper "catches its breath" after eye contact.
-const CREEPER_WALK_RANGE        = 1;     // ±1 cells → 3×3 footprint
-const CREEPER_WALK_SPEED_BPS    = 0.4;   // blocks per second (slow, deliberate)
+// Grid radius (in cell indices) and cell pitch in world units. The grid
+// is still 3×3 cells, but each cell is only CELL_SIZE = 0.6 blocks
+// wide — so the footprint shrinks from a ±1-block square to ±0.6-block
+// square. That kills the "creeper sliding too fast for its legs" feel
+// reported visually: per leg cycle the body now covers 60 % of the
+// world distance it used to.
+//
+// Speed is intentionally co-scaled with cell size (0.4 → 0.24 b/s)
+// so the cardinal step duration stays at the previous 2.5 s:
+//     duration = distance / speed = 0.6 / 0.24 = 2.5 s
+// The leg gait is synced to step progress (one sine cycle per step),
+// so equal step duration means EQUAL leg-animation speed — exactly
+// the constraint the user asked for.
+const CREEPER_WALK_RANGE        = 1;     // ±1 cell indices → 3×3 grid
+const CREEPER_WALK_CELL_SIZE    = 0.6;   // world units per cell (was implicitly 1)
+const CREEPER_WALK_SPEED_BPS    = 0.24;  // co-scaled so duration is unchanged
 const CREEPER_WALK_PAUSE_MIN_S  = 0.4;   // shortest dwell at a cell
 const CREEPER_WALK_PAUSE_MAX_S  = 1.0;   // longest dwell at a cell
 const CREEPER_WALK_LEG_AMP_DEG  = 18;    // ±° leg swing while a step is in flight
@@ -942,15 +956,22 @@ function _creeperAnimTick(){
       // random neighbour of the rounded current cell as the next
       // target and switch to 'walk'.
       if (phaseT >= _creeperWalkPhaseDur){
-        const cx = Math.round(_creeperPosX);
-        const cz = Math.round(_creeperPosZ);
-        const [tx, tz] = _pickCreeperNeighbour(cx, cz);
+        // Convert the current world-space position to the nearest cell
+        // INDEX so the neighbour-pick stays in integer-grid logic; the
+        // returned indices are converted back to world units via
+        // CELL_SIZE for the lerp endpoints. This split lets us keep
+        // _pickCreeperNeighbour purely combinatorial (validates ±RANGE
+        // on integer cells) while the actual rendered displacement
+        // shrinks with CELL_SIZE.
+        const cxIdx = Math.round(_creeperPosX / CREEPER_WALK_CELL_SIZE);
+        const czIdx = Math.round(_creeperPosZ / CREEPER_WALK_CELL_SIZE);
+        const [tiIdx, tjIdx] = _pickCreeperNeighbour(cxIdx, czIdx);
         _creeperOriginX = _creeperPosX;  // start the lerp from the actual position
         _creeperOriginZ = _creeperPosZ;  // (may not be a grid cell after a stare)
-        _creeperTargetX = tx;
-        _creeperTargetZ = tz;
-        const dx = tx - _creeperOriginX;
-        const dz = tz - _creeperOriginZ;
+        _creeperTargetX = tiIdx * CREEPER_WALK_CELL_SIZE;
+        _creeperTargetZ = tjIdx * CREEPER_WALK_CELL_SIZE;
+        const dx = _creeperTargetX - _creeperOriginX;
+        const dz = _creeperTargetZ - _creeperOriginZ;
         _creeperWalkYaw      = Math.atan2(dx, dz);
         _creeperWalkPhase    = 'walk';
         _creeperWalkPhaseStartT = now;
