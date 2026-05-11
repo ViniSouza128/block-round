@@ -221,48 +221,45 @@ html,body{
   image-rendering:pixelated;
 }
 /* ---------- NIGHT MODE -----------------------------------------------------
-   The night theme dims and slightly cools the WHOLE site, not just the
-   canvas sky. It's implemented in three layered tricks:
+   Selective darkening — we tint the background surfaces only and leave
+   text, slider thumbs, the topbar's yellow icons, and the block tiles
+   100 % intact (the tiles ARE the block textures the user is picking
+   from; dimming them would break the picker).
 
-   1. A `filter:` on the body — `brightness(0.7) saturate(0.85)
-      hue-rotate(-8deg)` — knocks down every texture-backed surface
-      (oak topbar, stone panels, picker strip, dirt sliders) without
-      having to override each one's `background:` rule.
-   2. A `::after` overlay on `.app` paints a translucent navy wash
-      on top of the dimmed surfaces, pushing them toward the night
-      colour palette (the filter alone leaves them grey-ish brown).
-   3. The canvas-frame gets its own bright navy gradient AND opts out
-      of the body filter (compensated to ~1.0 brightness) so it
-      reads as actual night sky, not muddy darkness. */
-body.theme-night{
-  filter:brightness(0.70) saturate(0.85) hue-rotate(-8deg);
-}
-/* Translucent navy wash applied above every surface inside the app. */
-body.theme-night .app{
-  position:relative;
-}
-body.theme-night .app::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:rgba(8, 14, 40, 0.28);
-  pointer-events:none;
-  z-index:1;
-}
-/* Keep the canvas / topbar / actions interactive — z-index pulls them
-   above the overlay so clicks land on the real DOM elements. */
+   How it's done:
+     • No global `filter:` on body. Filters cascade onto everything
+       including text + tile imagery, which was the previous problem.
+     • Each texture-backed surface (.topbar, .pill-row, .slider-box,
+       .cut-row, .mc-list, .info-chip) gets an EXTRA top-stacked
+       gradient layer when body.theme-night is on. The gradient is a
+       solid translucent navy, so it darkens and cool-tints the
+       texture beneath without touching foreground content.
+     • Canvas frame itself gets the deep-navy sky gradient.
+     • The MC block tiles inside .mc-list are explicitly excluded so
+       the picker imagery stays bright and readable. */
+/* Inset box-shadow paints a translucent navy slab INSIDE the element
+   on top of its background but BEHIND any child content — so the
+   texture darkens while text, sliders, icons and block tiles stay
+   100 % readable. The 9999px spread guarantees coverage on huge
+   panels. */
 body.theme-night .topbar,
-body.theme-night .page,
-body.theme-night .toast-host{
-  position:relative;
-  z-index:2;
+body.theme-night .slider-box,
+body.theme-night .cut-row,
+body.theme-night .mc-list,
+body.theme-night .pill-row,
+body.theme-night .info-chip{
+  box-shadow:inset 0 0 0 9999px rgba(8, 14, 40, 0.55);
 }
-/* The canvas itself wants the OPPOSITE treatment — a deep navy sky
-   instead of a dimmed daytime sky. Counter-filter so it reads bright
-   and saturated against the dimmed UI chrome. */
+/* Page background gets the same wash so the dirt floor texture
+   doesn't read as bright brown next to the dimmed panels. */
+body.theme-night html, body.theme-night body{
+  background-color:rgba(8, 14, 40, 0.55);
+  background-blend-mode:multiply;
+}
+/* Canvas frame keeps its own bright night sky (the gradient overrides
+   any inset shadow we might otherwise apply). */
 body.theme-night .canvas-frame{
   background:linear-gradient(to bottom,#0a0f24 0%,#1a2050 55%,#2a2e6a 100%);
-  filter:brightness(1.45) saturate(1.15);
 }
 /* Day / night toggle icons — only one shows at a time. */
 .icon-btn[data-act="theme"] .sun-ico,
@@ -312,8 +309,14 @@ body.mode3d .three-canvas{display:block;}
 }
 .c-btn svg{width:18px; height:18px; image-rendering:auto;}
 
+/* Floats above the corner so opening / closing it never shifts the
+   `i` button up or down — the button is anchored to the bottom-left
+   corner of the canvas and stays there regardless of chip state.
+   `bottom: 100%` places the chip directly above the button; the small
+   gap is the chip's 6px margin. */
 .info-chip{
-  display:none; margin-top:4px;
+  display:none;
+  position:absolute; left:0; bottom:100%; margin-bottom:6px;
   padding:9px 13px;
   background:url('textures/stone.png') center/24px;
   border:3px solid #3a2410; outline:1px solid #1a0e04; outline-offset:-1px;
@@ -321,6 +324,7 @@ body.mode3d .three-canvas{display:block;}
   font-size:12px; line-height:1.6; color:#FFF4D0;
   font-family:'JetBrains Mono',monospace;
   text-shadow:1px 1px 0 #1a0e04;
+  z-index:6;
 }
 .info-chip.open{display:block;}
 .info-chip div{white-space:nowrap;}
@@ -595,9 +599,14 @@ body.mode3d .three-canvas{display:block;}
 .toggle-sw input:checked + .slider{background:#3a2410;}
 .toggle-sw input:checked + .slider::before{transform:translateX(20px); background:#FFEC4F;}
 
-/* ---------- TOAST ------------------------------------------------------ */
+/* ---------- TOAST ------------------------------------------------------
+   The toast host lives INSIDE the .canvas-frame so messages overlay the
+   bottom of the canvas instead of being pinned at the page bottom (where
+   the responsive layout below pushed them off-screen on mobile and made
+   them easy to miss). Absolute positioning + pointer-events:none means
+   the toast never affects layout flow and never blocks canvas clicks. */
 .toast-host{
-  position:fixed; bottom:18px; left:50%; transform:translateX(-50%);
+  position:absolute; bottom:14px; left:50%; transform:translateX(-50%);
   z-index:300; display:flex; flex-direction:column-reverse; gap:8px;
   pointer-events:none;
 }

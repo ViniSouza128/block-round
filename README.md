@@ -53,12 +53,30 @@ Threshold) are available.
     slider is ignored there since the user can't edit it in that mode).
   - Block must be **Grass Block**, **Dirt** or **Random** (random's
     top cell is always grass-stamped). Other blocks do not trigger.
-  - 3D: tree respects the X cut (sliced laterally with the figure) and
-    vanishes the moment the Y cut leaves its maximum. The camera
-    recenters so the tree never crops at the top — the autoZoom adds
-    the tree's height to the bounding-box AND lifts the lookAt point.
+  - 3D cuts: **X** and **diagonal** slice the tree block-by-block in
+    sync with the figure (lateral trim), while **Y** clears it entirely
+    (its base sits above the figure top — any vertical trim erases it).
+    The camera recenters so the tree never crops at the top — autoZoom
+    adds the tree's height to the bounding-box AND lifts the lookAt.
   - 2D: extra rows are reserved above the figure so the tree fits
     with breathing room; the figure shifts downward accordingly.
+- **TNT creeper on slider value 5** — perches a tiny voxel creeper
+  (made entirely of TNT blocks) on top of the figure. **3D only.**
+  - 4×4 footprint, 11 blocks tall: four corner legs (1×3×1), a 2×2×4
+    body cuboid, then a full 4×4×4 head cube. The head's overhang past
+    the slimmer body is what makes the silhouette read as a creeper.
+  - Sphere mode triggers on `state.size === 5`.
+  - Ellipsoid mode triggers on any of `state.width / state.height /
+    state.depth === 5`.
+  - Block must be **TNT** — fits the "explosive duo" theme; on any
+    other block the trigger is ignored.
+  - 3D cuts behave exactly like the tree's: X / diagonal slice it
+    block-by-block; Y cut < Dy clears it (its base sits above the
+    figure top). Camera autoZoom lifts the bounding box by the
+    creeper's 11-block height so nothing crops.
+  - Creeper voxels are intentionally **excluded from the info-chip
+    block count**, mirroring the tree's convention — the count reflects
+    only the figure blocks the user would gather to build it.
 - **TNT fuse sound** — picking the TNT tile plays the real Minecraft
   fuse sample (vanilla `random/fuse.ogg`, embedded as a base64 OGG
   data URI in `js/sounds.js`). Switching to any other block before
@@ -69,14 +87,20 @@ Threshold) are available.
   Minecraft "dig" sample for its material (stone, wood, grass, sand,
   gravel, cloth, glass, snow). Eight vanilla OGGs (~52 KB raw) are
   embedded as data URIs in `js/sounds.js`.
-- **Day / night mood (site-wide)** — the topbar sun/moon button (and
-  the `T` shortcut) dims the whole interface, not just the canvas.
-  Implementation: a `filter: brightness(0.70) saturate(0.85)
-  hue-rotate(-8deg)` on `body.theme-night`, plus a translucent navy
-  wash overlay on `.app::after`, plus a counter-filter on the canvas
-  itself so the sky stays bright and saturated against the dimmed
-  UI chrome. Emissive blocks (glowstone, sea lantern, shroomlight,
-  magma, crying obsidian) really pop against the night canvas.
+- **Day / night mood (selective dimming)** — the topbar sun/moon
+  button (and the `T` shortcut) tints the background surfaces only
+  — text, slider thumbs, the topbar's yellow icons, and the block
+  picker tiles all stay at full brightness so they remain readable
+  and pickable. Implementation: rather than a global `filter:` on
+  body (which used to darken everything, including text and tiles),
+  each texture-backed surface (`.topbar`, `.pill-row`, `.slider-box`,
+  `.cut-row`, `.mc-list`, `.info-chip`) gets an `inset 0 0 0 9999px`
+  translucent navy `box-shadow` — the inset shadow paints inside the
+  panel above its texture but **behind** any child content, so the
+  texture darkens while children stay 100% bright. The canvas frame
+  swaps its bright sky gradient for a deep-navy one. Emissive blocks
+  (glowstone, sea lantern, shroomlight, magma, crying obsidian)
+  really pop against the night canvas.
 
 ## Controls
 
@@ -113,9 +137,17 @@ Threshold) are available.
   you've selected any tile, skipping the internal-only entries.
 - **Info chip block count** — the `i` corner button shows a Blocks
   row formatted as `total (stacks × 64 + remainder)`, exactly the
-  way Minecraft inventory stacks work. Tree easter-egg blocks are
-  excluded so the number reflects what the user actually needs to
-  collect to build the figure.
+  way Minecraft inventory stacks work. Easter-egg blocks (oak tree,
+  TNT creeper) are excluded so the number reflects what the user
+  actually needs to collect to build the figure. The chip itself
+  **floats above the button**: opening or closing it does not shift
+  the `i` button up or down, so the button stays anchored to the
+  bottom-left of the canvas.
+- **Toast messages overlay the canvas** — the floating "Night on /
+  off", "Undo", "Redo" etc. labels are positioned absolutely over
+  the bottom of the canvas frame, not below the page. They never
+  push layout (so responsive flow stays stable) and they sit in a
+  place the user is already looking at.
 - **PNG export** of a 2D figure now includes the oak-tree easter
   egg when it's active (when one of the size sliders sits at 15).
 - **Center guides** in 3D draw a translucent yellow cross along all

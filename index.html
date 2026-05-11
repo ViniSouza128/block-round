@@ -108,6 +108,11 @@
                 <div>Block: <b data-info-algo>Random</b></div>
               </div>
             </div>
+            <!-- Toast host is inside the canvas frame so the floating
+                 messages overlay the canvas bottom instead of being
+                 anchored at the page bottom (which is off-screen on
+                 mobile / responsive layouts and easy to miss). -->
+            <div class="toast-host"></div>
           </div>
 
           <!-- Right pill row: algorithms only (Block Round doesn't have 3D styles) -->
@@ -222,9 +227,6 @@
     </div>
 
   </div>
-
-  <!-- TOAST -->
-  <div class="toast-host"></div>
 
 </div>
 
