@@ -345,10 +345,15 @@ function _visibleBounds3D(){
   const cyW = (yMax - Dy) / 2;
   const czW = 0;
 
-  // Tree easter-egg extends only upward (in +Y). Add the extension to
-  // the +Y side of the bbox so the camera pulls back AND looks higher.
-  const treeExtra = (typeof treeBoundsExtraY === 'function') ? treeBoundsExtraY() : 0;
-  const yTop = cyW + hy + treeExtra;
+  // Easter-egg extensions (tree, creeper) only extend upward (in +Y).
+  // Add whichever is active to the +Y side of the bbox so the camera
+  // pulls back AND looks higher. Only one easter egg can be active at
+  // a time (their trigger blocks differ — Grass/Dirt/Random vs TNT),
+  // so a plain max() correctly picks the active one.
+  const treeExtra    = (typeof treeBoundsExtraY    === 'function') ? treeBoundsExtraY()    : 0;
+  const creeperExtra = (typeof creeperBoundsExtraY === 'function') ? creeperBoundsExtraY() : 0;
+  const eggExtra = Math.max(treeExtra, creeperExtra);
+  const yTop = cyW + hy + eggExtra;
   const yBot = cyW - hy;
   const finalCy = (yTop + yBot) / 2;
   const finalHy = (yTop - yBot) / 2;
@@ -432,19 +437,24 @@ function treeBoundsExtraY(){
 function buildEasterEggTree(Dx, Dy, Dz, cx, cy, cz, geom){
   if (!treeIsActive()) return;
   // Y cut active → tree disappears (its base is above the figure).
-  // Tree disappears whenever the figure is trimmed downward from the
-  // top: Y cut below max OR diagonal cut below max (since the diag
-  // cut also removes the top-front-right corner where the tree sits).
+  // Y cut active → tree disappears wholesale (its base sits ABOVE the
+  // figure top, so any vertical trim erases it). X and Diag cuts let
+  // the tree survive but slice individual blocks like the figure does.
   if (state.axis === 'y' && state.cut < Dy) return;
-  if (state.axis === 'diag' && state.cut < (Dx + Dy)) return;
 
-  const cutXLimit = state.axis === 'x' ? state.cut : Dx;
+  // Per-block slice limits. Each tree voxel is dropped if it falls past
+  // the active cut, matching how the figure itself is sliced:
+  //   X cut    → drop tree voxels at lx >= cutXLimit
+  //   diag cut → drop tree voxels at lx + ly >= cutDiagLimit
+  const cutXLimit    = state.axis === 'x'    ? state.cut : Dx;
+  const cutDiagLimit = state.axis === 'diag' ? state.cut : Infinity;
   const treeCX = Math.floor((Dx - 1) / 2);
   const treeCZ = Math.floor((Dz - 1) / 2);
   const baseY  = Dy;  // first voxel above the topmost figure voxel
 
   const addBlock = (lx, ly, lz, matKey) => {
-    if (lx < 0 || lx >= cutXLimit) return;
+    if (lx < 0 || lx >= cutXLimit)  return;   // X cut
+    if (lx + ly >= cutDiagLimit)    return;   // diag cut
     const mat = getMaterial3D(matKey);
     const mesh = new THREE.Mesh(geom, mat);
     mesh.position.set(lx - cx, ly - cy, lz - cz);
@@ -476,6 +486,105 @@ function buildEasterEggTree(Dx, Dy, Dz, cx, cy, cz, geom){
   for (const L of LAYERS){
     for (const [dx, dz] of L.pat){
       addBlock(treeCX + dx, layer0base + L.dy, treeCZ + dz, 'oak_leaves');
+    }
+  }
+}
+
+/* ---------- EASTER EGG: TNT CREEPER -------------------------------------
+   Spawns a small voxel creeper on top of the 3D figure when the user
+   builds an iconic Minecraft moment: a TNT figure with a "5" on any
+   active size slider. Built entirely out of TNT blocks (matching the
+   "explosive duo" theme — the creeper is about to do its thing).
+
+   Trigger rules (mirrors the oak-tree easter egg's structure):
+     • Block must be TNT (no creeper on stone, grass, etc).
+     • Sphere    → state.size === 5.
+     • Ellipsoid → any of state.width / state.height / state.depth === 5.
+
+   Geometry — 4×4 footprint, 11 blocks tall, classic creeper silhouette:
+     y=0..2   four 1×1×3 corner-legs at the 4×4 base corners
+     y=3..6   2×2 (xz) × 4 tall body, centred above the legs
+     y=7..10  4×4×4 head cube spanning the full footprint
+   The head's full-width overhang above the slimmer body is what makes
+   the silhouette read as a creeper.
+
+   Cut behaviours: identical to the tree.
+     • Y cut < Dy → creeper disappears (base sits ABOVE the figure top).
+     • X cut      → individual blocks at lx >= cut are skipped.
+     • Diag cut   → individual blocks at lx+ly >= cut are skipped.
+
+   Info-chip block count: creeper voxels are added AFTER the chip
+   counter is locked in update3D(), so the displayed count reflects the
+   figure only — same convention as the tree. */
+const CREEPER_W = 4;
+const CREEPER_D = 4;
+const CREEPER_H = 11;
+const CREEPER_LEG_H = 3;
+const CREEPER_BODY_H = 4;
+const CREEPER_HEAD_H = 4;
+
+function creeperIsActive(){
+  if (state.mcBlock !== 'tnt') return false;
+  if (state.shape === 'circle')  return state.size === 5;
+  /* ellipsoid */                return state.width === 5 || state.height === 5 || state.depth === 5;
+}
+
+function creeperBoundsExtraY(){
+  // Topmost creeper voxel sits at y = Dy + CREEPER_H - 1 in local figure
+  // coords, so it extends CREEPER_H cells above the figure's topmost row.
+  return creeperIsActive() ? CREEPER_H : 0;
+}
+
+function buildEasterEggCreeper(Dx, Dy, Dz, cx, cy, cz, geom){
+  if (!creeperIsActive()) return;
+  // Y cut active → creeper disappears wholesale (its base is ABOVE the
+  // figure). X and Diag cuts still let it survive and slice per block.
+  if (state.axis === 'y' && state.cut < Dy) return;
+
+  const cutXLimit    = state.axis === 'x'    ? state.cut : Dx;
+  const cutDiagLimit = state.axis === 'diag' ? state.cut : Infinity;
+
+  // Centre the 4×4 footprint on the figure top. Math.floor instead of
+  // round so even-Dx figures place the creeper one cell left-of-centre,
+  // which keeps it inside the figure footprint and avoids leg overhang.
+  const baseX = Math.floor((Dx - CREEPER_W) / 2);
+  const baseZ = Math.floor((Dz - CREEPER_D) / 2);
+  const baseY = Dy;
+
+  const addBlock = (lx, ly, lz) => {
+    if (lx < 0 || lx >= cutXLimit)  return;
+    if (lx + ly >= cutDiagLimit)    return;
+    const mat = getMaterial3D('tnt');
+    const mesh = new THREE.Mesh(geom, mat);
+    mesh.position.set(lx - cx, ly - cy, lz - cz);
+    voxelGroup3D.add(mesh);
+  };
+
+  // Legs — four 1×CREEPER_LEG_H×1 columns at the 4×4 base corners.
+  const legSlots = [[0, 0], [3, 0], [0, 3], [3, 3]];
+  for (const [dx, dz] of legSlots){
+    for (let i = 0; i < CREEPER_LEG_H; i++){
+      addBlock(baseX + dx, baseY + i, baseZ + dz);
+    }
+  }
+
+  // Body — 2×2 cross-section, CREEPER_BODY_H tall, centred above legs.
+  const bodyY0 = CREEPER_LEG_H;
+  for (let dy = 0; dy < CREEPER_BODY_H; dy++){
+    for (let dx = 1; dx <= 2; dx++){
+      for (let dz = 1; dz <= 2; dz++){
+        addBlock(baseX + dx, baseY + bodyY0 + dy, baseZ + dz);
+      }
+    }
+  }
+
+  // Head — solid 4×4×4 cube spanning the full footprint, on top of body.
+  const headY0 = bodyY0 + CREEPER_BODY_H;
+  for (let dy = 0; dy < CREEPER_HEAD_H; dy++){
+    for (let dx = 0; dx < CREEPER_W; dx++){
+      for (let dz = 0; dz < CREEPER_D; dz++){
+        addBlock(baseX + dx, baseY + headY0 + dy, baseZ + dz);
+      }
     }
   }
 }
@@ -887,6 +996,8 @@ function update3D(){
 
   // Easter egg: slider value 15 → small oak tree on top of the figure.
   buildEasterEggTree(Dx, Dy, Dz, cx, cy, cz, geom);
+  // Easter egg: TNT block + slider value 5 → tiny creeper on top.
+  buildEasterEggCreeper(Dx, Dy, Dz, cx, cy, cz, geom);
 
   if (effectiveEdges3D()){
     voxelEdges3D = buildVoxelEdges3D(voxels, cx, cy, cz);
