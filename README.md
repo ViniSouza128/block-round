@@ -77,30 +77,40 @@ Threshold) are available.
     8×8×8 px, body 4×12×8 px, four legs at 4×6×4 px each.
     Total height 1.625 blocks, footprint 0.5 × 0.5 block — sits
     centred on the figure's top face.
-  - **Eye-contact cycle** — every **12 s** the creeper slowly turns
-    its whole body to face the camera, holds the gaze for ~2 s, and
+  - **Eye-contact cycle** — every **9.5 s** the creeper briefly turns
+    its whole body to face the camera, holds the gaze for ~1 s, and
     eases back to neutral, all on cubic ease-in-out so the motion
     feels organic. During the gaze the head/leg micro-sway damps
     down (the creeper looks locked-on, not paused), and the
     camera-tracking is continuous — if the user orbits the camera
     while the creeper is staring, the gaze follows. Cycle plan:
-    1.5 s rise · 2 s hold · 1.5 s fall · **7 s breather**. The long
-    breather makes each new stare land as an ominous beat rather
-    than a constant tic.
+    0.75 s rise · 1 s hold · 0.75 s fall · **7 s breather**. The
+    short stare reads as a "primed" twitch, and the long breather
+    makes each new stare land as an ominous beat rather than a
+    constant tic.
+  - **Primed-swell flash** — at the same instant the body starts
+    rising, the creeper's texture flares to a bright white emissive
+    bloom and fades out over 1 second (50 ms linear attack → 950 ms
+    exponential `e⁻³ᵘ` decay; peaks at 0.75 emissive intensity so
+    the underlying skin stays readable through the bloom). This
+    simulates the visual cue real Minecraft creepers fire when they
+    lock onto a player and start their detonation countdown. The
+    pulse is hard-cleared after the 1-second window so the residual
+    glow can't leak into the long breather phase.
   - **Idle micro-motion** — between gazes, the head sways ±6°
     around Y (~0.18 Hz) and the legs rock ±4° around X in
     alternating front-back pairs (~0.5 Hz), via pivot groups so the
     head turns around its centre and legs swing from the hip joint.
   - **TNT fuse sound** — the real Minecraft TNT fuse plays at the
-    start of every stare (synchronised with the 1.5 s rise → 2 s
-    hold → 1.5 s fall arc, which sums to ~5 s — right around the
-    fuse sample's natural length). The fuse used to fire when the
-    user clicked the TNT tile, but that's been removed: the sound
-    now belongs exclusively to the creeper. Picking the TNT tile
-    just plays the generic UI click. Leaving the easter egg
-    (changing block away from TNT, or sliding off 15) cuts any
-    in-flight fuse immediately so the noise can't outlive the
-    creeper that was making it.
+    start of every stare, synchronised with the rise + flash. The
+    ~4 s fuse sample overruns the 2.5 s stare, which mirrors how a
+    real creeper's hiss continues past the detonation moment. The
+    fuse used to fire when the user clicked the TNT tile, but
+    that's been removed: the sound now belongs exclusively to the
+    creeper. Picking the TNT tile just plays the generic UI click.
+    Leaving the easter egg (changing block away from TNT, or
+    sliding off 15) cuts any in-flight fuse immediately so the
+    noise can't outlive the creeper that was making it.
   - Sphere mode triggers on `state.size === 15`.
   - Ellipsoid mode triggers on any of `state.width / state.height /
     state.depth === 15`. Coexists with the oak-tree easter egg
@@ -115,10 +125,10 @@ Threshold) are available.
 - **TNT fuse sound** — the real Minecraft fuse sample (vanilla
   `random/fuse.ogg`, embedded as a base64 OGG data URI in
   `js/sounds.js`) is now owned by the creeper easter egg above: it
-  plays at the start of every 12 s stare cycle. Picking the TNT tile
-  in the block list is silent (just the generic UI click); switching
-  away from TNT — or sliding off 15 — cuts any in-flight fuse so it
-  can't outlive the creeper.
+  plays at the start of every 9.5 s stare cycle. Picking the TNT
+  tile in the block list is silent (just the generic UI click);
+  switching away from TNT — or sliding off 15 — cuts any in-flight
+  fuse so it can't outlive the creeper.
 - **Slime jump sound** — picking the Slime Block or Honey Block tile
   plays the vanilla `mob/slime/small1.ogg` boing.
 - **Per-category place sounds** — every other tile plays the right
