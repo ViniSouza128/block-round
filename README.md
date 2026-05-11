@@ -105,21 +105,27 @@ Threshold) are available.
     The pulse is hard-cleared after the window so the glow can't
     leak into the long breather phase.
   - **Random wander (3×3)** — between stares the creeper wanders
-    around its spawn cell within a 3×3 grid (one block in every
-    direction). Each step picks a random neighbour cell (uniform
-    sample over valid neighbours — corners 3, edges 5, centre 8),
-    walks at **0.4 blocks/sec**, then dwells 0.4–1.0 s before the
-    next step. The body yaws to face the walking direction; the
-    leg gait amplitude jumps from the idle ±4° to **±18°** and its
-    phase is synced to step progress (one full sine wave per step)
-    so the legs visibly finish their stride exactly when the body
-    arrives — that's what kills the slide effect. When a stare
-    begins the walk state machine freezes; mid-step interruptions
-    keep the interpolated position so the body never snaps. When
-    the stare ends the creeper "catches its breath" with a fresh
-    short pause before resuming, and the next step uses the
-    creeper's actual interpolated position as the origin so there
-    is no teleport back to the grid.
+    around its spawn cell within a 3×3 grid. The grid is
+    **0.6 blocks per cell** (so the wander reaches ±0.6 blocks from
+    centre, not ±1) — visual feedback was that the body was
+    covering too much ground per leg cycle. Each step picks a
+    random neighbour cell (uniform sample over valid neighbours —
+    corners 3, edges 5, centre 8), walks at **0.24 blocks/sec**,
+    then dwells 0.4–1.0 s before the next step. Speed and cell
+    pitch are co-scaled so the cardinal step duration stays at
+    2.5 s — which means **leg-animation speed is unchanged** from
+    the previous tuning, only the body's per-cycle displacement
+    drops to 60 %. The body yaws to face the walking direction;
+    the leg gait amplitude jumps from the idle ±4° to **±18°** and
+    its phase is synced to step progress (one full sine wave per
+    step) so the legs visibly finish their stride exactly when the
+    body arrives — that's what kills the slide effect. When a
+    stare begins the walk state machine freezes; mid-step
+    interruptions keep the interpolated position so the body never
+    snaps. When the stare ends the creeper "catches its breath"
+    with a fresh short pause before resuming, and the next step
+    uses the creeper's actual interpolated position as the origin
+    so there is no teleport back to the grid.
   - **Idle micro-motion** — during the post-stare pauses (and the
     grace period before the first stare), the head sways ±6°
     around Y (~0.18 Hz) and the legs rock ±4° around X in
