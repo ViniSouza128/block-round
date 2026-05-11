@@ -30,8 +30,9 @@ algorithms (Euclidean, Bresenham, Threshold) are available.
 | --- | --- |
 | **Grass Block** | Top voxel of each column uses the grass texture (multi-face in 3D: green top, grass-side, dirt bottom); the rest is plain dirt. |
 | **Dirt** | Plain dirt everywhere — no grass cap. |
-| **Glass / Ice** | Render with alpha discard so the inner panes drop out and you can see through to the voxels behind. |
-| **Sand / Gravel** | After a 500 ms hold the cells fall onto an invisible floor under gravity, mirroring Minecraft physics. Works in 2D and 3D, including wireframe mode. **Soul Sand** doesn't fall (matches MC). |
+| **Glass / Ice** | MC-style rendering: faces between two adjacent same-material voxels are culled, so the figure reads as one big pane (no doubled internal frames). `alphaTest:0.5` keeps the frame solid and the panes see-through. |
+| **Multi-face blocks** | Pumpkin · Hay · Melon · Quartz · Bone · Sandstone · all wood Logs (Oak / Birch / Spruce / Jungle / Acacia / Dark Oak) render distinct textures on top, sides and bottom — matching the real Minecraft block. |
+| **Sand / Gravel** | After a 500 ms hold the cells fall onto an invisible floor under gravity, mirroring Minecraft physics. Works in 2D and 3D. Edge overlay opacity is reduced to 25 % on these blocks so the grain reads cleanly. **Soul Sand** doesn't fall (matches MC). |
 | **Random** | Procedurally tiered: grass on top of each column, dirt beneath, stone with sparse ores (coal, iron, redstone, gold, lapis, diamond, emerald, cobble), deepslate above bedrock — band boundaries wavy per column. |
 
 ## Controls
