@@ -499,15 +499,18 @@ function setupClickDelegation(){
       // though state didn't change — this is what restarts the fall.
       if (reclick && typeof _lastGeomSig3D !== 'undefined') _lastGeomSig3D = null;
       document.querySelectorAll('[data-block]').forEach(b => b.classList.toggle('active', b === t));
-      // Choose per-block click sound. Slime/Honey play their dedicated
-      // jump sample; everything else plays the right MC "place" sample
-      // for its material category; anything outside the map (e.g.
-      // 'random') falls back to the generic UI click. TNT used to play
-      // the fuse sample here, but the fuse now belongs to the creeper
-      // easter egg's stare cycle — picking the TNT tile is silent
-      // except for the place click that the category map provides.
+      // Choose per-block click sound. Special-cased blocks (TNT fuse,
+      // Slime/Honey jump) play their dedicated samples; everything
+      // else plays the right MC "place" sample for its material
+      // category; anything outside the map (e.g. 'random') falls back
+      // to the generic UI click. The TNT fuse is also fired on the
+      // creeper easter egg's stare cycle — Sfx.tnt() stops any
+      // previous fuse before starting, so the two trigger paths can
+      // coexist without ever stacking.
       if (prevBlock === 'tnt' && state.mcBlock !== 'tnt' && typeof Sfx.stopTnt === 'function') Sfx.stopTnt();
-      if ((state.mcBlock === 'slime' || state.mcBlock === 'honey') && typeof Sfx.slime === 'function'){
+      if (state.mcBlock === 'tnt' && typeof Sfx.tnt === 'function'){
+        Sfx.tnt();
+      } else if ((state.mcBlock === 'slime' || state.mcBlock === 'honey') && typeof Sfx.slime === 'function'){
         Sfx.slime();
       } else {
         const cat = BLOCK_SOUND_CATEGORY[state.mcBlock];
