@@ -300,50 +300,83 @@ function init3D(canvas){
   return true;
 }
 
-// Camera always orbits AND looks at the figure's effective centre. When
-// the tree easter egg is active the effective centre rises (the tree
-// adds extra cells above the figure), so the camera's lookAt and the
-// orbit anchor both shift up by the same amount — keeping the entire
-// composition framed instead of pushing the tree off the top of the
-// canvas.
-function _cameraLookAtY(){
-  const extra = (typeof treeBoundsExtraY === 'function') ? treeBoundsExtraY() : 0;
-  // Effective half-height of (figure + tree) above origin.
-  return extra > 0 ? (extra / 2) : 0;
-}
+/* Bounding box of the CURRENTLY-VISIBLE part of the figure, in world
+   coords (where the full figure is centred on origin). Takes the active
+   cut into account so the camera reframes when the user trims the
+   figure — without this the model drifts toward the bottom-left of
+   the canvas as the right/top is sliced away.
 
-function updateCamera3D(){
-  if (!camera3D) return;
-  const ly = _cameraLookAtY();
-  camera3D.position.x = distance3D * Math.sin(phi3D) * Math.cos(theta3D);
-  camera3D.position.y = distance3D * Math.cos(phi3D) + ly;
-  camera3D.position.z = distance3D * Math.sin(phi3D) * Math.sin(theta3D);
-  camera3D.lookAt(0, ly, 0);
-  scheduleRender3D();
-}
-function resetCamera3D(){ theta3D = Math.PI / 4; phi3D = Math.PI / 3; autoZoom3D(); }
-/* autoZoom3D — set distance3D so the bounding sphere of the figure fits
-   inside the viewport with a guaranteed margin at every rotation angle.
-   When the tree easter egg is active, the bounding box is extended
-   vertically to include the tree, so the camera pulls back AND looks
-   up to keep the entire figure-plus-tree composition in frame. */
-function autoZoom3D(){
-  if (!camera3D) return;
+   For each axis the kept range:
+     X:   [0, min(Dx, cut)-1]    when cutAxis === 'x'
+     Y:   [0, min(Dy, cut)-1]    when cutAxis === 'y'
+     diag: same as X+Y but bounded by the (x+y < cut) diagonal, which
+          we approximate via the bbox max(x) ≤ cut-1, max(y) ≤ cut-1
+          for camera-fit purposes (slight over-allocation is fine —
+          worst case the camera leaves a little extra margin).
+   Returns center + half-extent of the kept bbox in world units, plus
+   the tree's vertical extension when the easter egg is on. */
+function _visibleBounds3D(){
   const isEllipse = state.shape === 'ellipse';
   const Dx = isEllipse ? state.width  : state.size;
   const Dy = isEllipse ? state.height : state.size;
   const Dz = isEllipse ? state.depth  : state.size;
 
-  // Effective height grows when the tree easter egg is active. The
-  // tree extends upward from the figure top, so the half-height grows
-  // and the bounding sphere recenters higher (handled in lookAt).
+  let xMax = Dx, yMax = Dy;
+  if (state.axis === 'x' && state.cut < Dx)        xMax = state.cut;
+  else if (state.axis === 'y' && state.cut < Dy)   yMax = state.cut;
+  else if (state.axis === 'diag' && state.cut < (Dx + Dy)){
+    // Diagonal slice in (x, y). Both axes get clipped to (cut-something).
+    // For the bbox we use min(D, cut) on each axis, which is a tight
+    // bound when cut < min(Dx, Dy) and a loose bound when cut > one
+    // axis's dim. Either way it never under-frames.
+    xMax = Math.min(Dx, state.cut);
+    yMax = Math.min(Dy, state.cut);
+  }
+
+  // Half-extent in each direction.
+  const hx = xMax / 2;
+  const hy = yMax / 2;
+  const hz = Dz   / 2;
+
+  // Kept voxels: x ∈ [0, xMax-1] in figure coords. Each voxel renders
+  // at (x - (Dx-1)/2) in world coords. So kept voxels' world x ∈
+  // [-(Dx-1)/2, xMax-1-(Dx-1)/2]. Midpoint = (xMax - Dx)/2.
+  const cxW = (xMax - Dx) / 2;
+  const cyW = (yMax - Dy) / 2;
+  const czW = 0;
+
+  // Tree easter-egg extends only upward (in +Y). Add the extension to
+  // the +Y side of the bbox so the camera pulls back AND looks higher.
   const treeExtra = (typeof treeBoundsExtraY === 'function') ? treeBoundsExtraY() : 0;
-  const effDy = Dy + treeExtra;
+  const yTop = cyW + hy + treeExtra;
+  const yBot = cyW - hy;
+  const finalCy = (yTop + yBot) / 2;
+  const finalHy = (yTop - yBot) / 2;
 
-  // Half-diagonal of the effective AABB = radius of the tightest sphere.
-  const hx = Dx / 2, hy = effDy / 2, hz = Dz / 2;
-  const R = Math.sqrt(hx * hx + hy * hy + hz * hz);
+  return { cx: cxW, cy: finalCy, cz: czW, hx, hy: finalHy, hz };
+}
 
+/* Camera orbits AND looks at the figure's visible centre, so cuts AND
+   the tree easter egg both keep the model framed properly. */
+function updateCamera3D(){
+  if (!camera3D) return;
+  const b = _visibleBounds3D();
+  camera3D.position.x = b.cx + distance3D * Math.sin(phi3D) * Math.cos(theta3D);
+  camera3D.position.y = b.cy + distance3D * Math.cos(phi3D);
+  camera3D.position.z = b.cz + distance3D * Math.sin(phi3D) * Math.sin(theta3D);
+  camera3D.lookAt(b.cx, b.cy, b.cz);
+  scheduleRender3D();
+}
+function resetCamera3D(){ theta3D = Math.PI / 4; phi3D = Math.PI / 3; autoZoom3D(); }
+
+/* autoZoom3D — fit the cut-adjusted visible bounding box into the
+   viewport. The bounding sphere of that bbox guarantees no clipping
+   at any rotation angle. Called on figure changes and double-click
+   reset only — user wheel/pinch zoom is preserved across drags. */
+function autoZoom3D(){
+  if (!camera3D) return;
+  const b = _visibleBounds3D();
+  const R = Math.sqrt(b.hx*b.hx + b.hy*b.hy + b.hz*b.hz);
   const vFov = camera3D.fov * Math.PI / 180;
   const hFov = 2 * Math.atan(Math.tan(vFov / 2) * camera3D.aspect);
   const distV = R / Math.tan(vFov / 2);
