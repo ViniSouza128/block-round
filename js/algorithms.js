@@ -314,6 +314,31 @@ function voxelShell(Dx, Dy, Dz, mode, cutAxis, cutLimit){
   return result;
 }
 
+/* Returns EVERY kept voxel (interior + shell), respecting the cut. Used
+   by the transparent-block path in Block Round's 3D renderer: when the
+   user picks Glass / Ice in Filled mode, the renderer needs the full
+   solid volume so the interior voxels are visible THROUGH the outer
+   shell — otherwise Filled and Thin look identical because both fall
+   back to the shell-only voxel set. */
+function voxelKeptAll(Dx, Dy, Dz, cutAxis, cutLimit){
+  const rx = Dx / 2, ry = Dy / 2, rz = Dz / 2;
+  const cx = Dx / 2, cy = Dy / 2, cz = Dz / 2;
+  const result = [];
+  for (let x = 0; x < Dx; x++){
+    if (cutAxis === 'x' && x >= cutLimit) continue;
+    for (let y = 0; y < Dy; y++){
+      if (cutAxis === 'y' && y >= cutLimit) continue;
+      for (let z = 0; z < Dz; z++){
+        const ax = (x + 0.5 - cx) / rx;
+        const ay = (y + 0.5 - cy) / ry;
+        const az = (z + 0.5 - cz) / rz;
+        if (ax*ax + ay*ay + az*az <= 1) result.push({x, y, z});
+      }
+    }
+  }
+  return result;
+}
+
 function voxelVolume(Dx, Dy, Dz){
   const rx = Dx / 2, ry = Dy / 2, rz = Dz / 2;
   const cx = Dx / 2, cy = Dy / 2, cz = Dz / 2;
