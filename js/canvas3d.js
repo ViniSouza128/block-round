@@ -491,102 +491,172 @@ function buildEasterEggTree(Dx, Dy, Dz, cx, cy, cz, geom){
 }
 
 /* ---------- EASTER EGG: TNT CREEPER -------------------------------------
-   Spawns a small voxel creeper on top of the 3D figure when the user
-   builds an iconic Minecraft moment: a TNT figure with a "5" on any
-   active size slider. Built entirely out of TNT blocks (matching the
-   "explosive duo" theme — the creeper is about to do its thing).
+   Spawns a real Minecraft creeper standing on top of the 3D figure when
+   the user builds an iconic Minecraft moment: a TNT figure with a "15"
+   on any active size slider. The creeper itself is rendered with its
+   own green-mottled "creeper.png"-style skin (procedurally drawn on a
+   canvas so we don't ship a binary asset) and the iconic black face
+   on the front of the head — not built out of TNT cubes.
 
    Trigger rules (mirrors the oak-tree easter egg's structure):
      • Block must be TNT (no creeper on stone, grass, etc).
-     • Sphere    → state.size === 5.
-     • Ellipsoid → any of state.width / state.height / state.depth === 5.
+     • Sphere    → state.size === 15.
+     • Ellipsoid → any of state.width / state.height / state.depth === 15.
 
-   Geometry — 4×4 footprint, 11 blocks tall, classic creeper silhouette:
-     y=0..2   four 1×1×3 corner-legs at the 4×4 base corners
-     y=3..6   2×2 (xz) × 4 tall body, centred above the legs
-     y=7..10  4×4×4 head cube spanning the full footprint
-   The head's full-width overhang above the slimmer body is what makes
-   the silhouette read as a creeper.
+   Geometry — sub-block scale, using real Minecraft entity proportions
+   (16 px = 1 block). Six box parts:
+     head   8×8×8  px  → 0.500 × 0.500 × 0.500 blocks
+     body   4×12×8 px  → 0.250 × 0.750 × 0.500 blocks
+     leg×4  4×6×4  px  → 0.250 × 0.375 × 0.250 blocks
+   Total height = 0.375 (legs) + 0.750 (body) + 0.500 (head) = 1.625 blocks.
+   The creeper sits centred on the figure top, facing +z so the face is
+   visible at the default camera angle (theta = π/4, looking from +x+z).
 
-   Cut behaviours: identical to the tree.
-     • Y cut < Dy → creeper disappears (base sits ABOVE the figure top).
-     • X cut      → individual blocks at lx >= cut are skipped.
-     • Diag cut   → individual blocks at lx+ly >= cut are skipped.
+   Cut behaviours (since the creeper is small and centred we use a
+   simple all-or-nothing rule — the body never crosses a cut plane):
+     • Y cut < Dy                     → hide.
+     • X cut <= floor(Dx/2)           → hide.
+     • Diag cut <= floor(Dx/2)+Dy-1   → hide.
 
-   Info-chip block count: creeper voxels are added AFTER the chip
-   counter is locked in update3D(), so the displayed count reflects the
-   figure only — same convention as the tree. */
-const CREEPER_W = 4;
-const CREEPER_D = 4;
-const CREEPER_H = 11;
-const CREEPER_LEG_H = 3;
-const CREEPER_BODY_H = 4;
-const CREEPER_HEAD_H = 4;
+   Info-chip block count: the creeper is added after the count is
+   locked, just like the tree, so the displayed total stays as
+   "blocks needed to build the figure". */
+const CREEPER_TOTAL_H = 1.625;   // 0.375 legs + 0.75 body + 0.5 head
+const CREEPER_LEG_H   = 0.375;
+const CREEPER_BODY_H  = 0.75;
+const CREEPER_HEAD_H  = 0.5;
 
 function creeperIsActive(){
   if (state.mcBlock !== 'tnt') return false;
-  if (state.shape === 'circle')  return state.size === 5;
-  /* ellipsoid */                return state.width === 5 || state.height === 5 || state.depth === 5;
+  if (state.shape === 'circle')  return state.size === 15;
+  /* ellipsoid */                return state.width === 15 || state.height === 15 || state.depth === 15;
 }
 
 function creeperBoundsExtraY(){
-  // Topmost creeper voxel sits at y = Dy + CREEPER_H - 1 in local figure
-  // coords, so it extends CREEPER_H cells above the figure's topmost row.
-  return creeperIsActive() ? CREEPER_H : 0;
+  // Actual creeper height is 1.625 blocks; round up to 2 so the
+  // bounding box uses whole-cell units consistent with the tree's
+  // bookkeeping, and so the head never grazes the canvas edge.
+  return creeperIsActive() ? Math.ceil(CREEPER_TOTAL_H) : 0;
 }
 
-function buildEasterEggCreeper(Dx, Dy, Dz, cx, cy, cz, geom){
-  if (!creeperIsActive()) return;
-  // Y cut active → creeper disappears wholesale (its base is ABOVE the
-  // figure). X and Diag cuts still let it survive and slice per block.
-  if (state.axis === 'y' && state.cut < Dy) return;
+/* Procedural "creeper.png" skin — drawn once into two 8×8 pixel canvases:
+     • bodyMat: green-mottled pattern used on all faces of body/legs and
+       on every face of the head EXCEPT the front.
+     • faceMat: same mottled green plus the iconic black eye-and-mouth
+       pattern, used on the head's front (+z) face.
+   Both materials are cached so we generate the canvases only once even
+   if the easter egg re-renders. */
+let _creeperMats = null;
+function _getCreeperMats(){
+  if (_creeperMats) return _creeperMats;
 
-  const cutXLimit    = state.axis === 'x'    ? state.cut : Dx;
-  const cutDiagLimit = state.axis === 'diag' ? state.cut : Infinity;
-
-  // Centre the 4×4 footprint on the figure top. Math.floor instead of
-  // round so even-Dx figures place the creeper one cell left-of-centre,
-  // which keeps it inside the figure footprint and avoids leg overhang.
-  const baseX = Math.floor((Dx - CREEPER_W) / 2);
-  const baseZ = Math.floor((Dz - CREEPER_D) / 2);
-  const baseY = Dy;
-
-  const addBlock = (lx, ly, lz) => {
-    if (lx < 0 || lx >= cutXLimit)  return;
-    if (lx + ly >= cutDiagLimit)    return;
-    const mat = getMaterial3D('tnt');
-    const mesh = new THREE.Mesh(geom, mat);
-    mesh.position.set(lx - cx, ly - cy, lz - cz);
-    voxelGroup3D.add(mesh);
+  // Mottled greens, 6 shades — pseudo-random pixel grid keeps the same
+  // skin tile on every body part so the creeper looks consistent.
+  const GREENS = ['#5fbf2f', '#4ca524', '#3d8a1e', '#6cd234', '#52b228', '#46991f'];
+  const drawMottle = (ctx) => {
+    for (let y = 0; y < 8; y++){
+      for (let x = 0; x < 8; x++){
+        ctx.fillStyle = GREENS[(x * 13 + y * 31) % GREENS.length];
+        ctx.fillRect(x, y, 1, 1);
+      }
+    }
+  };
+  const makeTex = (paint) => {
+    const c = document.createElement('canvas');
+    c.width = 8; c.height = 8;
+    paint(c.getContext('2d'));
+    const t = new THREE.CanvasTexture(c);
+    t.magFilter = THREE.NearestFilter;
+    t.minFilter = THREE.NearestFilter;
+    t.generateMipmaps = false;
+    return t;
   };
 
-  // Legs — four 1×CREEPER_LEG_H×1 columns at the 4×4 base corners.
-  const legSlots = [[0, 0], [3, 0], [0, 3], [3, 3]];
-  for (const [dx, dz] of legSlots){
-    for (let i = 0; i < CREEPER_LEG_H; i++){
-      addBlock(baseX + dx, baseY + i, baseZ + dz);
-    }
-  }
+  const bodyTex = makeTex(ctx => drawMottle(ctx));
+  // Iconic creeper face: two 2×2 eye squares + downward-T mouth.
+  const FACE = [
+    '........',
+    '.##..##.',
+    '.##..##.',
+    '...##...',
+    '..####..',
+    '..####..',
+    '..#..#..',
+    '........',
+  ];
+  const faceTex = makeTex(ctx => {
+    drawMottle(ctx);
+    ctx.fillStyle = '#0a1a0a';
+    for (let y = 0; y < 8; y++)
+      for (let x = 0; x < 8; x++)
+        if (FACE[y][x] === '#') ctx.fillRect(x, y, 1, 1);
+  });
 
-  // Body — 2×2 cross-section, CREEPER_BODY_H tall, centred above legs.
-  const bodyY0 = CREEPER_LEG_H;
-  for (let dy = 0; dy < CREEPER_BODY_H; dy++){
-    for (let dx = 1; dx <= 2; dx++){
-      for (let dz = 1; dz <= 2; dz++){
-        addBlock(baseX + dx, baseY + bodyY0 + dy, baseZ + dz);
-      }
-    }
-  }
+  const bodyMat = new THREE.MeshLambertMaterial({ map: bodyTex });
+  const faceMat = new THREE.MeshLambertMaterial({ map: faceTex });
+  // BoxGeometry face order: [+x, -x, +y, -y, +z, -z]. Face on +z (front)
+  // so it greets the default camera angle at theta = π/4.
+  const headMats = [bodyMat, bodyMat, bodyMat, bodyMat, faceMat, bodyMat];
 
-  // Head — solid 4×4×4 cube spanning the full footprint, on top of body.
-  const headY0 = bodyY0 + CREEPER_BODY_H;
-  for (let dy = 0; dy < CREEPER_HEAD_H; dy++){
-    for (let dx = 0; dx < CREEPER_W; dx++){
-      for (let dz = 0; dz < CREEPER_D; dz++){
-        addBlock(baseX + dx, baseY + headY0 + dy, baseZ + dz);
-      }
-    }
-  }
+  _creeperMats = { bodyMat, headMats };
+  return _creeperMats;
+}
+
+function buildEasterEggCreeper(Dx, Dy, Dz, cx, cy, cz){
+  if (!creeperIsActive()) return;
+  // All-or-nothing cut rules — the creeper occupies the top-centre of
+  // the figure, so if that voxel is cut away there's nothing to stand
+  // on and we hide the entire creeper.
+  const centerX = Math.floor(Dx / 2);
+  if (state.axis === 'y'    && state.cut <  Dy)                return;
+  if (state.axis === 'x'    && state.cut <= centerX)           return;
+  if (state.axis === 'diag' && state.cut <= centerX + Dy - 1)  return;
+
+  const { bodyMat, headMats } = _getCreeperMats();
+
+  // World position of the figure-top centre point.
+  //   top of figure = world y = Dy/2 (since voxels span y ∈ [-Dy/2, +Dy/2]
+  //   after the -cy offset). x/z are already centred on 0.
+  const groupY = Dy / 2;
+  const group = new THREE.Group();
+  group.position.set(0, groupY, 0);
+
+  // Helper — build a box mesh of the given pixel dimensions (16 px =
+  // 1 block) at the given creeper-local centre coordinates.
+  const addPart = (wPx, hPx, dPx, cxLoc, cyLoc, czLoc, mat) => {
+    const w = wPx / 16, h = hPx / 16, d = dPx / 16;
+    const g = new THREE.BoxGeometry(w, h, d);
+    const m = new THREE.Mesh(g, mat);
+    m.position.set(cxLoc, cyLoc, czLoc);
+    group.add(m);
+  };
+
+  // Legs — four 4×6×4 px columns at the corners of the 8×8 footprint.
+  // Legs splay slightly inward from the head's 0.5-block square so the
+  // 4 leg tops join the bottom of the body without gaps.
+  const legY = CREEPER_LEG_H / 2;                  // y centre of each leg
+  const legXZ = 0.125;                             // ±2 px from centre
+  addPart(4, 6, 4, -legXZ, legY, +legXZ, bodyMat); // front-left
+  addPart(4, 6, 4, +legXZ, legY, +legXZ, bodyMat); // front-right
+  addPart(4, 6, 4, -legXZ, legY, -legXZ, bodyMat); // back-left
+  addPart(4, 6, 4, +legXZ, legY, -legXZ, bodyMat); // back-right
+
+  // Body — 4×12×8 px, centred horizontally above the legs. The 4-px
+  // (0.25 block) x-thickness is what gives a creeper its narrow side
+  // profile vs its broad front view.
+  const bodyY = CREEPER_LEG_H + CREEPER_BODY_H / 2;
+  addPart(4, 12, 8, 0, bodyY, 0, bodyMat);
+
+  // Head — 8×8×8 px cube on top of body, face on +z front face.
+  const headY = CREEPER_LEG_H + CREEPER_BODY_H + CREEPER_HEAD_H / 2;
+  addPart(8, 8, 8, 0, headY, 0, headMats);
+
+  // Convert the figure-top group coordinates into the voxelGroup3D
+  // coordinate system (which has the figure centred at origin via the
+  // -cy offset already applied to figure voxels). The group's own
+  // position already sets y = Dy/2; voxelGroup3D treats that as world
+  // y directly, so no further offset is needed here.
+  voxelGroup3D.add(group);
 }
 
 function disposeVoxelGroup(){
@@ -996,8 +1066,8 @@ function update3D(){
 
   // Easter egg: slider value 15 → small oak tree on top of the figure.
   buildEasterEggTree(Dx, Dy, Dz, cx, cy, cz, geom);
-  // Easter egg: TNT block + slider value 5 → tiny creeper on top.
-  buildEasterEggCreeper(Dx, Dy, Dz, cx, cy, cz, geom);
+  // Easter egg: TNT block + slider value 15 → real creeper on top.
+  buildEasterEggCreeper(Dx, Dy, Dz, cx, cy, cz);
 
   if (effectiveEdges3D()){
     voxelEdges3D = buildVoxelEdges3D(voxels, cx, cy, cz);
