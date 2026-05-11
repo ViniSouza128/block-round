@@ -43,6 +43,14 @@
       </div>
     </div>
     <div class="actions">
+      <!-- Sound toggle. Lives to the LEFT of the theme button so the most
+           context-changing controls (audio, visual) sit together at the
+           right edge of the topbar. State is mirrored to the Settings
+           sound checkbox via the click handler in ui.js. -->
+      <button class="icon-btn" data-act="sound" title="Toggle sound (S)" aria-label="Toggle sound">
+        <svg class="snd-on-ico"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="4,9 4,15 9,15 14,20 14,4 9,9" fill="currentColor" stroke="none"/><path d="M17 8c1.5 1.2 1.5 6.8 0 8"/><path d="M19.5 5.5c3 2.6 3 10.4 0 13"/></svg>
+        <svg class="snd-off-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="4,9 4,15 9,15 14,20 14,4 9,9" fill="currentColor" stroke="none"/><line x1="17" y1="9" x2="22" y2="14"/><line x1="22" y1="9" x2="17" y2="14"/></svg>
+      </button>
       <button class="icon-btn" data-act="theme" title="Toggle day / night (T)" aria-label="Toggle day / night">
         <svg class="sun-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
         <svg class="moon-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/></svg>
@@ -172,7 +180,7 @@
         <div class="help-list">
           <div class="help-item"><h3>2D · Circle / Ellipse</h3><p>Circle (single <b>Size</b>) or Ellipse (<b>Width</b> + <b>Height</b>) tiled with the chosen block texture.</p></div>
           <div class="help-item"><h3>3D · Sphere / Ellipsoid</h3><p>Voxel sphere (single <b>Size</b>) or Ellipsoid (<b>W</b> + <b>H</b> + <b>D</b>). Each visible voxel is textured.</p></div>
-          <div class="help-item"><h3>Cut (3D)</h3><p>Slice along the <b>X</b> or <b>Y</b> axis. Switching axis restores the full figure — only one axis cuts at a time. Slider max equals the chosen axis dim.</p></div>
+          <div class="help-item"><h3>Cut (3D)</h3><p>Slice along the <b>X</b>, <b>Y</b> or <b>⟋</b> (45° diagonal) axis. Switching axis restores the full figure — only one cuts at a time. Slider max scales to the chosen axis.</p></div>
         </div>
 
         <h3 class="ds-h2" style="margin-top:28px;">3. Algorithms (2D)</h3>
@@ -185,10 +193,14 @@
         <h3 class="ds-h2" style="margin-top:28px;">4. Controls</h3>
         <div class="help-list">
           <div class="help-item"><h3>Mode &amp; shape</h3><p><b>2D / 3D</b> and <b>Circle / Ellipse</b> (Sphere / Ellipsoid in 3D) toggles at the top.</p></div>
-          <div class="help-item"><h3>Block picker</h3><p>Click any block tile in the picker strip below the canvas. <b>Random</b> mixes natural blocks across cells.</p></div>
-          <div class="help-item"><h3>Pinch &amp; rotate</h3><p>Two fingers zoom; in 3D the midpoint also rotates. Mouse wheel zooms in 3D; click-drag rotates.</p></div>
-          <div class="help-item"><h3>Grid &amp; wireframe</h3><p>The grid button toggles a cell grid in 2D and wireframe in 3D.</p></div>
-          <div class="help-item"><h3>Keyboard</h3><p><span class="key">G</span> Grid &nbsp; <span class="key">C</span> Center &nbsp; <span class="key">D</span> Download &nbsp; <span class="key">I</span> Info chip &nbsp; <span class="key">M</span> 2D/3D &nbsp; <span class="key">S</span> Sound</p></div>
+          <div class="help-item"><h3>Block picker</h3><p>Click any block tile in the picker strip below the canvas. <b>Random</b> mixes natural blocks across cells. Arrow keys walk the picker after selection.</p></div>
+          <div class="help-item"><h3>Pinch &amp; rotate</h3><p>Two fingers zoom; in 3D the midpoint also rotates. Mouse wheel zooms; in 3D click-drag rotates. Double-click resets the camera (3D) or zoom (2D).</p></div>
+          <div class="help-item"><h3>Grid &amp; wireframe</h3><p>The grid corner button toggles a cell grid in 2D and a per-voxel edge overlay in 3D. Default is OFF for transparent blocks (Glass / Ice) and ON for everything else — preferences are kept separately.</p></div>
+          <div class="help-item"><h3>Sound &amp; theme</h3><p>The <b>speaker</b> button in the topbar mutes all sounds (placement clicks, fuse, easter-egg samples). The <b>sun / moon</b> button toggles a night mood that dims background panels only — text and block tiles stay bright.</p></div>
+          <div class="help-item"><h3>Undo / Redo</h3><p><span class="key">Ctrl+Z</span> undoes the last figure-changing edit; any of <span class="key">Ctrl+Y</span> / <span class="key">Ctrl+Shift+Z</span> / <span class="key">Ctrl+Alt+Z</span> redoes. Visual-only toggles (camera, edges, theme, sound) are not tracked.</p></div>
+          <div class="help-item"><h3>Exports</h3><p>The top-right corner has <b>PNG</b> (current canvas) and <b>.schem</b> (Sponge Schematic v2, gzipped NBT) — the latter loads in WorldEdit, Litematica and MCEdit.</p></div>
+          <div class="help-item"><h3>Easter eggs</h3><p>An oak <b>tree</b> grows on top of the figure when any size slider hits <b>15</b> with Grass Block / Dirt / Random selected. A <b>creeper</b> stands on top instead when the slider is at 15 with <b>TNT</b> selected — and slowly turns to lock eyes with the camera every ~16 s, glowing primed-white as it fires the TNT fuse.</p></div>
+          <div class="help-item"><h3>Keyboard</h3><p><span class="key">G</span> Grid &nbsp; <span class="key">C</span> Center &nbsp; <span class="key">D</span> Download PNG &nbsp; <span class="key">I</span> Info chip &nbsp; <span class="key">M</span> 2D/3D &nbsp; <span class="key">S</span> Sound &nbsp; <span class="key">T</span> Night &nbsp; <span class="key">Ctrl+Z</span> Undo &nbsp; <span class="key">Ctrl+Y</span> Redo</p></div>
         </div>
 
         <h3 class="ds-h2" style="margin-top:28px;">5. Trademarks &amp; credits</h3>
@@ -204,7 +216,7 @@
     <div class="route" data-route="settings" hidden>
       <div class="route-pad">
         <h2 class="section-title">Settings</h2>
-        <p class="section-sub">Preferences persist in the browser.</p>
+        <p class="section-sub">Session-only — every reload starts at the defaults.</p>
         <div class="settings-grid">
           <div class="setting-row">
             <div class="lbl-grp"><label>Sounds</label><span class="desc">Sound feedback on interactions</span></div>

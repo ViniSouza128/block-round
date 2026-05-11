@@ -143,6 +143,16 @@ Threshold) are available.
   Minecraft "dig" sample for its material (stone, wood, grass, sand,
   gravel, cloth, glass, snow). Eight vanilla OGGs (~52 KB raw) are
   embedded as data URIs in `js/sounds.js`.
+- **Mute toggle** — a speaker button in the topbar (immediately to
+  the left of the day/night button) toggles all sounds: UI clicks,
+  per-block place samples, the TNT fuse, the slime jump, every
+  easter-egg cue. The `S` keyboard shortcut and the Settings
+  page's Sounds checkbox both route through the same toggle, so
+  flipping any one of the three surfaces updates the other two.
+  The button shows a clean speaker icon when on, a slashed speaker
+  when muted; muting plays no confirm sound (everything's off),
+  unmuting plays one quiet click so the user hears that audio is
+  back.
 - **Day / night mood (selective dimming)** — the topbar sun/moon
   button (and the `T` shortcut) tints the background surfaces only
   — text, slider thumbs, the topbar's yellow icons, and the block
