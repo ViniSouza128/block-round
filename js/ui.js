@@ -207,12 +207,46 @@ function resetState(){
   toast('Reset', 'ok');
 }
 
+/* Map each picker block to one of the MC sound categories so the tile-
+   click plays the right "dig" / "place" sample. Blocks not listed here
+   fall back to the generic Sfx.click() noise. Categories: stone, wood,
+   grass, sand, gravel, cloth, glass, snow. Blocks with their own
+   dedicated sound (tnt fuse, slime jump) skip this map. */
+const BLOCK_SOUND_CATEGORY = {
+  stone:'stone', cobble:'stone', mossy_cobble:'stone', smooth_stone:'stone',
+  granite:'stone', andesite:'stone', polished_andesite:'stone', diorite:'stone',
+  deepslate:'stone', bedrock:'stone', end_stone:'stone', sandstone:'stone',
+  bricks:'stone', nether_bricks:'stone', netherrack:'stone',
+  prismarine:'stone', prismarine_bricks:'stone', dark_prismarine:'stone',
+  obsidian:'stone', crying_obsidian:'stone', quartz:'stone',
+  glowstone:'stone', sea_lantern:'stone', shroomlight:'stone',
+  magma:'stone', bone:'stone',
+  iron:'stone', gold:'stone', diamond:'stone', emerald:'stone', copper:'stone',
+  coal:'stone', iron_ore:'stone', gold_ore:'stone',
+  diamond_ore:'stone', emerald_ore:'stone', redstone:'stone', lapis:'stone',
+  furnace:'stone',
+  oak:'wood', darkOak:'wood', birch:'wood', spruce:'wood', jungle:'wood', acacia:'wood',
+  oak_log:'wood', birch_log:'wood', spruce_log:'wood',
+  jungle_log:'wood', acacia_log:'wood', dark_oak_log:'wood',
+  bookshelf:'wood', crafting_table:'wood',
+  pumpkin:'wood', melon:'wood',
+  red_mushroom:'wood', brown_mushroom:'wood',
+  grass_block:'grass', dirt:'grass', mycelium:'grass', podzol:'grass', moss:'grass',
+  sand:'sand', soul_sand:'sand',
+  gravel:'gravel',
+  glass:'glass', ice:'glass', packed_ice:'glass', blue_ice:'glass',
+  white_wool:'cloth', black_wool:'cloth', red_wool:'cloth', green_wool:'cloth',
+  blue_wool:'cloth', yellow_wool:'cloth', orange_wool:'cloth', light_blue_wool:'cloth',
+  sponge:'cloth', hay:'cloth',
+  snow_block:'snow',
+};
+
 /* Non-navigation tool toggle. Used to auto-return to the canvas when the
    user clicks any of these while on Info or Settings. */
 function isToolToggle(el){
   if (!el) return false;
   if (el.dataset.route || el.dataset.act === 'logo') return false;
-  if (el.dataset.act === 'info-chip') return false;
+  if (el.dataset.act === 'info-chip' || el.dataset.act === 'theme') return false;
   return !!(el.dataset.render || el.dataset.algo
          || el.dataset.mode   || el.dataset.shape || el.dataset.axis
          || el.dataset.block  || el.dataset.act);
@@ -237,6 +271,18 @@ function setupClickDelegation(){
 
     const a = t.dataset.act;
     if (a === 'logo'){ goRoute('tool'); return; }
+    // Day / night canvas mood toggle. Stored in state.theme and reflected
+    // on document.body via the .theme-night class — CSS handles the
+    // canvas-frame background gradient swap. Session-only; nothing
+    // persists across reloads.
+    if (a === 'theme'){
+      state.theme = (state.theme === 'night') ? 'day' : 'night';
+      document.body.classList.toggle('theme-night', state.theme === 'night');
+      t.classList.toggle('active', state.theme === 'night');
+      Sfx.click();
+      toast(`Night ${state.theme === 'night' ? 'on' : 'off'}`);
+      return;
+    }
 
     if (a === 'info-chip'){
       document.querySelector('.info-chip')?.classList.toggle('open');
@@ -356,13 +402,21 @@ function setupClickDelegation(){
       // though state didn't change — this is what restarts the fall.
       if (reclick && typeof _lastGeomSig3D !== 'undefined') _lastGeomSig3D = null;
       document.querySelectorAll('[data-block]').forEach(b => b.classList.toggle('active', b === t));
-      Sfx.click();
-      // TNT fuse: starts on TNT-pick, must stop the moment the user
-      // leaves TNT (or re-picks any non-TNT block before the fuse ends).
+      // Choose per-block click sound. Special-cased blocks (tnt fuse,
+      // slime/honey jump) play their dedicated sample; everything else
+      // plays the right MC "place" sample for its material category;
+      // anything outside the map (e.g. 'random') falls back to the
+      // generic UI click.
       if (prevBlock === 'tnt' && state.mcBlock !== 'tnt' && typeof Sfx.stopTnt === 'function') Sfx.stopTnt();
-      if (state.mcBlock === 'tnt' && typeof Sfx.tnt === 'function') Sfx.tnt();
-      // Slime / Honey: real MC slime jump sample.
-      if ((state.mcBlock === 'slime' || state.mcBlock === 'honey') && typeof Sfx.slime === 'function') Sfx.slime();
+      if (state.mcBlock === 'tnt' && typeof Sfx.tnt === 'function'){
+        Sfx.tnt();
+      } else if ((state.mcBlock === 'slime' || state.mcBlock === 'honey') && typeof Sfx.slime === 'function'){
+        Sfx.slime();
+      } else {
+        const cat = BLOCK_SOUND_CATEGORY[state.mcBlock];
+        if (cat && typeof Sfx.place === 'function') Sfx.place(cat);
+        else Sfx.click();
+      }
       if (state.mcBlock !== 'random') loadBlockImage(state.mcBlock);
       // Refresh the Grid corner button to reflect the new effective edges
       // preference (different default for transparent vs opaque blocks).
@@ -568,6 +622,9 @@ function setupKeyboard(){
       const inp = document.querySelector('[data-pref=sound]');
       if (inp) inp.checked = Sfx.isEnabled();
       toast(`Sounds ${Sfx.isEnabled() ? 'on' : 'off'}`);
+    }
+    else if (k === 't'){
+      document.querySelector('[data-act=theme]')?.click();
     }
     // Arrow keys walk the block picker. Disabled when the user is typing
     // (handled at the top of this listener) and when the picker doesn't
