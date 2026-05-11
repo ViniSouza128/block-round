@@ -38,7 +38,6 @@ Threshold) are available.
 | **Multi-face blocks** | Pumpkin · Hay · Melon · Quartz · Bone · Sandstone · Crafting Table · Furnace · Bookshelf · TNT · Mycelium · Podzol · all wood Logs (Oak / Birch / Spruce / Jungle / Acacia / Dark Oak) render distinct textures on top, sides and bottom — matching the real Minecraft block. |
 | **Filled vs. Thin (transparent)** | For Glass and Ice in Filled mode the renderer emits every voxel of the solid volume (not just the outer shell), so the user can see the dense interior of cubes through the front panes. Thin still draws a hollow merged shell. |
 | **Sand / Gravel** | After a 500 ms hold the cells fall onto an invisible floor under gravity, mirroring Minecraft physics. Works in 2D and 3D. Edge overlay opacity is reduced to 25 % on these blocks so the grain reads cleanly. **Soul Sand** doesn't fall (matches MC). Re-clicking the currently-selected Sand / Gravel tile resets the figure and replays the fall. |
-| **TNT** | Picking the TNT tile in the block list plays a sizzling fuse sound (synthesised noise + bandpass-rising crackle). |
 | **Edges on transparent blocks** | Glass and Ice default to **edge overlay OFF** since the outlines compete with the alpha-blended frames. Toggling the Grid corner button while on Glass / Ice only flips the transparent preference — opaque blocks keep their own preference, so leaving Glass → Stone restores the previous Stone setting automatically. |
 | **Random** | Procedurally tiered: grass on top of each column, dirt beneath, stone with sparse ores (coal, iron, redstone, gold, lapis, diamond, emerald, cobble), deepslate above bedrock — band boundaries wavy per column. |
 
@@ -78,23 +77,30 @@ Threshold) are available.
     8×8×8 px, body 4×12×8 px, four legs at 4×6×4 px each.
     Total height 1.625 blocks, footprint 0.5 × 0.5 block — sits
     centred on the figure's top face.
-  - **Eye-contact cycle** — every 6 seconds the creeper slowly turns
+  - **Eye-contact cycle** — every **12 s** the creeper slowly turns
     its whole body to face the camera, holds the gaze for ~2 s, and
     eases back to neutral, all on cubic ease-in-out so the motion
     feels organic. During the gaze the head/leg micro-sway damps
     down (the creeper looks locked-on, not paused), and the
     camera-tracking is continuous — if the user orbits the camera
     while the creeper is staring, the gaze follows. Cycle plan:
-    1.5 s rise · 2 s hold · 1.5 s fall · 1 s breather.
+    1.5 s rise · 2 s hold · 1.5 s fall · **7 s breather**. The long
+    breather makes each new stare land as an ominous beat rather
+    than a constant tic.
   - **Idle micro-motion** — between gazes, the head sways ±6°
     around Y (~0.18 Hz) and the legs rock ±4° around X in
     alternating front-back pairs (~0.5 Hz), via pivot groups so the
     head turns around its centre and legs swing from the hip joint.
-  - **TNT fuse sound** — the creeper plays the real Minecraft TNT
-    fuse the moment it appears on screen (slider transition into 15
-    with TNT already selected). The double-trigger case — clicking
-    the TNT tile *while* slider is at 15 — is suppressed, because
-    the tile-click handler already fires the same fuse.
+  - **TNT fuse sound** — the real Minecraft TNT fuse plays at the
+    start of every stare (synchronised with the 1.5 s rise → 2 s
+    hold → 1.5 s fall arc, which sums to ~5 s — right around the
+    fuse sample's natural length). The fuse used to fire when the
+    user clicked the TNT tile, but that's been removed: the sound
+    now belongs exclusively to the creeper. Picking the TNT tile
+    just plays the generic UI click. Leaving the easter egg
+    (changing block away from TNT, or sliding off 15) cuts any
+    in-flight fuse immediately so the noise can't outlive the
+    creeper that was making it.
   - Sphere mode triggers on `state.size === 15`.
   - Ellipsoid mode triggers on any of `state.width / state.height /
     state.depth === 15`. Coexists with the oak-tree easter egg
@@ -106,10 +112,13 @@ Threshold) are available.
     the head never grazes the canvas edge.
   - Creeper is intentionally **excluded from the info-chip block
     count**, mirroring the tree's convention.
-- **TNT fuse sound** — picking the TNT tile plays the real Minecraft
-  fuse sample (vanilla `random/fuse.ogg`, embedded as a base64 OGG
-  data URI in `js/sounds.js`). Switching to any other block before
-  the fuse ends stops it immediately.
+- **TNT fuse sound** — the real Minecraft fuse sample (vanilla
+  `random/fuse.ogg`, embedded as a base64 OGG data URI in
+  `js/sounds.js`) is now owned by the creeper easter egg above: it
+  plays at the start of every 12 s stare cycle. Picking the TNT tile
+  in the block list is silent (just the generic UI click); switching
+  away from TNT — or sliding off 15 — cuts any in-flight fuse so it
+  can't outlive the creeper.
 - **Slime jump sound** — picking the Slime Block or Honey Block tile
   plays the vanilla `mob/slime/small1.ogg` boing.
 - **Per-category place sounds** — every other tile plays the right

@@ -729,17 +729,22 @@ const CREEPER_LEG_UV = [
    their tops, head around its centre) instead of their geometric
    origins. The body root group's rotation drives the look-at-camera
    turn. */
-const CREEPER_CYCLE_S = 6.0;   // seconds — one full look cycle
-const CREEPER_RISE_S  = 1.5;   // ease into camera-gaze
-const CREEPER_HOLD_S  = 2.0;   // dwell at the gaze
-const CREEPER_FALL_S  = 1.5;   // ease back to neutral
+// Cycle is rise + hold + fall + breather. The breather is intentionally
+// long so the creeper "forgets" the user for a stretch and the next
+// stare lands as an ominous beat rather than a constant tic.
+const CREEPER_RISE_S     = 1.5;   // ease into camera-gaze
+const CREEPER_HOLD_S     = 2.0;   // dwell at the gaze
+const CREEPER_FALL_S     = 1.5;   // ease back to neutral
+const CREEPER_BREATHER_S = 7.0;   // idle pause before the next stare
+const CREEPER_CYCLE_S    = CREEPER_RISE_S + CREEPER_HOLD_S
+                         + CREEPER_FALL_S + CREEPER_BREATHER_S;  // 12 s
 
 let _creeperGroup    = null;   // current creeper THREE.Group (or null)
 let _creeperParts    = null;   // { head, legs:[fl,fr,bl,br] } pivot groups
 let _creeperAnimRaf  = null;
 let _creeperAnimT0   = 0;
+let _creeperLastCyc  = -1;     // last completed look-cycle index (for fuse trigger)
 let _creeperWasShown = false;  // tracks creeperIsActive() across update3D
-let _creeperWasTnt   = false;  // tracks state.mcBlock === 'tnt' across updates
 
 /* Cubic ease-in-out so the body acceleration into and out of the gaze
    feels organic — no abrupt linear ramp. */
@@ -774,6 +779,19 @@ function _creeperAnimTick(){
     return;
   }
   const t = (performance.now() - _creeperAnimT0) * 0.001;
+
+  // Stare-synced TNT fuse — fires once per cycle, exactly when the
+  // rise phase begins. The real Minecraft fuse sample is ~4 s, the
+  // rise+hold+fall stare is 5 s, so a single playback covers the
+  // entire eye-contact beat. Sfx.tnt() internally stops any previous
+  // fuse before starting, so re-entering the cycle never stacks.
+  const cycleIdx = Math.floor(t / CREEPER_CYCLE_S);
+  if (cycleIdx > _creeperLastCyc){
+    _creeperLastCyc = cycleIdx;
+    if (typeof Sfx !== 'undefined' && Sfx && typeof Sfx.tnt === 'function'){
+      Sfx.tnt();
+    }
+  }
 
   // Angle (around Y) that points the creeper's local +Z (its FACE) at
   // the camera. We project onto the XZ plane — the creeper keeps its
@@ -821,18 +839,17 @@ function buildEasterEggCreeper(Dx, Dy, Dz, cx, cy, cz){
   if (_creeperAnimRaf){ cancelAnimationFrame(_creeperAnimRaf); _creeperAnimRaf = null; }
 
   const nowActive = creeperIsActive();
-  // Sound trigger — play the TNT fuse on the slider transition that
-  // brings the creeper into view. If the user JUST switched to TNT,
-  // ui.js has already played the fuse, so we suppress this play to
-  // avoid double-triggering. Slider movement while TNT stays selected
-  // is the only path that fires here.
-  if (nowActive && !_creeperWasShown && _creeperWasTnt){
-    if (typeof Sfx !== 'undefined' && Sfx && typeof Sfx.tnt === 'function'){
-      Sfx.tnt();
+  // The fuse is no longer played on spawn — it's now tied to the
+  // every-12-s stare cycle in _creeperAnimTick. But if the creeper
+  // *was* on screen and just left (slider stepped off 15, or block
+  // changed) we cut any in-flight fuse so it can't outlive the
+  // creeper that was making the noise.
+  if (!nowActive && _creeperWasShown){
+    if (typeof Sfx !== 'undefined' && Sfx && typeof Sfx.stopTnt === 'function'){
+      Sfx.stopTnt();
     }
   }
   _creeperWasShown = nowActive;
-  _creeperWasTnt   = (state.mcBlock === 'tnt');
 
   if (!nowActive) return;
 
@@ -902,9 +919,10 @@ function buildEasterEggCreeper(Dx, Dy, Dz, cx, cy, cz){
 
   // Wire the animation loop. Stored module-scope so the rAF tick can
   // mutate the right parts and stop when the group is removed.
-  _creeperGroup  = root;
-  _creeperParts  = { head: headPivot, legs };
-  _creeperAnimT0 = performance.now();
+  _creeperGroup   = root;
+  _creeperParts   = { head: headPivot, legs };
+  _creeperAnimT0  = performance.now();
+  _creeperLastCyc = -1;   // forces the first tick (t≈0, idx=0) to fire the fuse
   _creeperAnimRaf = requestAnimationFrame(_creeperAnimTick);
 }
 
