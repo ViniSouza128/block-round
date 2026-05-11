@@ -738,27 +738,29 @@ const CREEPER_LEG_UV = [
    origins. The body root group's rotation drives the look-at-camera
    turn. */
 // Cycle = rise + hold + fall + breather. The breather is intentionally
-// long so the creeper "forgets" the user for a stretch and the next
-// stare lands as an ominous beat rather than a constant tic. The stare
-// arc itself is short (2.5 s total) so the gaze reads as a brief
-// "primed" moment rather than a sustained dead-eye glare.
-const CREEPER_RISE_S     = 0.75;  // ease into camera-gaze
+// long so the creeper "forgets" the user for a long stretch between
+// stares. The fall back to neutral is deliberately the LONGEST phase
+// of the stare arc — a slow drift away from the user rather than an
+// abrupt snap back — which mirrors how an animal slowly looks off
+// after eye contact rather than reverting instantly.
+const CREEPER_RISE_S     = 0.75;  // ease into camera-gaze (fast lock-on)
 const CREEPER_HOLD_S     = 1.0;   // dwell at the gaze
-const CREEPER_FALL_S     = 0.75;  // ease back to neutral
-const CREEPER_BREATHER_S = 7.0;   // idle pause before the next stare
+const CREEPER_FALL_S     = 2.25;  // slow, natural return — 3× the rise
+const CREEPER_BREATHER_S = 12.6;  // idle pause before the next stare (was 7 s, +80 %)
 const CREEPER_CYCLE_S    = CREEPER_RISE_S + CREEPER_HOLD_S
-                         + CREEPER_FALL_S + CREEPER_BREATHER_S;  // 9.5 s
+                         + CREEPER_FALL_S + CREEPER_BREATHER_S;  // 16.6 s
 
 // White brightness pulse — the "primed/swell flash" the real creeper
 // fires when it locks onto a player and starts its detonation
 // countdown. Fast attack to peak (~50 ms — looks like a sudden bloom),
-// then a slow exponential decay over the remainder of the 1-s pulse
-// so the residual glow fades naturally instead of cliff-edging to off.
-// Peak emissive 0.75 keeps the underlying creeper texture readable at
-// the bloom (1.0 would wash it to pure white).
-const CREEPER_FLASH_S        = 1.0;
+// then a long exponential decay so the residual glow lingers and
+// fades naturally instead of cliff-edging to off. Peak emissive 0.375
+// keeps the underlying creeper texture clearly readable through the
+// bloom (was 0.75 — halved per visual feedback that the model was
+// going too white).
+const CREEPER_FLASH_S        = 2.9;   // total flash window (0.05 attack + 2.85 decay)
 const CREEPER_FLASH_ATTACK_S = 0.05;
-const CREEPER_FLASH_PEAK     = 0.75;
+const CREEPER_FLASH_PEAK     = 0.375; // half of the previous 0.75
 const CREEPER_FLASH_DECAY_K  = 3.0;   // exp(-k·u) coefficient, u in [0..1]
 
 let _creeperGroup    = null;   // current creeper THREE.Group (or null)
