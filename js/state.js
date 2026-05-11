@@ -152,10 +152,34 @@ const MC_BLOCKS = {
   quartz:        { src: _tex('quartz_block_top'),  name: 'Quartz' },
   obsidian:      { src: _tex('obsidian'),          name: 'Obsidian' },
   ice:           { src: _tex('ice'),               name: 'Ice' },
+  packed_ice:    { src: _tex('ice_packed'),        name: 'Packed Ice' },
+  blue_ice:      { src: _tex('blue_ice'),          name: 'Blue Ice' },
+  snow_block:    { src: _tex('snow'),              name: 'Snow Block' },
+  netherrack:    { src: _tex('netherrack'),        name: 'Netherrack' },
   hay:           { src: _tex('hay_block_side'),    name: 'Hay' },
   pumpkin:       { src: _tex('pumpkin_top'),       name: 'Pumpkin' },
   melon:         { src: _tex('melon_side'),        name: 'Melon' },
   bone:          { src: _tex('bone_block_side'),   name: 'Bone' },
+
+  // ===== CRAFTED / UTILITY ================================================
+  // Three-face blocks: front, side, top distinct.
+  crafting_table: { src: _tex('crafting_table_side'),    name: 'Crafting Table' },
+  furnace:        { src: _tex('furnace_side'),           name: 'Furnace' },
+  bookshelf:      { src: _tex('bookshelf'),              name: 'Bookshelf' },
+  tnt:            { src: _tex('tnt_side'),               name: 'TNT' },
+
+  // ===== EARTH VARIANTS ===================================================
+  mycelium:       { src: _tex('mycelium_side'),          name: 'Mycelium' },
+  podzol:         { src: _tex('dirt_podzol_side'),       name: 'Podzol' },
+
+  // ===== PRISMARINE / NETHER ==============================================
+  prismarine:        { src: _tex('prismarine_rough'),    name: 'Prismarine' },
+  prismarine_bricks: { src: _tex('prismarine_bricks'),   name: 'Prismarine Bricks' },
+  dark_prismarine:   { src: _tex('prismarine_dark'),     name: 'Dark Prismarine' },
+
+  // ===== MUSHROOM CAPS ====================================================
+  red_mushroom:   { src: _tex('mushroom_block_skin_red'),   name: 'Red Mushroom' },
+  brown_mushroom: { src: _tex('mushroom_block_skin_brown'), name: 'Brown Mushroom' },
 
   // ===== WOOL =============================================================
   white_wool:     { src: _tex('white_wool'),       name: 'White Wool' },

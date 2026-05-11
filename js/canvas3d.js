@@ -118,6 +118,29 @@ const MULTI_FACE_3D = {
   quartz:       ['quartz_block_side', 'quartz_block_side', 'quartz_block_top', 'quartz_block_bottom', 'quartz_block_side', 'quartz_block_side'],
   // Sandstone: smooth cap on top, chiselled side, smooth base on bottom.
   sandstone:    ['sandstone', 'sandstone', 'sandstone_top', 'sandstone_bottom', 'sandstone', 'sandstone'],
+  // Crafted blocks. Crafting table has a recipe-grid top, planks-and-saw
+  // sides, with an alternate front face. Furnace is similar: hot front,
+  // generic side, bare top.
+  crafting_table: ['crafting_table_side', 'crafting_table_front',
+                   'crafting_table_top', 'oak_planks',
+                   'crafting_table_front', 'crafting_table_side'],
+  furnace:        ['furnace_side', 'furnace_front_off',
+                   'furnace_top', 'furnace_top',
+                   'furnace_front_off', 'furnace_side'],
+  // Bookshelf: book spines on the 4 sides, plain planks on top and bottom.
+  bookshelf:      ['bookshelf', 'bookshelf', 'oak_planks', 'oak_planks',
+                   'bookshelf', 'bookshelf'],
+  // TNT: red side with diagonal lines, fuse top, plain bottom.
+  tnt:            ['tnt_side', 'tnt_side', 'tnt_top', 'tnt_bottom',
+                   'tnt_side', 'tnt_side'],
+  // Mycelium: purple cap, brown side (dirt-mossy), plain dirt bottom.
+  mycelium:       ['mycelium_side', 'mycelium_side',
+                   'mycelium_top', 'dirt',
+                   'mycelium_side', 'mycelium_side'],
+  // Podzol: spruce-litter cap, dirt-with-needles side, plain dirt bottom.
+  podzol:         ['dirt_podzol_side', 'dirt_podzol_side',
+                   'dirt_podzol_top', 'dirt',
+                   'dirt_podzol_side', 'dirt_podzol_side'],
 };
 
 /* Returns either a single material or an array of six materials so a single
@@ -543,7 +566,16 @@ function update3D(){
 
   const maxAxis = state.axis === 'x' ? Dx : Dy;
   const cutLimit = state.cut < maxAxis ? state.cut : maxAxis + 1;
-  const voxels = voxelShell(Dx, Dy, Dz, state.render, state.axis, cutLimit);
+  // Filled + transparent (Glass/Ice) is the one case where the cheap
+  // "shell-only" voxel set is wrong: the user can SEE through the front
+  // panes and would expect to see the dense interior of cubes behind.
+  // Use the full solid volume instead. Thin/Thick still go through the
+  // regular voxelShell paths so a hollow shell stays a shell.
+  const isTransparentFilled =
+    state.render === 'filled' && (state.mcBlock === 'glass' || state.mcBlock === 'ice');
+  const voxels = isTransparentFilled
+    ? voxelKeptAll(Dx, Dy, Dz, state.axis, cutLimit)
+    : voxelShell(Dx, Dy, Dz, state.render, state.axis, cutLimit);
   if (voxels.length === 0){ scheduleRender3D(); return; }
 
   voxelGroup3D = new THREE.Group();
@@ -552,20 +584,24 @@ function update3D(){
 
   const ext = computeVoxelColumnExtremes(voxels, Dx, Dz);
 
-  // Two render passes:
-  //   1. Transparent voxels (glass / ice) — built as a single merged
-  //      BufferGeometry per material with internal faces culled, so
-  //      adjacent same-material blocks read as a single solid pane
-  //      with no doubled seam (matches MC's actual rendering).
-  //   2. Everything else — per-voxel Mesh as before, also collected
-  //      so the sand/gravel fall animation can mutate their positions.
+  // Three render passes:
+  //   1. Transparent voxels in THIN / THICK mode (a hollow shell) — merged
+  //      into a single BufferGeometry per material with same-material
+  //      faces culled, so the shell reads as one continuous pane.
+  //   2. Transparent voxels in FILLED mode — rendered as per-voxel meshes
+  //      so each cube keeps its frame and the dense interior is visible
+  //      through the outer panes (was previously falling back to the
+  //      shell-only path which made Filled and Thin look identical).
+  //   3. Everything opaque — per-voxel Mesh as before, also collected so
+  //      the sand/gravel fall animation can mutate their positions.
   const transparentKeys = new Set(['glass', 'ice']);
+  const mergeTransparent = !isTransparentFilled;  // only thin/thick merge
   const transparentVoxels = new Map();   // key → voxels[]
   const meshes = [];
   for (let i = 0; i < voxels.length; i++){
     const v = voxels[i];
     const blockKey = pickBlockForVoxel(v, ext, Dz);
-    if (transparentKeys.has(blockKey)){
+    if (mergeTransparent && transparentKeys.has(blockKey)){
       if (!transparentVoxels.has(blockKey)) transparentVoxels.set(blockKey, []);
       transparentVoxels.get(blockKey).push(v);
       continue;
