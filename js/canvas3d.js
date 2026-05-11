@@ -61,9 +61,17 @@ let _wireMat = null;
 
 function getTexture3D(key){
   if (_texCache.has(key)) return _texCache.get(key);
-  const b = MC_BLOCKS[key];
-  if (!b || !b.src) return null;
-  const tex = new THREE.TextureLoader().load(b.src, (t) => {
+  // Look up by raw MC_TEX key FIRST — the multi-face tables here reference
+  // face textures (hay_block_top, log_birch_top, …) that live only in
+  // MC_TEX, not in MC_BLOCKS. Fall back to the picker catalog so the
+  // single-texture path still works.
+  let src = (window.MC_TEX && window.MC_TEX[key]) || null;
+  if (!src){
+    const b = MC_BLOCKS[key];
+    if (b && b.src) src = b.src;
+  }
+  if (!src) return null;
+  const tex = new THREE.TextureLoader().load(src, (t) => {
     // Animated MC textures are vertical strips of 16×16 frames.
     // Crop to the top frame so blocks don't squash vertically in 3D.
     const im = t.image;
@@ -196,8 +204,8 @@ function resetCamera3D(){ theta3D = Math.PI / 4; phi3D = Math.PI / 3; autoZoom3D
    The bounding sphere radius (half-diagonal of the AABB) is the
    worst-case projected extent regardless of orientation, so the model
    never clips the canvas edges no matter where the user drags to.
-   autoZoom3D() is also called on every drag frame so the distance
-   self-corrects continuously as the user rotates. */
+   Called on figure changes and on double-click reset only. User-applied
+   wheel/pinch zoom is preserved across drags. */
 function autoZoom3D(){
   if (!camera3D) return;
   const isEllipse = state.shape === 'ellipse';
@@ -265,8 +273,12 @@ function buildTransparentMesh(voxels, blockKey, cx, cy, cz){
     for (const f of FACES){
       const nx = v.x + f.n[0], ny = v.y + f.n[1], nz = v.z + f.n[2];
       if (set.has(sk(nx, ny, nz))) continue; // shared internal face — cull
-      // Triangulate the quad as (0,1,2) + (0,2,3).
-      const tri = [0,1,2, 0,2,3];
+      // Triangulate as (0,2,1) + (0,3,2). The reversed order is what gives
+      // each triangle a CCW winding when viewed from outside the cube;
+      // [0,1,2,0,2,3] produces inward-facing normals, which Three.js's
+      // backface cull then drops — exactly what made the glass spheres
+      // disappear from outside view in the previous build.
+      const tri = [0,2,1, 0,3,2];
       for (let i = 0; i < 6; i++){
         const idx = tri[i];
         const c = f.q[idx];
