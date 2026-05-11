@@ -248,7 +248,8 @@ function setupClickDelegation(){
       if (state.mode === '3d'){
         // Transparent and opaque blocks each have their own edge-overlay
         // preference so moving glass <-> stone doesn't surprise the user.
-        const isTransparent = (state.mcBlock === 'glass' || state.mcBlock === 'ice');
+        // (slime / honey are translucent too — share the transparent preference.)
+        const isTransparent = ['glass', 'ice', 'slime', 'honey'].includes(state.mcBlock);
         if (isTransparent) state.edges3dTransparent = !state.edges3dTransparent;
         else               state.edges3d           = !state.edges3d;
         const eff = isTransparent ? state.edges3dTransparent : state.edges3d;
@@ -360,6 +361,8 @@ function setupClickDelegation(){
       // leaves TNT (or re-picks any non-TNT block before the fuse ends).
       if (prevBlock === 'tnt' && state.mcBlock !== 'tnt' && typeof Sfx.stopTnt === 'function') Sfx.stopTnt();
       if (state.mcBlock === 'tnt' && typeof Sfx.tnt === 'function') Sfx.tnt();
+      // Slime / Honey: real MC slime jump sample.
+      if ((state.mcBlock === 'slime' || state.mcBlock === 'honey') && typeof Sfx.slime === 'function') Sfx.slime();
       if (state.mcBlock !== 'random') loadBlockImage(state.mcBlock);
       // Refresh the Grid corner button to reflect the new effective edges
       // preference (different default for transparent vs opaque blocks).

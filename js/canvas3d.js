@@ -55,11 +55,13 @@ function _geomSig3D(){
   ].join('|');
 }
 
-/* Effective edge-overlay preference. Transparent blocks (glass / ice)
-   read state.edges3dTransparent (default OFF — the outlines compete
-   with the alpha rendering); everything else reads state.edges3d. */
+/* Effective edge-overlay preference. Transparent blocks (glass, ice,
+   slime, honey) read state.edges3dTransparent (default OFF — the
+   outlines compete with the alpha rendering); everything else reads
+   state.edges3d. */
+const _TRANSPARENT_BLOCK_SET = new Set(['glass', 'ice', 'slime', 'honey']);
 function effectiveEdges3D(){
-  if (state.mcBlock === 'glass' || state.mcBlock === 'ice'){
+  if (_TRANSPARENT_BLOCK_SET.has(state.mcBlock)){
     return !!state.edges3dTransparent;
   }
   return !!state.edges3d;
@@ -155,11 +157,8 @@ const MULTI_FACE_3D = {
   podzol:         ['dirt_podzol_side', 'dirt_podzol_side',
                    'dirt_podzol_top', 'dirt',
                    'dirt_podzol_side', 'dirt_podzol_side'],
-  // Honey Block: dripping side texture wrapping the four faces, smooth cap
-  // on top, slightly different sticky base on the bottom.
-  honey:          ['honey_side', 'honey_side',
-                   'honey_top',  'honey_bottom',
-                   'honey_side', 'honey_side'],
+  // Honey Block is handled separately (shell + inner core), since it needs
+  // multi-face uvs on the translucent outer and a single-tex opaque core.
 };
 
 /* Returns either a single material or an array of six materials so a single
@@ -190,6 +189,23 @@ function getMaterial3D(key){
     return mat;
   }
 
+  // Slime / Honey — alpha-BLENDED translucent shell (no alphaTest). In
+  // real Minecraft these blocks are a uniformly translucent jelly cube
+  // wrapping an opaque inner core. depthWrite:false so the core
+  // (rendered before, as a smaller solid cube via buildInnerCore3D) is
+  // visible through the shell; DoubleSide so the inner faces of the
+  // shell are also drawn when looking at the figure from inside a cut.
+  if (key === 'slime' || key === 'honey'){
+    const texKey = key === 'slime' ? 'slime' : 'honey_side';
+    const tex = getTexture3D(texKey);
+    const mat = new THREE.MeshLambertMaterial({
+      map: tex, transparent: true, depthWrite: false,
+      side: THREE.DoubleSide,
+    });
+    _matCache.set(key, mat);
+    return mat;
+  }
+
   // Oak leaves (tree easter egg) — alphaTest carves the gaps between the
   // leaf clusters out of the cube, so neighbouring leaf blocks read as a
   // proper sparse canopy rather than a solid green box. DoubleSide so the
@@ -209,6 +225,21 @@ function getMaterial3D(key){
   _matCache.set(key, mat);
   return mat;
 }
+/* Inner-core material for the shell-and-core look on Slime / Honey
+   blocks. Same texture as the shell, but with no alpha blending — so
+   each voxel gets a solid smaller cube visible through the translucent
+   outer wrap, matching real Minecraft. Cached separately from the
+   outer material (which is the regular getMaterial3D entry). */
+function getInnerCoreMaterial3D(key){
+  const cacheKey = '_core_' + key;
+  if (_matCache.has(cacheKey)) return _matCache.get(cacheKey);
+  const texKey = key === 'slime' ? 'slime' : 'honey_side';
+  const tex = getTexture3D(texKey);
+  const mat = new THREE.MeshLambertMaterial({ map: tex });
+  _matCache.set(cacheKey, mat);
+  return mat;
+}
+
 function getWireMat(){
   if (_wireMat) return _wireMat;
   _wireMat = new THREE.MeshBasicMaterial({ color: 0xFFEC4F, wireframe: true });
@@ -708,13 +739,15 @@ function update3D(){
 
   const maxAxis = state.axis === 'x' ? Dx : Dy;
   const cutLimit = state.cut < maxAxis ? state.cut : maxAxis + 1;
-  // Filled + transparent (Glass/Ice) is the one case where the cheap
-  // "shell-only" voxel set is wrong: the user can SEE through the front
-  // panes and would expect to see the dense interior of cubes behind.
-  // Use the full solid volume instead. Thin/Thick still go through the
+  // Filled + transparent is the one case where the cheap "shell-only"
+  // voxel set is wrong: the user can SEE through the front panes and
+  // would expect to see the dense interior of cubes behind. Use the
+  // full solid volume instead. Thin / Thick still go through the
   // regular voxelShell paths so a hollow shell stays a shell.
+  // Applies to Glass, Ice, Slime and Honey — all our translucent blocks.
+  const TRANSPARENT_BLOCKS = new Set(['glass', 'ice', 'slime', 'honey']);
   const isTransparentFilled =
-    state.render === 'filled' && (state.mcBlock === 'glass' || state.mcBlock === 'ice');
+    state.render === 'filled' && TRANSPARENT_BLOCKS.has(state.mcBlock);
   const voxels = isTransparentFilled
     ? voxelKeptAll(Dx, Dy, Dz, state.axis, cutLimit)
     : voxelShell(Dx, Dy, Dz, state.render, state.axis, cutLimit);
@@ -738,15 +771,29 @@ function update3D(){
   //      hull (glass-vs-interior-air) through the see-through panes.
   //   2. Everything opaque — per-voxel Mesh as before, also collected
   //      so the sand/gravel fall animation can mutate their positions.
-  const transparentKeys = new Set(['glass', 'ice']);
+  // All four translucent blocks go through the merged-with-same-material-
+  // face-culling path. Slime and Honey additionally get a smaller opaque
+  // inner core per voxel — matching real Minecraft, where the jelly cube
+  // has a darker solid bead visible through the translucent skin.
+  const transparentKeys = TRANSPARENT_BLOCKS;
+  const coreKeys = new Set(['slime', 'honey']);
   const transparentVoxels = new Map();   // key → voxels[]
   const meshes = [];
+  const coreGeom = new THREE.BoxGeometry(0.55, 0.55, 0.55);
   for (let i = 0; i < voxels.length; i++){
     const v = voxels[i];
     const blockKey = pickBlockForVoxel(v, ext, Dz);
     if (transparentKeys.has(blockKey)){
       if (!transparentVoxels.has(blockKey)) transparentVoxels.set(blockKey, []);
       transparentVoxels.get(blockKey).push(v);
+      // Inner core for slime / honey. Smaller cube, opaque texture, sits
+      // centred inside the translucent shell. Glass and Ice don't get a
+      // core — their shell is the whole visual.
+      if (coreKeys.has(blockKey)){
+        const core = new THREE.Mesh(coreGeom, getInnerCoreMaterial3D(blockKey));
+        core.position.set(v.x - cx, v.y - cy, v.z - cz);
+        voxelGroup3D.add(core);
+      }
       continue;
     }
     const mat = getMaterial3D(blockKey);

@@ -104,5 +104,24 @@ const Sfx = (() => {
       try { _tntSource.stop(); } catch(_) {}
       _tntSource = null;
     },
+    // Easter egg — plays the real vanilla slime jump sound when the
+    // user picks the Slime Block tile. Short squelchy boing, ~0.5 s.
+    // Honey reuses this sample since MC's actual honey-block "bounce"
+    // sound is just a re-pitched slime jump anyway.
+    slime: () => {
+      if (!on) return;
+      const c = ensure(); if (!c) return;
+      const src = window.MC_SFX && window.MC_SFX.slime_jump;
+      if (!src) return;
+      loadSample('slime_jump', src).then(buffer => {
+        if (!on) return;
+        const node = c.createBufferSource();
+        node.buffer = buffer;
+        const g = c.createGain();
+        g.gain.value = 0.7;
+        node.connect(g); g.connect(c.destination);
+        node.start();
+      }).catch(() => {});
+    },
   };
 })();
