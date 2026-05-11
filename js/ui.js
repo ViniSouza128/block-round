@@ -176,7 +176,7 @@ function resetState(){
     mode:'2d', shape:'circle', render:'filled', algo:'euclidean',
     size:16, width:20, height:12, depth:14, cut:16, cutPct:1.0, axis:'y',
     grid:false, center:false, overlay:false, zoomBtn:false, info:false,
-    zoom2D:1, mcBlock:'random', edges3d:true,
+    zoom2D:1, mcBlock:'random', edges3d:true, edges3dTransparent:false,
   });
   document.querySelectorAll('input[type=range]').forEach(s => {
     const k = s.dataset.slider;
@@ -246,12 +246,17 @@ function setupClickDelegation(){
 
     if (a === 'grid'){
       if (state.mode === '3d'){
-        state.edges3d = !state.edges3d;
-        t.classList.toggle('active', state.edges3d);
+        // Transparent and opaque blocks each have their own edge-overlay
+        // preference so moving glass <-> stone doesn't surprise the user.
+        const isTransparent = (state.mcBlock === 'glass' || state.mcBlock === 'ice');
+        if (isTransparent) state.edges3dTransparent = !state.edges3dTransparent;
+        else               state.edges3d           = !state.edges3d;
+        const eff = isTransparent ? state.edges3dTransparent : state.edges3d;
+        t.classList.toggle('active', eff);
         Sfx.click();
         if (typeof toggleEdges3D === 'function') toggleEdges3D();
         else update3D();
-        toast(`Edges ${state.edges3d ? 'on' : 'off'}`);
+        toast(`Edges ${eff ? 'on' : 'off'}`);
       } else {
         state.grid = !state.grid;
         t.classList.toggle('active', state.grid);
@@ -311,7 +316,9 @@ function setupClickDelegation(){
       state.mode = t.dataset.mode;
       const gridBtn = document.querySelector('[data-act=grid]');
       if (gridBtn) gridBtn.classList.toggle('active',
-        state.mode === '3d' ? state.style3d === 'wire' : state.grid);
+        state.mode === '3d'
+          ? (typeof effectiveEdges3D === 'function' ? effectiveEdges3D() : !!state.edges3d)
+          : state.grid);
       syncShape();
       if (state.mode === '3d'){
         if (init3D(dom.canvas3D)){ resize3D(); autoZoom3D(); update3D(); }
@@ -334,13 +341,29 @@ function setupClickDelegation(){
       Sfx.click(); update3D(); return;
     }
     if (t.dataset.block){
-      if (state.mcBlock === t.dataset.block) return;
+      const FALLABLE = new Set(['sand', 'gravel']);
+      const reclick = state.mcBlock === t.dataset.block;
+      // Re-clicking the SAME tile is normally a no-op, but for sand /
+      // gravel it explicitly resets the figure so the fall replays.
+      // For everything else, ignore the duplicate click.
+      if (reclick && !FALLABLE.has(state.mcBlock)) return;
       state.mcBlock = t.dataset.block;
       if (typeof _fallReset === 'function') _fallReset();
       if (typeof _fall3DReset === 'function') _fall3DReset();
+      // Re-arm the geometry signature so update3D rebuilds the mesh even
+      // though state didn't change — this is what restarts the fall.
+      if (reclick && typeof _lastGeomSig3D !== 'undefined') _lastGeomSig3D = null;
       document.querySelectorAll('[data-block]').forEach(b => b.classList.toggle('active', b === t));
       Sfx.click();
+      // Easter egg: TNT plays a sizzling fuse instead of the plain click.
+      if (state.mcBlock === 'tnt' && typeof Sfx.tnt === 'function') Sfx.tnt();
       if (state.mcBlock !== 'random') loadBlockImage(state.mcBlock);
+      // Refresh the Grid corner button to reflect the new effective edges
+      // preference (different default for transparent vs opaque blocks).
+      if (state.mode === '3d' && typeof effectiveEdges3D === 'function'){
+        const eff = effectiveEdges3D();
+        document.querySelector('[data-act=grid]')?.classList.toggle('active', eff);
+      }
       redraw();
       return;
     }
@@ -537,6 +560,21 @@ function setupKeyboard(){
       const inp = document.querySelector('[data-pref=sound]');
       if (inp) inp.checked = Sfx.isEnabled();
       toast(`Sounds ${Sfx.isEnabled() ? 'on' : 'off'}`);
+    }
+    // Arrow keys walk the block picker. Disabled when the user is typing
+    // (handled at the top of this listener) and when the picker doesn't
+    // contain the current selection (e.g. brand-new session — falls back
+    // to the first tile).
+    else if (k === 'arrowleft' || k === 'arrowright'){
+      const tiles = Array.from(document.querySelectorAll('.mc-block[data-block]'));
+      if (!tiles.length) return;
+      const cur = tiles.findIndex(t => t.dataset.block === state.mcBlock);
+      const dir = (k === 'arrowright') ? 1 : -1;
+      const next = (cur < 0 ? 0 : (cur + dir + tiles.length) % tiles.length);
+      tiles[next].click();
+      // Keep the active tile in view inside the horizontally-scrolling strip.
+      tiles[next].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      e.preventDefault();
     }
   });
 }
