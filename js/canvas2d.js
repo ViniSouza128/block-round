@@ -360,6 +360,14 @@ function draw2D(canvas){
   const fRaw = computeFilled(Gx, Gy, cx, cy, rx, ry, state.algo);
   const f    = applyRenderMode(fRaw, Gx, Gy, state.render);
   const ext  = computeColumnExtremes(f, Gx, Gy);
+  // Tally the actual cells we're about to paint for the info-chip
+  // block counter. Tree-easter-egg cells are NOT counted because the
+  // user wants to know how many real-figure blocks to gather in MC.
+  {
+    let n = 0;
+    for (let j = 0; j < Gy; j++) for (let i = 0; i < Gx; i++) if (f[j][i]) n++;
+    window._lastBlockCount = n;
+  }
 
   // Drive sand/gravel collapse animation by replacing per-cell j with an
   // interpolated y for cells with a non-zero fall distance.
@@ -429,13 +437,30 @@ function draw2D(canvas){
   if (state.overlay) drawPerfectOverlay(ctx, cx, cy, rx, ry, ps, ox, oy);
 }
 
+/* Total block count of the figure for the user's last render, set by
+   draw2D / update3D before the info chip refreshes. Tree easter-egg
+   blocks are EXCLUDED so the count stays grounded in the geometry the
+   user is actually building. Formatted in the chip as
+   `total = N×64 + R` (i.e. how many MC inventory stacks + leftover). */
+window._lastBlockCount = 0;
+
+function _formatStacks(n){
+  if (!n || !isFinite(n)) return '0';
+  const stacks = Math.floor(n / 64);
+  const rest   = n % 64;
+  if (stacks === 0) return `${n}`;
+  if (rest === 0)   return `${n} (${stacks}×64)`;
+  return `${n} (${stacks}×64 + ${rest})`;
+}
+
 function updateInfoChip(){
   const host = dom.canvasFrame;
   if (!host) return;
-  const diamEl = host.querySelector('[data-info-diam]');
-  const radEl  = host.querySelector('[data-info-rad]');
-  const areaEl = host.querySelector('[data-info-area]');
-  const algoEl = host.querySelector('[data-info-algo]');
+  const diamEl   = host.querySelector('[data-info-diam]');
+  const radEl    = host.querySelector('[data-info-rad]');
+  const areaEl   = host.querySelector('[data-info-area]');
+  const blocksEl = host.querySelector('[data-info-blocks]');
+  const algoEl   = host.querySelector('[data-info-algo]');
   if (!diamEl) return;
 
   const isEllipse = state.shape === 'ellipse';
@@ -461,6 +486,7 @@ function updateInfoChip(){
     const Dz = isEllipse ? state.depth : state.size;
     areaEl.textContent = voxelVolume(Dx, Dy, Dz);
   }
+  if (blocksEl) blocksEl.textContent = _formatStacks(window._lastBlockCount || 0);
   algoEl.textContent = state.mcBlock === 'random' ? 'Random' :
                        (MC_BLOCKS[state.mcBlock]?.name || state.mcBlock);
 }
@@ -474,8 +500,15 @@ function downloadPNG(){
     const Hd = isEllipse ? state.height : state.size;
     const Gx = Wd + 2, Gy = Hd + 2;
     const TILE = 16;
+    // Reserve extra rows above the figure if the oak-tree easter egg
+    // is active so the canopy is included in the export (and doesn't
+    // get cropped at row 0). The screen renderer already handles this
+    // via effGy; here we just bake it into the canvas height.
+    const treeActive = isTree2DActive();
+    const treeRows   = treeActive ? 6 : 0;
+    const effGy      = Gy + treeRows;
     const off = document.createElement('canvas');
-    off.width = Gx * TILE; off.height = Gy * TILE;
+    off.width = Gx * TILE; off.height = effGy * TILE;
     const ctx = off.getContext('2d');
     ctx.imageSmoothingEnabled = false;
     const cx = Gx / 2, cy = Gy / 2;
@@ -483,18 +516,25 @@ function downloadPNG(){
     const fRaw = computeFilled(Gx, Gy, cx, cy, rx, ry, state.algo);
     const f    = applyRenderMode(fRaw, Gx, Gy, state.render);
     const ext  = computeColumnExtremes(f, Gx, Gy);
+    // Figure is painted at y-offset = treeRows*TILE so the tree gets
+    // the top `treeRows` rows of the canvas to itself.
+    const oy = treeRows * TILE;
     for (let j = 0; j < Gy; j++)
       for (let i = 0; i < Gx; i++){
         if (!f[j][i]) continue;
         const blockKey = pickBlockFor(i, j, ext);
         const img = loadBlockImage(blockKey);
         if (imageReady(img)){
-          drawBlockImage(ctx, img, i * TILE, j * TILE, TILE, TILE);
+          drawBlockImage(ctx, img, i * TILE, oy + j * TILE, TILE, TILE);
         } else {
           ctx.fillStyle = BLOCK_FALLBACK_COLOR[blockKey] || '#888';
-          ctx.fillRect(i * TILE, j * TILE, TILE, TILE);
+          ctx.fillRect(i * TILE, oy + j * TILE, TILE, TILE);
         }
       }
+    // Paint the easter-egg tree on the export canvas with the same
+    // helper used on screen, passing the figure offset so the canopy
+    // lands above the trunk just like in the live render.
+    drawTree2D(ctx, f, Gx, Gy, 0, oy, TILE);
     off.toBlob(blob => {
       if (!blob) return;
       const url = URL.createObjectURL(blob);

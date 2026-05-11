@@ -399,7 +399,11 @@ function treeBoundsExtraY(){
 function buildEasterEggTree(Dx, Dy, Dz, cx, cy, cz, geom){
   if (!treeIsActive()) return;
   // Y cut active → tree disappears (its base is above the figure).
+  // Tree disappears whenever the figure is trimmed downward from the
+  // top: Y cut below max OR diagonal cut below max (since the diag
+  // cut also removes the top-front-right corner where the tree sits).
   if (state.axis === 'y' && state.cut < Dy) return;
+  if (state.axis === 'diag' && state.cut < (Dx + Dy)) return;
 
   const cutXLimit = state.axis === 'x' ? state.cut : Dx;
   const treeCX = Math.floor((Dx - 1) / 2);
@@ -760,7 +764,11 @@ function update3D(){
   const Dy = isEllipse ? state.height     : state.size;
   const Dz = isEllipse ? state.depth : state.size;
 
-  const maxAxis = state.axis === 'x' ? Dx : Dy;
+  // Cut max depends on the axis: X→Dx, Y→Dy, diag→Dx+Dy (since the
+  // diagonal cut uses (x+y) ≥ cut as the exclusion test).
+  const maxAxis = state.axis === 'x'    ? Dx
+                : state.axis === 'y'    ? Dy
+                : /* 'diag' */            (Dx + Dy);
   const cutLimit = state.cut < maxAxis ? state.cut : maxAxis + 1;
   // Filled + transparent is the one case where the cheap "shell-only"
   // voxel set is wrong: the user can SEE through the front panes and
@@ -774,7 +782,12 @@ function update3D(){
   const voxels = isTransparentFilled
     ? voxelKeptAll(Dx, Dy, Dz, state.axis, cutLimit)
     : voxelShell(Dx, Dy, Dz, state.render, state.axis, cutLimit);
-  if (voxels.length === 0){ scheduleRender3D(); return; }
+  if (voxels.length === 0){ window._lastBlockCount = 0; scheduleRender3D(); return; }
+  // Info-chip block counter — figure voxels only. Tree easter-egg
+  // voxels are added later (buildEasterEggTree) and are intentionally
+  // not counted here, so the chip reflects what the user would actually
+  // need to gather in Minecraft to build the figure.
+  window._lastBlockCount = voxels.length;
 
   voxelGroup3D = new THREE.Group();
   const geom = new THREE.BoxGeometry(1, 1, 1);

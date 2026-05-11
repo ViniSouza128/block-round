@@ -196,8 +196,14 @@ function voxelShell(Dx, Dy, Dz, mode, cutAxis, cutLimit){
   const inKept = (x, y, z) => {
     if (x < 0 || x >= Dx || y < 0 || y >= Dy || z < 0 || z >= Dz) return false;
     if (!inEllip(x, y, z)) return false;
+    // Cut axes:
+    //   'x' / 'y' — straight slice perpendicular to the axis.
+    //   'diag'    — 45° slice through the XY plane (x + y ≥ cut).
+    //               Cut max for diag is (Dx + Dy) so cut = (Dx+Dy)
+    //               keeps everything and cut = 0 excludes everything.
     if (cutAxis === 'x' && x >= cutLimit) return false;
     if (cutAxis === 'y' && y >= cutLimit) return false;
+    if (cutAxis === 'diag' && (x + y) >= cutLimit) return false;
     return true;
   };
 
@@ -328,6 +334,7 @@ function voxelKeptAll(Dx, Dy, Dz, cutAxis, cutLimit){
     if (cutAxis === 'x' && x >= cutLimit) continue;
     for (let y = 0; y < Dy; y++){
       if (cutAxis === 'y' && y >= cutLimit) continue;
+      if (cutAxis === 'diag' && (x + y) >= cutLimit) continue;
       for (let z = 0; z < Dz; z++){
         const ax = (x + 0.5 - cx) / rx;
         const ay = (y + 0.5 - cy) / ry;
