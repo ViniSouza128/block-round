@@ -110,12 +110,13 @@ Threshold) are available.
     start of every stare, synchronised with the rise + flash. The
     ~4 s fuse sample overruns the 2.5 s stare, which mirrors how a
     real creeper's hiss continues past the detonation moment. The
-    fuse used to fire when the user clicked the TNT tile, but
-    that's been removed: the sound now belongs exclusively to the
-    creeper. Picking the TNT tile just plays the generic UI click.
-    Leaving the easter egg (changing block away from TNT, or
-    sliding off 15) cuts any in-flight fuse immediately so the
-    noise can't outlive the creeper that was making it.
+    fuse also fires on the original trigger — picking the TNT tile
+    in the block list — so both paths play it. `Sfx.tnt()` stops
+    any previous fuse before starting a new one, so the two
+    triggers can coexist without ever stacking. Leaving the easter
+    egg (changing block away from TNT, or sliding off 15) cuts any
+    in-flight fuse immediately so the noise can't outlive the
+    creeper that was making it.
   - Sphere mode triggers on `state.size === 15`.
   - Ellipsoid mode triggers on any of `state.width / state.height /
     state.depth === 15`. Coexists with the oak-tree easter egg
@@ -129,11 +130,13 @@ Threshold) are available.
     count**, mirroring the tree's convention.
 - **TNT fuse sound** — the real Minecraft fuse sample (vanilla
   `random/fuse.ogg`, embedded as a base64 OGG data URI in
-  `js/sounds.js`) is now owned by the creeper easter egg above: it
-  plays at the start of every 16.6 s stare cycle. Picking the TNT
-  tile in the block list is silent (just the generic UI click);
-  switching away from TNT — or sliding off 15 — cuts any in-flight
-  fuse so it can't outlive the creeper.
+  `js/sounds.js`) plays in two situations: when the user picks the
+  TNT tile in the block list, and at the start of every 16.6 s
+  creeper stare cycle (easter egg above). Both paths call the same
+  `Sfx.tnt()` helper, which stops any in-flight fuse before
+  starting a new one — so the two triggers never stack. Switching
+  away from TNT, or sliding off 15, also cuts the fuse so it can't
+  outlive the situation that started it.
 - **Slime jump sound** — picking the Slime Block or Honey Block tile
   plays the vanilla `mob/slime/small1.ogg` boing.
 - **Per-category place sounds** — every other tile plays the right
