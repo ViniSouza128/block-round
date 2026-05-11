@@ -172,6 +172,29 @@ html,body{
     "cut cut cut"
     "mc mc mc";
 }
+/* In 3D (desktop / horizontal layout only) the right pill-column is empty
+   — algo pills are 2D-only and the style pills were removed in an earlier
+   round — so the canvas reclaims that column and aligns with the right
+   edge of the sliders and block strip. Wrapped in min-width:769px so the
+   mobile single-column layout below isn't overridden. */
+@media (min-width:769px){
+  body.mode3d .tool-grid{
+    grid-template-columns:88px 1fr;
+    grid-template-areas:
+      "left canvas"
+      "slider slider"
+      "mc mc";
+  }
+  body.mode3d .tool-grid.has-cut{
+    grid-template-columns:88px 1fr;
+    grid-template-areas:
+      "left canvas"
+      "slider slider"
+      "cut cut"
+      "mc mc";
+  }
+  body.mode3d .pill-row.right{display:none;}
+}
 @media (max-width:768px){
   .tool-grid,
   .tool-grid.has-cut{
