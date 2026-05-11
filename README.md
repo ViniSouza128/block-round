@@ -80,7 +80,9 @@ Threshold) are available.
   - **Eye-contact cycle** — after a **6 s grace period** when the
     creeper first appears (let the user admire the model before the
     creeper "notices" them), then every **16.6 s** the creeper
-    briefly turns its whole body to face the camera, holds the gaze
+    briefly turns its whole body to face the camera AND tilts its
+    head up or down to track the camera's height (pitch clamped to
+    ±60° so the cube head never bends like a hinge), holds the gaze
     for ~1 s, then drifts back to neutral on a long slow arc, all on
     cubic ease-in-out so the motion feels organic. During the gaze
     the head/leg micro-sway damps down (the creeper looks locked-

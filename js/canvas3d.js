@@ -769,6 +769,13 @@ const CREEPER_FLASH_ATTACK_S = 0.05;
 const CREEPER_FLASH_PEAK     = 0.375; // half of the previous 0.75
 const CREEPER_FLASH_DECAY_K  = 3.0;   // exp(-k·u) coefficient, u in [0..1]
 
+// Head pitch clamp during the stare. Real MC creepers can pitch up to
+// ±90°, but at extreme angles the cube head looks like it's bent on a
+// hinge rather than tracking a tall/short player. ±60° (= π/3) covers
+// every realistic camera elevation in this app's orbit while keeping
+// the cube head visually plausible.
+const CREEPER_PITCH_CLAMP = Math.PI / 3;
+
 let _creeperGroup    = null;   // current creeper THREE.Group (or null)
 let _creeperParts    = null;   // { head, legs:[fl,fr,bl,br] } pivot groups
 let _creeperAnimRaf  = null;
@@ -843,28 +850,55 @@ function _creeperAnimTick(){
   }
   if (_creeperAtlasMat) _creeperAtlasMat.emissiveIntensity = flashI;
 
-  // Angle (around Y) that points the creeper's local +Z (its FACE) at
-  // the camera. We project onto the XZ plane — the creeper keeps its
-  // feet planted; the gaze is a horizontal "eye-line meets the user"
-  // rather than a tilted head-tip. atan2(x, z) is correct because a
-  // rotation.y of θ maps local +Z to world (sinθ, 0, cosθ); solving
-  // sinθ = camX/|cam|, cosθ = camZ/|cam| gives θ = atan2(camX, camZ).
-  const targetAngle = (camera3D)
+  // Body YAW (rotation around Y) — points the creeper's local +Z (its
+  // FACE) at the camera in the horizontal plane. atan2(x, z) is correct
+  // because a rotation.y of θ maps local +Z to world (sinθ, 0, cosθ);
+  // solving sinθ = camX/|cam|, cosθ = camZ/|cam| gives θ = atan2(camX, camZ).
+  const targetYaw = (camera3D)
     ? Math.atan2(camera3D.position.x, camera3D.position.z)
     : 0;
+
+  // Head PITCH (rotation around X, applied to the head pivot AFTER the
+  // body's yaw) — tilts the face up/down to track tall or short camera
+  // angles. The head's world position is constant: the head pivot sits
+  // on the creeper's central axis (local x=z=0), so the body's yaw
+  // leaves it where it was; we just need the camera's height relative
+  // to the head, plus the horizontal distance.
+  //
+  // pitchTarget > 0 when camera is ABOVE the head; we want the face to
+  // tilt UP in that case. In three.js, Rx(+θ) maps +Z → (0, −sinθ, cosθ)
+  // — that's tilting +Z toward −Y (DOWN). So we apply NEGATIVE pitch
+  // to lift the face up. The angle is clamped to ±CREEPER_PITCH_CLAMP
+  // so an extreme overhead camera doesn't bend the cube head into a
+  // hinge.
+  let targetPitch = 0;
+  if (camera3D){
+    const headWorldY = _creeperGroup.position.y
+                     + (CREEPER_LEG_H + CREEPER_BODY_H + CREEPER_HEAD_H / 2);
+    const camX = camera3D.position.x;
+    const camZ = camera3D.position.z;
+    const dy   = camera3D.position.y - headWorldY;
+    const dxz  = Math.hypot(camX, camZ);
+    targetPitch = Math.atan2(dy, dxz);
+    if (targetPitch >  CREEPER_PITCH_CLAMP) targetPitch =  CREEPER_PITCH_CLAMP;
+    if (targetPitch < -CREEPER_PITCH_CLAMP) targetPitch = -CREEPER_PITCH_CLAMP;
+  }
 
   const blend = _creeperLookBlend(t);
 
   // Body — interpolate between neutral (0) and full camera-facing.
-  // Continuous targetAngle means if the user orbits the camera DURING
+  // Continuous targetYaw means if the user orbits the camera DURING
   // the gaze hold, the creeper smoothly tracks them; that intentional
   // "watching me" feel was the whole point of the easter egg.
-  _creeperGroup.rotation.y = blend * targetAngle;
+  _creeperGroup.rotation.y = blend * targetYaw;
 
-  // Head idle sway — scaled down as the gaze intensifies so the head
-  // looks "locked on" while staring, then re-engages the sway as the
-  // body returns to neutral.
+  // Head — pitch tracks the camera height during the stare, and the
+  // idle micro-sway plays during the breather (scaled down as the gaze
+  // intensifies). Pitch and sway live on different axes (X vs Y) so
+  // they never fight; their blend factors are reciprocal so the head
+  // smoothly hands off between "looking at the user" and "idle bobbing".
   const idleSway = Math.sin(t * 2 * Math.PI * 0.18) * (6 * Math.PI / 180);
+  _creeperParts.head.rotation.x = -blend * targetPitch;
   _creeperParts.head.rotation.y = idleSway * (1 - blend);
 
   // Legs — also damped during the gaze so the body reads as deliberate
