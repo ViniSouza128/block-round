@@ -20,9 +20,11 @@ no installation, no account, no backend. Exports as PNG.
 | 3D · Ellipsoid | Voxel     | Width + Height + Depth + Cut |
 
 Pick a Minecraft block from the picker (Grass Block, Dirt, Stone,
-Oak, Diamond, **Sand**, **Gravel**, etc., plus a Random mix) and the
-generator renders the shape using that block's texture. Three 2D
-algorithms (Euclidean, Bresenham, Threshold) are available.
+Oak, Diamond, **Sand**, **Gravel**, etc., plus a Random mix and a
+handful of curiosity blocks — Slime, Honey, Sponge, Shroomlight,
+Crying Obsidian) and the generator renders the shape using that
+block's texture. Three 2D algorithms (Euclidean, Bresenham,
+Threshold) are available.
 
 ### Special block behaviours
 

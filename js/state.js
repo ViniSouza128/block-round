@@ -171,8 +171,10 @@ const MC_BLOCKS = {
 
   // ===== CRAFTED / UTILITY ================================================
   // Three-face blocks: front, side, top distinct.
-  crafting_table: { src: _tex('crafting_table_side'),    name: 'Crafting Table' },
-  furnace:        { src: _tex('furnace_side'),           name: 'Furnace' },
+  // Picker thumbnails use the most recognisable face of each block —
+  // the crafting grid for the table and the lit-up front for the furnace.
+  crafting_table: { src: _tex('crafting_table_top'),     name: 'Crafting Table' },
+  furnace:        { src: _tex('furnace_front_off'),      name: 'Furnace' },
   bookshelf:      { src: _tex('bookshelf'),              name: 'Bookshelf' },
   tnt:            { src: _tex('tnt_side'),               name: 'TNT' },
 
@@ -188,6 +190,17 @@ const MC_BLOCKS = {
   // ===== MUSHROOM CAPS ====================================================
   red_mushroom:   { src: _tex('mushroom_block_skin_red'),   name: 'Red Mushroom' },
   brown_mushroom: { src: _tex('mushroom_block_skin_brown'), name: 'Brown Mushroom' },
+
+  // ===== CURIOSITIES ======================================================
+  // A handful of visually-distinctive blocks chosen for variety in spheres:
+  // translucent slime/honey, the bright porous sponge, the warm shroomlight
+  // glow, and the dark purple crying_obsidian. Honey is multi-face (top
+  // smooth, sides dripping, bottom flatter).
+  slime:           { src: _tex('slime'),           name: 'Slime Block' },
+  honey:           { src: _tex('honey_top'),       name: 'Honey Block' },
+  sponge:          { src: _tex('sponge'),          name: 'Sponge' },
+  shroomlight:     { src: _tex('shroomlight'),     name: 'Shroomlight' },
+  crying_obsidian: { src: _tex('crying_obsidian'), name: 'Crying Obsidian' },
 
   // ===== WOOL =============================================================
   white_wool:     { src: _tex('white_wool'),       name: 'White Wool' },

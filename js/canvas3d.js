@@ -155,6 +155,11 @@ const MULTI_FACE_3D = {
   podzol:         ['dirt_podzol_side', 'dirt_podzol_side',
                    'dirt_podzol_top', 'dirt',
                    'dirt_podzol_side', 'dirt_podzol_side'],
+  // Honey Block: dripping side texture wrapping the four faces, smooth cap
+  // on top, slightly different sticky base on the bottom.
+  honey:          ['honey_side', 'honey_side',
+                   'honey_top',  'honey_bottom',
+                   'honey_side', 'honey_side'],
 };
 
 /* Returns either a single material or an array of six materials so a single
