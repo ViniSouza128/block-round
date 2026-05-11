@@ -185,6 +185,20 @@ function getMaterial3D(key){
     return mat;
   }
 
+  // Oak leaves (tree easter egg) — alphaTest carves the gaps between the
+  // leaf clusters out of the cube, so neighbouring leaf blocks read as a
+  // proper sparse canopy rather than a solid green box. DoubleSide so the
+  // inner faces of each leaf cube are visible at oblique angles.
+  if (key === 'oak_leaves'){
+    const tex = getTexture3D(key);
+    const mat = new THREE.MeshLambertMaterial({
+      map: tex, transparent: true, alphaTest: 0.5, depthWrite: true,
+      side: THREE.DoubleSide,
+    });
+    _matCache.set(key, mat);
+    return mat;
+  }
+
   const tex = getTexture3D(key);
   const mat = new THREE.MeshLambertMaterial({ map: tex });
   _matCache.set(key, mat);
@@ -227,22 +241,33 @@ function init3D(canvas){
   return true;
 }
 
+// Camera always orbits AND looks at the figure's effective centre. When
+// the tree easter egg is active the effective centre rises (the tree
+// adds extra cells above the figure), so the camera's lookAt and the
+// orbit anchor both shift up by the same amount — keeping the entire
+// composition framed instead of pushing the tree off the top of the
+// canvas.
+function _cameraLookAtY(){
+  const extra = (typeof treeBoundsExtraY === 'function') ? treeBoundsExtraY() : 0;
+  // Effective half-height of (figure + tree) above origin.
+  return extra > 0 ? (extra / 2) : 0;
+}
+
 function updateCamera3D(){
   if (!camera3D) return;
+  const ly = _cameraLookAtY();
   camera3D.position.x = distance3D * Math.sin(phi3D) * Math.cos(theta3D);
-  camera3D.position.y = distance3D * Math.cos(phi3D);
+  camera3D.position.y = distance3D * Math.cos(phi3D) + ly;
   camera3D.position.z = distance3D * Math.sin(phi3D) * Math.sin(theta3D);
-  camera3D.lookAt(0, 0, 0);
+  camera3D.lookAt(0, ly, 0);
   scheduleRender3D();
 }
 function resetCamera3D(){ theta3D = Math.PI / 4; phi3D = Math.PI / 3; autoZoom3D(); }
 /* autoZoom3D — set distance3D so the bounding sphere of the figure fits
    inside the viewport with a guaranteed margin at every rotation angle.
-   The bounding sphere radius (half-diagonal of the AABB) is the
-   worst-case projected extent regardless of orientation, so the model
-   never clips the canvas edges no matter where the user drags to.
-   Called on figure changes and on double-click reset only. User-applied
-   wheel/pinch zoom is preserved across drags. */
+   When the tree easter egg is active, the bounding box is extended
+   vertically to include the tree, so the camera pulls back AND looks
+   up to keep the entire figure-plus-tree composition in frame. */
 function autoZoom3D(){
   if (!camera3D) return;
   const isEllipse = state.shape === 'ellipse';
@@ -250,8 +275,14 @@ function autoZoom3D(){
   const Dy = isEllipse ? state.height : state.size;
   const Dz = isEllipse ? state.depth  : state.size;
 
-  // Half-diagonal of the AABB = radius of the tightest enclosing sphere.
-  const hx = Dx / 2, hy = Dy / 2, hz = Dz / 2;
+  // Effective height grows when the tree easter egg is active. The
+  // tree extends upward from the figure top, so the half-height grows
+  // and the bounding sphere recenters higher (handled in lookAt).
+  const treeExtra = (typeof treeBoundsExtraY === 'function') ? treeBoundsExtraY() : 0;
+  const effDy = Dy + treeExtra;
+
+  // Half-diagonal of the effective AABB = radius of the tightest sphere.
+  const hx = Dx / 2, hy = effDy / 2, hz = Dz / 2;
   const R = Math.sqrt(hx * hx + hy * hy + hz * hz);
 
   const vFov = camera3D.fov * Math.PI / 180;
@@ -263,48 +294,74 @@ function autoZoom3D(){
   updateCamera3D();
 }
 
-/* ---------- EASTER EGG: OAK TREE ON SLIDER VALUE 15 ----------------------
-   Triggers when any one of size / width / height / depth equals 15.
-   Plants a small oak tree (3-block log + 4-layer leaf canopy) directly
-   on top of the 3D figure. Respects the X cut by hiding tree voxels at
-   x >= cutLimit, and disappears entirely the moment the Y cut steps off
-   its maximum (i.e. once the user trims any amount of the figure from
-   the Y axis the tree is gone, since its base is above the figure's
-   topmost voxel). Easter egg only — never appears in 2D mode. */
-function buildEasterEggTree(Dx, Dy, Dz, cx, cy, cz, geom){
-  const trigger = state.size === 15 || state.width === 15
-                || state.height === 15 || state.depth === 15;
-  if (!trigger) return;
+/* ---------- EASTER EGG: OAK TREE ----------------------------------------
+   Plants a small oak tree (4-block trunk + 4-layer leaf canopy with the
+   bottom two canopy layers overlapping the upper two trunk blocks)
+   directly on top of the 3D figure.
 
-  // Y cut active → tree disappears. The tree sits ABOVE the figure, so
-  // any Y cut on the figure naturally implies the user is trimming
-  // downward from the top — hide the tree immediately.
+   Trigger rules:
+     • Sphere    → state.size === 15.
+     • Ellipsoid → any of state.width / state.height / state.depth === 15.
+       The sphere `state.size` is intentionally NOT a trigger when in
+       ellipsoid shape, since the value is not visible/editable there.
+     • Block must be Grass Block, Dirt or Random (random's top voxel is
+       always grass). No tree on stone, glass, wool, etc.
+
+   Cut behaviours:
+     • X cut → tree slices laterally with the figure (voxels at x ≥ cut
+       are skipped, just like figure voxels).
+     • Y cut < Dy → tree disappears entirely (its base sits above the
+       figure's top, so any vertical trim should erase it).
+
+   Together with treeBoundsExtraY() / treeBoundsXRange(), the 3D
+   autoZoom uses these dimensions to keep the whole composition framed. */
+function treeIsActive(){
+  if (!isTreeBlock(state.mcBlock)) return false;
+  if (state.shape === 'circle')  return state.size === 15;
+  /* ellipsoid */                return state.width === 15 || state.height === 15 || state.depth === 15;
+}
+
+function isTreeBlock(key){
+  // The block on top of the figure must be soil-like for the tree to
+  // make sense. Random qualifies because the random pattern always
+  // stamps grass on the topmost voxel of every column.
+  return key === 'grass_block' || key === 'dirt' || key === 'random';
+}
+
+const TREE_TRUNK_H = 4;
+const TREE_CANOPY_TOP_OFFSET = TREE_TRUNK_H - 2 + 3;  // top y above figure
+function treeBoundsExtraY(){
+  // Tree's top voxel is at y = Dy + TREE_TRUNK_H + 1 (layer3) = Dy + 5
+  // relative to figure-local coords. So tree adds (5 + 1) cells of
+  // height above the figure's topmost cell.
+  return treeIsActive() ? (TREE_TRUNK_H + 2) : 0;
+}
+
+function buildEasterEggTree(Dx, Dy, Dz, cx, cy, cz, geom){
+  if (!treeIsActive()) return;
+  // Y cut active → tree disappears (its base is above the figure).
   if (state.axis === 'y' && state.cut < Dy) return;
 
   const cutXLimit = state.axis === 'x' ? state.cut : Dx;
   const treeCX = Math.floor((Dx - 1) / 2);
   const treeCZ = Math.floor((Dz - 1) / 2);
-  const baseY  = Dy;          // first voxel above the topmost figure voxel
-  const TRUNK_H = 3;
+  const baseY  = Dy;  // first voxel above the topmost figure voxel
 
   const addBlock = (lx, ly, lz, matKey) => {
-    if (lx < 0 || lx >= cutXLimit) return;  // honour the X cut
+    if (lx < 0 || lx >= cutXLimit) return;
     const mat = getMaterial3D(matKey);
     const mesh = new THREE.Mesh(geom, mat);
     mesh.position.set(lx - cx, ly - cy, lz - cz);
     voxelGroup3D.add(mesh);
   };
 
-  // Trunk: 3 oak_log stacked dead-centre.
-  for (let i = 0; i < TRUNK_H; i++){
+  // Trunk: 4 oak_log stacked dead-centre.
+  for (let i = 0; i < TREE_TRUNK_H; i++){
     addBlock(treeCX, baseY + i, treeCZ, 'oak_log');
   }
 
-  // Canopy — four ascending layers. Bottom two are 5×5 minus the four
-  // far corners; layer 2 is a tight 3×3; layer 3 is a 5-cell cross cap.
-  // The bottom canopy layer sits at the second log so the leaves wrap
-  // the top of the trunk just like a real MC oak.
-  const layer0base = baseY + TRUNK_H - 2;
+  // Canopy — 4 ascending layers. Bottom two overlap the top two logs.
+  const layer0base = baseY + TREE_TRUNK_H - 2;
   const SQ5 = [];
   for (let dz = -2; dz <= 2; dz++)
     for (let dx = -2; dx <= 2; dx++)
@@ -425,8 +482,10 @@ function buildVoxelEdges3D(voxels, cx, cy, cz){
   // Sand/gravel get a much fainter outline (25 % of the usual opacity)
   // because the falling animation reads better when the cubes don't
   // carry strong outlines — the grain texture itself sells the look.
+  // baseOpacity halved (was 0.55 → now 0.275) so the edge overlay
+  // stays a hint, not a competing layer over the textured cubes.
   const fadeBlocks = new Set(['sand', 'gravel']);
-  const baseOpacity = 0.55;
+  const baseOpacity = 0.275;
   const opacity = fadeBlocks.has(state.mcBlock) ? baseOpacity * 0.25 : baseOpacity;
   const mat = new THREE.LineBasicMaterial({
     color: 0x1a0e04, transparent: true, opacity,

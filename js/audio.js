@@ -10,12 +10,27 @@
 const Sfx = (() => {
   let ctx = null;
   let on  = true;
+  // Decoded sample cache (key -> AudioBuffer) plus the currently-playing
+  // long sample's source node so we can stop it on demand. Used by the TNT
+  // fuse easter egg, which must cut off the moment the user picks another
+  // tile instead of letting the 1.5 s+ fuse play to completion.
+  const _sampleBuffers = new Map();
+  let _tntSource = null;
 
   function ensure(){
     if (ctx) return ctx;
     try { ctx = new (window.AudioContext || window.webkitAudioContext)(); }
     catch(_) { ctx = null; }
     return ctx;
+  }
+
+  function loadSample(key, dataUri){
+    if (_sampleBuffers.has(key)) return Promise.resolve(_sampleBuffers.get(key));
+    const c = ensure(); if (!c) return Promise.reject();
+    return fetch(dataUri)
+      .then(r => r.arrayBuffer())
+      .then(buf => c.decodeAudioData(buf))
+      .then(decoded => { _sampleBuffers.set(key, decoded); return decoded; });
   }
 
   function tone({freq=600, dur=.06, type='sine', gain=.025} = {}){
@@ -60,34 +75,34 @@ const Sfx = (() => {
     error:  () => tone({freq:120, dur:.20, gain:.04}),
     pop:    () => noiseBurst({dur:.05, gain:.04, lowpass:1400}),
     tick:   () => tone({freq:480, dur:.018, gain:.012}),
-    // Easter egg — TNT fuse hiss + crackle. Layered short noise bursts
-    // with rising lowpass create the sizzling sound of a freshly-lit
-    // fuse, ramping in over ~1.4 s. Fired the moment the user picks the
-    // TNT tile in the block list.
+    // Easter egg — plays the real Minecraft TNT fuse sample
+    // (random/fuse.ogg) embedded as a data URI by js/sounds.js. The sample
+    // is decoded once on first use and cached. Calling stopTnt() (e.g. on
+    // block change) cuts the playback off immediately, so the fuse can't
+    // out-last the user's attention span.
     tnt: () => {
       if (!on) return;
       const c = ensure(); if (!c) return;
-      // Hiss bed: filtered white noise rising in cutoff.
-      const len = Math.floor(c.sampleRate * 1.4);
-      const buf = c.createBuffer(1, len, c.sampleRate);
-      const d = buf.getChannelData(0);
-      for (let i = 0; i < len; i++) d[i] = (Math.random()*2 - 1);
-      const src = c.createBufferSource(); src.buffer = buf;
-      const lp = c.createBiquadFilter(); lp.type = 'bandpass';
-      lp.frequency.setValueAtTime(900, c.currentTime);
-      lp.frequency.exponentialRampToValueAtTime(2400, c.currentTime + 1.4);
-      lp.Q.value = 1.4;
-      const g = c.createGain();
-      g.gain.setValueAtTime(0.025, c.currentTime);
-      g.gain.exponentialRampToValueAtTime(0.055, c.currentTime + 1.2);
-      g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 1.4);
-      src.connect(lp); lp.connect(g); g.connect(c.destination);
-      src.start(); src.stop(c.currentTime + 1.4);
-      // Crackle taps — irregular short noise pops layered on top.
-      const taps = [80, 180, 310, 470, 640, 820, 1000, 1190];
-      for (const ms of taps){
-        setTimeout(() => noiseBurst({ dur: .035, gain: .025, lowpass: 2200 }), ms);
-      }
+      const src = window.MC_SFX && window.MC_SFX.tnt_fuse;
+      if (!src) return;
+      loadSample('tnt_fuse', src).then(buffer => {
+        if (!on) return;  // user disabled audio during the decode
+        // Stop any previous fuse so re-clicks don't stack.
+        try { _tntSource && _tntSource.stop(); } catch(_) {}
+        const node = c.createBufferSource();
+        node.buffer = buffer;
+        const g = c.createGain();
+        g.gain.value = 0.55;
+        node.connect(g); g.connect(c.destination);
+        node.onended = () => { if (_tntSource === node) _tntSource = null; };
+        _tntSource = node;
+        node.start();
+      }).catch(() => {});
+    },
+    stopTnt: () => {
+      if (!_tntSource) return;
+      try { _tntSource.stop(); } catch(_) {}
+      _tntSource = null;
     },
   };
 })();
