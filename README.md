@@ -33,8 +33,19 @@ algorithms (Euclidean, Bresenham, Threshold) are available.
 | **Glass / Ice** | MC-style rendering: faces between two adjacent same-material voxels are culled, so the figure reads as one big pane (no doubled internal frames). `alphaTest:0.5` keeps the frame solid and the panes see-through. |
 | **Multi-face blocks** | Pumpkin · Hay · Melon · Quartz · Bone · Sandstone · Crafting Table · Furnace · Bookshelf · TNT · Mycelium · Podzol · all wood Logs (Oak / Birch / Spruce / Jungle / Acacia / Dark Oak) render distinct textures on top, sides and bottom — matching the real Minecraft block. |
 | **Filled vs. Thin (transparent)** | For Glass and Ice in Filled mode the renderer emits every voxel of the solid volume (not just the outer shell), so the user can see the dense interior of cubes through the front panes. Thin still draws a hollow merged shell. |
-| **Sand / Gravel** | After a 500 ms hold the cells fall onto an invisible floor under gravity, mirroring Minecraft physics. Works in 2D and 3D. Edge overlay opacity is reduced to 25 % on these blocks so the grain reads cleanly. **Soul Sand** doesn't fall (matches MC). |
+| **Sand / Gravel** | After a 500 ms hold the cells fall onto an invisible floor under gravity, mirroring Minecraft physics. Works in 2D and 3D. Edge overlay opacity is reduced to 25 % on these blocks so the grain reads cleanly. **Soul Sand** doesn't fall (matches MC). Re-clicking the currently-selected Sand / Gravel tile resets the figure and replays the fall. |
+| **TNT** | Picking the TNT tile in the block list plays a sizzling fuse sound (synthesised noise + bandpass-rising crackle). |
+| **Edges on transparent blocks** | Glass and Ice default to **edge overlay OFF** since the outlines compete with the alpha-blended frames. Toggling the Grid corner button while on Glass / Ice only flips the transparent preference — opaque blocks keep their own preference, so leaving Glass → Stone restores the previous Stone setting automatically. |
 | **Random** | Procedurally tiered: grass on top of each column, dirt beneath, stone with sparse ores (coal, iron, redstone, gold, lapis, diamond, emerald, cobble), deepslate above bedrock — band boundaries wavy per column. |
+
+### Easter eggs
+
+- Setting any one of the **Size / Width / Height / Depth** sliders to
+  exactly **15** spawns a small oak tree on top of the 3D figure
+  (3-block trunk + 4-layer canopy of green-tinted oak leaves). The
+  tree respects the X cut (sliced laterally along with the figure) and
+  vanishes the moment you start trimming the figure on the Y axis.
+- Selecting **TNT** in the block list plays a fuse-sizzling sound.
 
 ## Controls
 
@@ -50,8 +61,11 @@ algorithms (Euclidean, Bresenham, Threshold) are available.
 - Cut is **proportional** to size — 50% stays 50%.
   Default axis = **Y**.
 - **Grid corner button** in 3D toggles a black **edge overlay** on
-  every voxel (default ON, makes counting blocks easier). In 2D it
-  toggles the cell grid.
+  every voxel (default ON for opaque blocks; default OFF for Glass /
+  Ice and remembered separately so the two preferences don't trample
+  each other). In 2D it toggles the cell grid.
+- **Keyboard arrows** (← / →) move through the block picker after
+  you've selected any tile, skipping the internal-only entries.
 - **Center guides** in 3D draw a translucent yellow cross along all
   three axes; bars are **1 block thick** for odd-sized axes and
   **2 blocks thick** for even, so they always shine through the

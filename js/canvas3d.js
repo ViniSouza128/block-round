@@ -6,9 +6,13 @@
    from textures.js → MC_TEX[key], piped through THREE.TextureLoader).
 
    Render mode (state.render) chooses which voxels are emitted via the
-   shared voxelShell(). state.edges3d (toggled by the canvas Grid button,
-   ON by default in 3D) overlays black line segments tracing the 12
-   edges of every voxel — this replaces the old "wireframe" style.
+   shared voxelShell(). The edge-overlay preference is a pair of flags:
+     • state.edges3d           — applied to opaque blocks; default ON.
+     • state.edges3dTransparent — applied to Glass / Ice;   default OFF.
+   effectiveEdges3D() picks the right one for the currently-selected
+   block. The Grid corner button toggles whichever flag applies, so
+   leaving a transparent block returns the user to their last opaque
+   preference automatically.
 
    Special-case block behaviours wired up here:
      • grass_block   → multi-face material via getMaterial3D: grass_top
@@ -49,6 +53,16 @@ function _geomSig3D(){
     state.shape, state.size, state.width, state.height, state.depth,
     state.cut, state.axis, state.render, state.algo, state.mcBlock, state.mode
   ].join('|');
+}
+
+/* Effective edge-overlay preference. Transparent blocks (glass / ice)
+   read state.edges3dTransparent (default OFF — the outlines compete
+   with the alpha rendering); everything else reads state.edges3d. */
+function effectiveEdges3D(){
+  if (state.mcBlock === 'glass' || state.mcBlock === 'ice'){
+    return !!state.edges3dTransparent;
+  }
+  return !!state.edges3d;
 }
 let distance3D = 70;
 let theta3D = Math.PI / 4;
@@ -247,6 +261,70 @@ function autoZoom3D(){
   // 1.20× margin keeps a visible gap between model and canvas edges.
   distance3D = Math.max(2, Math.max(distV, distH) * 1.20);
   updateCamera3D();
+}
+
+/* ---------- EASTER EGG: OAK TREE ON SLIDER VALUE 15 ----------------------
+   Triggers when any one of size / width / height / depth equals 15.
+   Plants a small oak tree (3-block log + 4-layer leaf canopy) directly
+   on top of the 3D figure. Respects the X cut by hiding tree voxels at
+   x >= cutLimit, and disappears entirely the moment the Y cut steps off
+   its maximum (i.e. once the user trims any amount of the figure from
+   the Y axis the tree is gone, since its base is above the figure's
+   topmost voxel). Easter egg only — never appears in 2D mode. */
+function buildEasterEggTree(Dx, Dy, Dz, cx, cy, cz, geom){
+  const trigger = state.size === 15 || state.width === 15
+                || state.height === 15 || state.depth === 15;
+  if (!trigger) return;
+
+  // Y cut active → tree disappears. The tree sits ABOVE the figure, so
+  // any Y cut on the figure naturally implies the user is trimming
+  // downward from the top — hide the tree immediately.
+  if (state.axis === 'y' && state.cut < Dy) return;
+
+  const cutXLimit = state.axis === 'x' ? state.cut : Dx;
+  const treeCX = Math.floor((Dx - 1) / 2);
+  const treeCZ = Math.floor((Dz - 1) / 2);
+  const baseY  = Dy;          // first voxel above the topmost figure voxel
+  const TRUNK_H = 3;
+
+  const addBlock = (lx, ly, lz, matKey) => {
+    if (lx < 0 || lx >= cutXLimit) return;  // honour the X cut
+    const mat = getMaterial3D(matKey);
+    const mesh = new THREE.Mesh(geom, mat);
+    mesh.position.set(lx - cx, ly - cy, lz - cz);
+    voxelGroup3D.add(mesh);
+  };
+
+  // Trunk: 3 oak_log stacked dead-centre.
+  for (let i = 0; i < TRUNK_H; i++){
+    addBlock(treeCX, baseY + i, treeCZ, 'oak_log');
+  }
+
+  // Canopy — four ascending layers. Bottom two are 5×5 minus the four
+  // far corners; layer 2 is a tight 3×3; layer 3 is a 5-cell cross cap.
+  // The bottom canopy layer sits at the second log so the leaves wrap
+  // the top of the trunk just like a real MC oak.
+  const layer0base = baseY + TRUNK_H - 2;
+  const SQ5 = [];
+  for (let dz = -2; dz <= 2; dz++)
+    for (let dx = -2; dx <= 2; dx++)
+      if (!(Math.abs(dx) === 2 && Math.abs(dz) === 2)) SQ5.push([dx, dz]);
+  const SQ3 = [];
+  for (let dz = -1; dz <= 1; dz++)
+    for (let dx = -1; dx <= 1; dx++) SQ3.push([dx, dz]);
+  const CROSS = [[0,0], [-1,0], [1,0], [0,-1], [0,1]];
+
+  const LAYERS = [
+    { dy: 0, pat: SQ5   },
+    { dy: 1, pat: SQ5   },
+    { dy: 2, pat: SQ3   },
+    { dy: 3, pat: CROSS },
+  ];
+  for (const L of LAYERS){
+    for (const [dx, dz] of L.pat){
+      addBlock(treeCX + dx, layer0base + L.dy, treeCZ + dz, 'oak_leaves');
+    }
+  }
 }
 
 function disposeVoxelGroup(){
@@ -625,7 +703,10 @@ function update3D(){
   _lastVoxels3D = voxels;
   _lastDims3D   = { cx, cy, cz };
 
-  if (state.edges3d){
+  // Easter egg: slider value 15 → small oak tree on top of the figure.
+  buildEasterEggTree(Dx, Dy, Dz, cx, cy, cz, geom);
+
+  if (effectiveEdges3D()){
     voxelEdges3D = buildVoxelEdges3D(voxels, cx, cy, cz);
     voxelGroup3D.add(voxelEdges3D);
   }
@@ -645,7 +726,7 @@ function toggleEdges3D(){
     voxelEdges3D.material?.dispose?.();
     voxelEdges3D = null;
   }
-  if (state.edges3d){
+  if (effectiveEdges3D()){
     const { cx, cy, cz } = _lastDims3D;
     voxelEdges3D = buildVoxelEdges3D(_lastVoxels3D, cx, cy, cz);
     voxelGroup3D.add(voxelEdges3D);

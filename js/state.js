@@ -15,9 +15,17 @@ let state = {
   algo:   'euclidean',
   size:  16, width: 20, height: 12, depth: 14,
   cut:   16, cutPct: 1.0, axis: 'y',
-  edges3d: true,        // Grid btn in 3D toggles a black edge overlay on
-                        // every voxel; default ON so the user can count
-                        // blocks when copying into Minecraft.
+  // The edge overlay has two independent preferences:
+  //   • edges3d            — applied when the current block is opaque
+  //                          (default ON so the user can count cubes).
+  //   • edges3dTransparent — applied when the current block is glass/ice
+  //                          (default OFF because the outlines compete
+  //                          with the MC-style alpha rendering — the
+  //                          user can still turn them on manually for
+  //                          the transparent block without affecting
+  //                          the opaque-block preference).
+  edges3d: true,
+  edges3dTransparent: false,
   grid:    false,     // OFF by default — textures already give visual structure
   center:  false,
   overlay: false,
@@ -197,6 +205,8 @@ const MC_BLOCKS = {
   grass:        { src: _tex('grass_block_top'),  name: 'Grass Top',     internal: true },
   grass_side:   { src: _tex('grass_block_side'), name: 'Grass Side',    internal: true },
   oak_log_top:  { src: _tex('oak_log_top'),      name: 'Oak Log Top',   internal: true },
+  // Used only by the slider-15 oak-tree easter egg — not in the picker.
+  oak_leaves:   { src: _tex('leaves_oak'),       name: 'Oak Leaves',    internal: true },
 };
 const RANDOM_POOL = ['grass','dirt','stone','cobble','oak','sand'];
 

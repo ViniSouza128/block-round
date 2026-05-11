@@ -27,7 +27,9 @@ function applyLoadedPrefsToUI(){
     if (k && k in state) v.textContent = state[k];
   });
   document.querySelectorAll('[data-act=grid]').forEach(b => b.classList.toggle('active',
-    state.mode === '3d' ? state.style3d === 'wire' : state.grid));
+    state.mode === '3d'
+      ? (typeof effectiveEdges3D === 'function' ? effectiveEdges3D() : !!state.edges3d)
+      : state.grid));
   document.querySelectorAll('[data-act=center]').forEach(b => b.classList.toggle('active', state.center));
   document.querySelectorAll('[data-act=overlay]').forEach(b => b.classList.toggle('active', state.overlay));
   document.querySelectorAll('[data-act=zoom]').forEach(b => b.classList.toggle('active', state.zoomBtn));
