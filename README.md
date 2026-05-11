@@ -60,23 +60,29 @@ Threshold) are available.
     adds the tree's height to the bounding-box AND lifts the lookAt.
   - 2D: extra rows are reserved above the figure so the tree fits
     with breathing room; the figure shifts downward accordingly.
-- **TNT creeper on slider value 5** — perches a tiny voxel creeper
-  (made entirely of TNT blocks) on top of the figure. **3D only.**
-  - 4×4 footprint, 11 blocks tall: four corner legs (1×3×1), a 2×2×4
-    body cuboid, then a full 4×4×4 head cube. The head's overhang past
-    the slimmer body is what makes the silhouette read as a creeper.
-  - Sphere mode triggers on `state.size === 5`.
+- **TNT creeper on slider value 15** — spawns a real Minecraft creeper
+  standing on top of the figure. **3D only.**
+  - Rendered with its own green-mottled creeper skin and the iconic
+    black eye-and-mouth face on the front of the head — *not* built
+    out of TNT cubes. Both textures are drawn procedurally onto a
+    pair of 8×8 pixel canvases at first activation (no binary asset
+    is shipped).
+  - True Minecraft entity proportions (16 px = 1 block): head
+    8×8×8 px, body 4×12×8 px, four legs at 4×6×4 px each.
+    Total height 1.625 blocks, footprint 0.5 × 0.5 block — sits
+    centred on the figure's top face, facing +z so the face is
+    visible at the default camera angle.
+  - Sphere mode triggers on `state.size === 15`.
   - Ellipsoid mode triggers on any of `state.width / state.height /
-    state.depth === 5`.
-  - Block must be **TNT** — fits the "explosive duo" theme; on any
-    other block the trigger is ignored.
-  - 3D cuts behave exactly like the tree's: X / diagonal slice it
-    block-by-block; Y cut < Dy clears it (its base sits above the
-    figure top). Camera autoZoom lifts the bounding box by the
-    creeper's 11-block height so nothing crops.
-  - Creeper voxels are intentionally **excluded from the info-chip
-    block count**, mirroring the tree's convention — the count reflects
-    only the figure blocks the user would gather to build it.
+    state.depth === 15`. Coexists with the oak-tree easter egg
+    (same slider value, different trigger blocks).
+  - Block must be **TNT**.
+  - 3D cuts: all-or-nothing rule (the creeper is too small to slice
+    meaningfully) — Y cut < Dy, X cut ≤ Dx/2, or Diag cut ≤ Dx/2 +
+    Dy − 1 hides it. AutoZoom lifts the bounding box by 2 blocks so
+    the head never grazes the canvas edge.
+  - Creeper is intentionally **excluded from the info-chip block
+    count**, mirroring the tree's convention.
 - **TNT fuse sound** — picking the TNT tile plays the real Minecraft
   fuse sample (vanilla `random/fuse.ogg`, embedded as a base64 OGG
   data URI in `js/sounds.js`). Switching to any other block before
