@@ -5,13 +5,15 @@ with the explicit carve-out for Minecraft textures noted there. The
 project additionally depends on the following third-party components,
 each with its own license.
 
-## Minecraft block textures
+## Minecraft block textures and audio samples
 
-The PNG files inside `textures/` are part of Minecraft, which is the
-property of **Mojang Studios / Microsoft Corporation**. They are NOT
-licensed by this project and remain the intellectual property of
-their original owners. See the LICENSE file's "THE TEXTURES" section
-for the full notice.
+The PNG files inside `textures/` and the OGG audio data URI embedded
+in `js/sounds.js` (the TNT fuse sample used by the TNT-tile easter
+egg) are part of Minecraft, which is the property of **Mojang Studios
+/ Microsoft Corporation**. They are NOT licensed by this project and
+remain the intellectual property of their original owners. See the
+LICENSE file's "THE TEXTURES" section for the full notice — the same
+terms apply to the audio sample.
 
 **Block Round is NOT affiliated with, endorsed by, sponsored by, or
 in any way officially connected to Mojang Studios or Microsoft.**

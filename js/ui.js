@@ -347,6 +347,7 @@ function setupClickDelegation(){
       // gravel it explicitly resets the figure so the fall replays.
       // For everything else, ignore the duplicate click.
       if (reclick && !FALLABLE.has(state.mcBlock)) return;
+      const prevBlock = state.mcBlock;
       state.mcBlock = t.dataset.block;
       if (typeof _fallReset === 'function') _fallReset();
       if (typeof _fall3DReset === 'function') _fall3DReset();
@@ -355,7 +356,9 @@ function setupClickDelegation(){
       if (reclick && typeof _lastGeomSig3D !== 'undefined') _lastGeomSig3D = null;
       document.querySelectorAll('[data-block]').forEach(b => b.classList.toggle('active', b === t));
       Sfx.click();
-      // Easter egg: TNT plays a sizzling fuse instead of the plain click.
+      // TNT fuse: starts on TNT-pick, must stop the moment the user
+      // leaves TNT (or re-picks any non-TNT block before the fuse ends).
+      if (prevBlock === 'tnt' && state.mcBlock !== 'tnt' && typeof Sfx.stopTnt === 'function') Sfx.stopTnt();
       if (state.mcBlock === 'tnt' && typeof Sfx.tnt === 'function') Sfx.tnt();
       if (state.mcBlock !== 'random') loadBlockImage(state.mcBlock);
       // Refresh the Grid corner button to reflect the new effective edges
@@ -364,6 +367,8 @@ function setupClickDelegation(){
         const eff = effectiveEdges3D();
         document.querySelector('[data-act=grid]')?.classList.toggle('active', eff);
       }
+      // Re-fit the camera so the tree easter egg fits when toggling on/off.
+      if (state.mode === '3d' && typeof autoZoom3D === 'function') autoZoom3D();
       redraw();
       return;
     }

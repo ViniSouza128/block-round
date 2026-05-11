@@ -40,12 +40,25 @@ algorithms (Euclidean, Bresenham, Threshold) are available.
 
 ### Easter eggs
 
-- Setting any one of the **Size / Width / Height / Depth** sliders to
-  exactly **15** spawns a small oak tree on top of the 3D figure
-  (3-block trunk + 4-layer canopy of green-tinted oak leaves). The
-  tree respects the X cut (sliced laterally along with the figure) and
-  vanishes the moment you start trimming the figure on the Y axis.
-- Selecting **TNT** in the block list plays a fuse-sizzling sound.
+- **Oak tree on slider value 15** — plants a small oak tree (4-block
+  trunk + 4-layer green-tinted oak-leaves canopy, leaves with proper
+  alpha cutouts) directly on top of the figure. Works in **2D and 3D**.
+  - Sphere mode triggers on `state.size === 15`.
+  - Ellipsoid / Ellipse mode triggers on any of
+    `state.width / state.height / state.depth === 15` (the `size`
+    slider is ignored there since the user can't edit it in that mode).
+  - Block must be **Grass Block**, **Dirt** or **Random** (random's
+    top cell is always grass-stamped). Other blocks do not trigger.
+  - 3D: tree respects the X cut (sliced laterally with the figure) and
+    vanishes the moment the Y cut leaves its maximum. The camera
+    recenters so the tree never crops at the top — the autoZoom adds
+    the tree's height to the bounding-box AND lifts the lookAt point.
+  - 2D: extra rows are reserved above the figure so the tree fits
+    with breathing room; the figure shifts downward accordingly.
+- **TNT fuse sound** — picking the TNT tile plays the real Minecraft
+  fuse sample (vanilla `random/fuse.ogg`, embedded as a base64 OGG
+  data URI in `js/sounds.js`). Switching to any other block before
+  the fuse ends stops it immediately.
 
 ## Controls
 

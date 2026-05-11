@@ -253,6 +253,65 @@ const BLOCK_FALLBACK_COLOR = {
   nether_bricks:'#3a1818', iron:'#dcdcdc',
 };
 
+/* ---------- 2D OAK TREE EASTER EGG ---------------------------------------
+   Mirrors the 3D tree rules in a 2D vertical strip placed directly above
+   the figure's top filled cell. Triggers when:
+     • shape is circle  AND state.size === 15, OR
+     • shape is ellipse AND any of width / height / depth === 15.
+   AND the current block is grass_block, dirt or random (random's top row
+   is grass-stamped). The renderer also reserves 6 extra cell rows above
+   the figure so the camera fit doesn't clip the tree top. */
+function isTree2DActive(){
+  const b = state.mcBlock;
+  if (b !== 'grass_block' && b !== 'dirt' && b !== 'random') return false;
+  if (state.shape === 'circle')  return state.size === 15;
+  /* ellipse */                  return state.width === 15 || state.height === 15 || state.depth === 15;
+}
+
+function drawTree2D(ctx, f, Gx, Gy, ox, oy, ps){
+  if (!isTree2DActive()) return;
+  // Find the topmost filled row of the figure — the trunk starts one row
+  // above that. If the figure has no fill (degenerate case) skip.
+  let jTop = -1;
+  for (let j = 0; j < Gy; j++){
+    for (let i = 0; i < Gx; i++) if (f[j][i]){ jTop = j; break; }
+    if (jTop >= 0) break;
+  }
+  if (jTop < 0) return;
+  const trunkCol = Math.floor(Gx / 2);
+  const TRUNK_H = 4;
+  // Trunk cells (j decreases as we go up on screen).
+  const place = (i, j, key) => {
+    if (i < 0 || i >= Gx) return;
+    const x = Math.floor(ox + i * ps);
+    const y = Math.floor(oy + j * ps);
+    const w = Math.floor(ox + (i + 1) * ps) - x;
+    const h = Math.floor(oy + (j + 1) * ps) - y;
+    const img = loadBlockImage(key);
+    if (imageReady(img)) drawBlockImage(ctx, img, x, y, w, h);
+    else { ctx.fillStyle = BLOCK_FALLBACK_COLOR[key] || '#3a6b25'; ctx.fillRect(x, y, w, h); }
+  };
+  for (let i = 0; i < TRUNK_H; i++){
+    place(trunkCol, jTop - 1 - i, 'oak_log');
+  }
+  // Canopy — bottom two layers (5-wide minus far corners), then 3-wide,
+  // then a 1-wide cap. Layers stack upward from trunk-top minus 1.
+  const layerBase = jTop - 1 - (TRUNK_H - 2);  // bottom canopy row j
+  const SQ5 = [-2, -1, 0, 1, 2];
+  const SQ3 = [-1, 0, 1];
+  const LAYERS = [
+    { dj: 0, dxs: SQ5 },
+    { dj: 1, dxs: SQ5 },
+    { dj: 2, dxs: SQ3 },
+    { dj: 3, dxs: [0] },
+  ];
+  for (const L of LAYERS){
+    for (const dx of L.dxs){
+      place(trunkCol + dx, layerBase - L.dj, 'oak_leaves');
+    }
+  }
+}
+
 function draw2D(canvas){
   if (!canvas) return;
   const cw = canvas.clientWidth  || 300;
@@ -275,10 +334,19 @@ function draw2D(canvas){
   const cx = Gx / 2, cy = Gy / 2;
   const rx = Wd / 2, ry = Hd / 2;
 
+  // Tree easter egg in 2D — equivalent rules to the 3D path. When active,
+  // expand the vertical fit area so the tree (6 cells of trunk + canopy
+  // height) is reserved ABOVE the figure and the camera doesn't crop it.
+  const treeActive2D = isTree2DActive();
+  const treeRows = treeActive2D ? 6 : 0;
+  const effGy = Gy + treeRows;
+
   const zoom = state.zoom2D || 1;
-  let ps = Math.min(cw / Gx, ch / Gy) * zoom;
+  let ps = Math.min(cw / Gx, ch / effGy) * zoom;
   let ox = (cw - Gx * ps) / 2;
-  let oy = (ch - Gy * ps) / 2;
+  // Centre the whole (figure + tree) bundle vertically, then push the
+  // figure down so the tree's reserved rows sit above it.
+  let oy = (ch - effGy * ps) / 2 + treeRows * ps;
 
   if (state.zoomBtn && !isEllipse){
     const m = 1;
@@ -350,6 +418,11 @@ function draw2D(canvas){
       _fallRaf = requestAnimationFrame(() => { _fallRaf = null; draw2D(canvas); });
     }
   }
+
+  // Tree easter egg — drawn after the figure cells so its leaves cover
+  // the top trunk blocks properly, but BEFORE the grid / overlay so
+  // those still draw on top of the canopy.
+  drawTree2D(ctx, f, Gx, Gy, ox, oy, ps);
 
   if (state.center) drawCenterGuides(ctx, cx, cy, ps, ox, oy, cw, ch);
   if (state.grid) drawFullGrid(ctx, ps, ox, oy, cw, ch);
