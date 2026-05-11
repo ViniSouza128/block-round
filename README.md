@@ -60,26 +60,36 @@ Threshold) are available.
     adds the tree's height to the bounding-box AND lifts the lookAt.
   - 2D: extra rows are reserved above the figure so the tree fits
     with breathing room; the figure shifts downward accordingly.
-- **TNT creeper on slider value 15** — spawns a real Minecraft creeper
+- **TNT creeper on slider value 15** — spawns a Minecraft creeper
   standing on top of the figure. **3D only.**
   - Built as a proper Minecraft entity model — six box parts (head,
     body, 4 legs) with per-face UV mapping into a shared 64×32 skin
-    atlas (mottled greens + iconic black face), drawn procedurally
-    onto a canvas at first activation so no binary asset is shipped.
-    The atlas layout matches the canonical `creeper.png` regions
-    (head: rows 0–15; body: rows 16–31, x 16–39; leg: rows 16–31,
-    x 0–15) so each face samples the right pixels.
+    atlas. **The atlas is procedurally drawn** at first activation,
+    not a copy of Mojang's `creeper.png` binary (we'd need a
+    redistribution licence we don't have). The pattern reconstructs
+    the visual character of the real texture from primitives:
+    a 7-shade green palette matching Mojang's range, a weighted
+    per-pixel speckle pass, a chunky-patch overlay pass, and the
+    canonical black eye-and-mouth painted into the head-front
+    region. Atlas regions are the canonical ones from the entity
+    model (head rows 0–15; body rows 16–31, x 16–39; leg rows 16–31,
+    x 0–15) so each cube face samples the right slice.
   - True Minecraft entity proportions (16 px = 1 block): head
     8×8×8 px, body 4×12×8 px, four legs at 4×6×4 px each.
     Total height 1.625 blocks, footprint 0.5 × 0.5 block — sits
-    centred on the figure's top face, facing +z so the face is
-    visible at the default camera angle.
-  - **Idle animation** — head sways slowly ±6° around Y (~0.18 Hz)
-    and the legs rock ±4° around X in alternating front-back pairs
-    (~0.5 Hz), via pivot groups so the head turns around its own
-    centre and the legs swing from the hip joint. A self-cancelling
-    rAF drives the motion and tears itself down the moment the
-    creeper leaves the scene.
+    centred on the figure's top face.
+  - **Eye-contact cycle** — every 6 seconds the creeper slowly turns
+    its whole body to face the camera, holds the gaze for ~2 s, and
+    eases back to neutral, all on cubic ease-in-out so the motion
+    feels organic. During the gaze the head/leg micro-sway damps
+    down (the creeper looks locked-on, not paused), and the
+    camera-tracking is continuous — if the user orbits the camera
+    while the creeper is staring, the gaze follows. Cycle plan:
+    1.5 s rise · 2 s hold · 1.5 s fall · 1 s breather.
+  - **Idle micro-motion** — between gazes, the head sways ±6°
+    around Y (~0.18 Hz) and the legs rock ±4° around X in
+    alternating front-back pairs (~0.5 Hz), via pivot groups so the
+    head turns around its centre and legs swing from the hip joint.
   - **TNT fuse sound** — the creeper plays the real Minecraft TNT
     fuse the moment it appears on screen (slider transition into 15
     with TNT already selected). The double-trigger case — clicking
