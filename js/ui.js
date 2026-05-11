@@ -118,7 +118,11 @@ function syncCutMax(){
   const isEllipse = state.shape === 'ellipse';
   const Dx = isEllipse ? state.width : state.size;
   const Dy = isEllipse ? state.height : state.size;
-  const maxVal = state.axis === 'x' ? Dx : Dy;
+  // Diagonal cut uses (x + y) <= cut, so it ranges 0..(Dx+Dy).
+  // Straight cuts (X or Y) range 0..max-of-that-axis.
+  const maxVal = state.axis === 'x'    ? Dx
+               : state.axis === 'y'    ? Dy
+               : /* 'diag' */            (Dx + Dy);
   cs.max = maxVal;
   cs.min = 0;
   const pct = (state.cutPct == null) ? 1 : state.cutPct;
@@ -128,6 +132,91 @@ function syncCutMax(){
   setSliderPct(cs);
   const cv = document.querySelector('[data-val=cut]');
   if (cv) cv.textContent = cs.value;
+}
+
+/* ---------- UNDO / REDO HISTORY ------------------------------------------
+   Lightweight time-travel for the user's state edits. We snapshot only
+   the fields that change the FIGURE (size/shape/render/algo/cut/block/
+   etc.) — camera angle, edge overlay toggle, theme and other purely
+   visual flags are deliberately left out.
+
+   Two stacks: undo and redo. Snapshots are JSON strings of the snapshot
+   shape so we can compare cheaply and detect duplicate consecutive
+   pushes (which slider drags would otherwise generate by the dozen).
+   Slider input uses pushHistoryDebounced (commits 250 ms after the
+   last input event), while discrete clicks (block/render/algo/mode/
+   shape/axis) call pushHistory immediately. Capped at 50 entries. */
+const HIST_FIELDS = [
+  'mode', 'shape', 'render', 'algo',
+  'size', 'width', 'height', 'depth',
+  'cut', 'cutPct', 'axis',
+  'mcBlock',
+];
+const HIST_MAX = 50;
+let _histStack = [];
+let _histPos = -1;
+let _histDebounce = null;
+let _histApplying = false;     // re-entrancy guard during applyHistory()
+
+function _histSnap(){
+  const o = {};
+  HIST_FIELDS.forEach(k => o[k] = state[k]);
+  return JSON.stringify(o);
+}
+function pushHistory(){
+  if (_histApplying) return;
+  const snap = _histSnap();
+  if (_histPos >= 0 && _histStack[_histPos] === snap) return;
+  // Drop everything after current pos (redo branch is invalidated).
+  _histStack = _histStack.slice(0, _histPos + 1);
+  _histStack.push(snap);
+  _histPos = _histStack.length - 1;
+  if (_histStack.length > HIST_MAX){
+    _histStack.shift();
+    _histPos--;
+  }
+}
+function pushHistoryDebounced(){
+  if (_histDebounce) clearTimeout(_histDebounce);
+  _histDebounce = setTimeout(() => { _histDebounce = null; pushHistory(); }, 250);
+}
+function _applyHistory(snap){
+  _histApplying = true;
+  const o = JSON.parse(snap);
+  Object.assign(state, o);
+  // Rehydrate the UI controls to match the restored state.
+  document.querySelectorAll('input[type=range]').forEach(s => {
+    const k = s.dataset.slider;
+    if (k && (k in state)) s.value = state[k];
+    setSliderPct(s);
+  });
+  ['render','algo'].forEach(k =>
+    document.querySelectorAll(`[data-${k}]`).forEach(p => p.classList.toggle('active', p.dataset[k] === state[k]))
+  );
+  document.querySelectorAll('[data-axis]').forEach(b => b.classList.toggle('active', b.dataset.axis === state.axis));
+  document.querySelectorAll('[data-block]').forEach(b => b.classList.toggle('active', b.dataset.block === state.mcBlock));
+  document.querySelectorAll('[data-val]').forEach(v => {
+    const k = v.dataset.val;
+    if (k && k in state) v.textContent = state[k];
+  });
+  syncShape();
+  if (typeof _fallReset === 'function') _fallReset();
+  if (typeof _fall3DReset === 'function') _fall3DReset();
+  if (state.mode === '3d' && typeof autoZoom3D === 'function') autoZoom3D();
+  redraw();
+  _histApplying = false;
+}
+function undo(){
+  if (_histPos <= 0) return false;
+  _histPos--;
+  _applyHistory(_histStack[_histPos]);
+  return true;
+}
+function redo(){
+  if (_histPos >= _histStack.length - 1) return false;
+  _histPos++;
+  _applyHistory(_histStack[_histPos]);
+  return true;
 }
 
 /* ---------- REDRAW ------------------------------------------------------- */
@@ -203,6 +292,9 @@ function resetState(){
   syncShape();
   if (state.mode === '3d') resetCamera3D();
   redraw();
+  // Record the reset as one history entry so Ctrl+Z brings the user
+  // straight back to whatever they had before clicking Reset.
+  if (typeof pushHistory === 'function') pushHistory();
   Sfx.ok();
   toast('Reset', 'ok');
 }
@@ -341,22 +433,24 @@ function setupClickDelegation(){
       Sfx.click(); redraw(); return;
     }
     if (a === 'download'){ downloadPNG(); Sfx.ok(); toast('PNG saved', 'ok'); return; }
+    if (a === 'schem'){
+      // Sponge-format .schem (gzipped NBT) for WorldEdit / Litematica.
+      if (typeof downloadSchematic === 'function'){ downloadSchematic(); Sfx.ok(); }
+      return;
+    }
     if (a === 'reset'){ resetState(); return; }
 
     if (t.dataset.render){
       state.render = t.dataset.render;
       document.querySelectorAll('[data-render]').forEach(p => p.classList.toggle('active', p === t));
-      // Render mode changes the cell layout, so any in-progress sand/gravel
-      // fall must restart against the new layout (per user spec: "sliders e
-      // botões tipo filled, thin e thick" reset the fall).
       if (typeof _fallReset === 'function') _fallReset();
-      Sfx.click(); redraw(); return;
+      Sfx.click(); redraw(); pushHistory(); return;
     }
     if (t.dataset.algo){
       state.algo = t.dataset.algo;
       document.querySelectorAll('[data-algo]').forEach(p => p.classList.toggle('active', p === t));
       if (typeof _fallReset === 'function') _fallReset();
-      Sfx.click(); redraw(); return;
+      Sfx.click(); redraw(); pushHistory(); return;
     }
     if (t.dataset.mode){
       if (state.mode === t.dataset.mode) return;
@@ -370,7 +464,7 @@ function setupClickDelegation(){
       if (state.mode === '3d'){
         if (init3D(dom.canvas3D)){ resize3D(); autoZoom3D(); update3D(); }
       } else { redraw(); }
-      Sfx.pop(); return;
+      Sfx.pop(); pushHistory(); return;
     }
     if (t.dataset.shape){
       if (state.shape === t.dataset.shape) return;
@@ -378,14 +472,14 @@ function setupClickDelegation(){
       syncShape();
       if (state.mode === '3d'){ autoZoom3D(); update3D(); }
       else { redraw(); }
-      Sfx.pop(); return;
+      Sfx.pop(); pushHistory(); return;
     }
     if (t.dataset.axis){
       if (state.axis === t.dataset.axis) return;
       state.axis = t.dataset.axis;
       syncCutMax();
       document.querySelectorAll('[data-axis]').forEach(b => b.classList.toggle('active', b === t));
-      Sfx.click(); update3D(); return;
+      Sfx.click(); update3D(); pushHistory(); return;
     }
     if (t.dataset.block){
       const FALLABLE = new Set(['sand', 'gravel']);
@@ -427,6 +521,7 @@ function setupClickDelegation(){
       // Re-fit the camera so the tree easter egg fits when toggling on/off.
       if (state.mode === '3d' && typeof autoZoom3D === 'function') autoZoom3D();
       redraw();
+      pushHistory();
       return;
     }
   });
@@ -470,6 +565,9 @@ function setupSliders(){
         else { redraw(); pulseCanvas(); }
       }
       if (+sl.value % 4 === 0) Sfx.tick();
+      // Slider drag fires many input events — debounce the snapshot
+      // so an undo step ≈ a deliberate move, not every micro-pixel.
+      pushHistoryDebounced();
     });
   });
 }
@@ -600,6 +698,16 @@ function setupKeyboard(){
   document.addEventListener('keydown', e => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
     const k = e.key.toLowerCase();
+    // Undo / Redo. Ctrl+Z = undo, Ctrl+Shift+Z or Ctrl+Y = redo.
+    // Matches the convention every other desktop app uses, including
+    // Photoshop / VS Code / Word, so users don't need to learn anything.
+    if ((e.ctrlKey || e.metaKey) && (k === 'z' || k === 'y')){
+      e.preventDefault();
+      const wantRedo = (k === 'y') || (k === 'z' && e.shiftKey);
+      const did = wantRedo ? redo() : undo();
+      if (did) toast(wantRedo ? 'Redo' : 'Undo');
+      return;
+    }
     if (k === 'g'){ document.querySelector('[data-act=grid]')?.click(); }
     else if (k === 'c'){
       state.center = !state.center;
@@ -652,4 +760,7 @@ function setupUI(){
   setup3DPointer();
   setupPinch();
   setupKeyboard();
+  // Seed the undo stack with the initial state so the user can undo
+  // all the way back to the moment they opened the page.
+  pushHistory();
 }

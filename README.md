@@ -86,13 +86,32 @@ Threshold) are available.
   **double-click** resets the camera (3D) or zoom (2D)
 - **Double-click any slider** to snap it back to its default value
 - Cut is **proportional** to size — 50% stays 50%.
-  Default axis = **Y**.
+  Default axis = **Y**. The cut row now has three options:
+  **X** (slice perpendicular to X), **Y** (slice perpendicular to Y),
+  and **⟋** (45° diagonal slice through the X + Y plane).
+- **Undo / Redo** via `Ctrl+Z` and `Ctrl+Y` (or `Ctrl+Shift+Z`) walks
+  every figure-changing edit — sliders, render mode, algorithm,
+  shape, axis, block, mode toggle. Slider drags are debounced so one
+  Ctrl+Z undoes one move, not one pixel. Visual-only toggles (camera,
+  edges overlay, center cross, theme) are NOT tracked.
+- **`.schem` export** — the second icon in the top-right canvas
+  corner downloads a Sponge schematic v2 file (gzipped NBT) of the
+  current figure. WorldEdit (`//schem load`), Litematica and MCEdit
+  can all import it. The exported palette covers every block in the
+  picker, mapping each one to its MC namespaced block state.
 - **Grid corner button** in 3D toggles a black **edge overlay** on
   every voxel (default ON for opaque blocks; default OFF for Glass /
   Ice and remembered separately so the two preferences don't trample
   each other). In 2D it toggles the cell grid.
 - **Keyboard arrows** (← / →) move through the block picker after
   you've selected any tile, skipping the internal-only entries.
+- **Info chip block count** — the `i` corner button shows a Blocks
+  row formatted as `total (stacks × 64 + remainder)`, exactly the
+  way Minecraft inventory stacks work. Tree easter-egg blocks are
+  excluded so the number reflects what the user actually needs to
+  collect to build the figure.
+- **PNG export** of a 2D figure now includes the oak-tree easter
+  egg when it's active (when one of the size sliders sits at 15).
 - **Center guides** in 3D draw a translucent yellow cross along all
   three axes; bars are **1 block thick** for odd-sized axes and
   **2 blocks thick** for even, so they always shine through the
