@@ -77,26 +77,29 @@ Threshold) are available.
     8×8×8 px, body 4×12×8 px, four legs at 4×6×4 px each.
     Total height 1.625 blocks, footprint 0.5 × 0.5 block — sits
     centred on the figure's top face.
-  - **Eye-contact cycle** — every **9.5 s** the creeper briefly turns
-    its whole body to face the camera, holds the gaze for ~1 s, and
-    eases back to neutral, all on cubic ease-in-out so the motion
-    feels organic. During the gaze the head/leg micro-sway damps
-    down (the creeper looks locked-on, not paused), and the
-    camera-tracking is continuous — if the user orbits the camera
-    while the creeper is staring, the gaze follows. Cycle plan:
-    0.75 s rise · 1 s hold · 0.75 s fall · **7 s breather**. The
-    short stare reads as a "primed" twitch, and the long breather
-    makes each new stare land as an ominous beat rather than a
-    constant tic.
+  - **Eye-contact cycle** — every **16.6 s** the creeper briefly
+    turns its whole body to face the camera, holds the gaze for
+    ~1 s, then drifts back to neutral on a long slow arc, all on
+    cubic ease-in-out so the motion feels organic. During the gaze
+    the head/leg micro-sway damps down (the creeper looks locked-
+    on, not paused), and the camera-tracking is continuous — if the
+    user orbits the camera while the creeper is staring, the gaze
+    follows. Cycle plan: 0.75 s rise · 1 s hold · **2.25 s slow
+    fall** · **12.6 s breather**. The fall is deliberately 3× the
+    rise — a creature slowly looking off after eye contact rather
+    than snapping back — and the long breather makes each new
+    stare land as an ominous beat rather than a constant tic.
   - **Primed-swell flash** — at the same instant the body starts
-    rising, the creeper's texture flares to a bright white emissive
-    bloom and fades out over 1 second (50 ms linear attack → 950 ms
-    exponential `e⁻³ᵘ` decay; peaks at 0.75 emissive intensity so
-    the underlying skin stays readable through the bloom). This
-    simulates the visual cue real Minecraft creepers fire when they
-    lock onto a player and start their detonation countdown. The
-    pulse is hard-cleared after the 1-second window so the residual
-    glow can't leak into the long breather phase.
+    rising, the creeper's texture flares to a soft white emissive
+    bloom and fades out over **~2.9 s** (50 ms linear attack →
+    2.85 s exponential `e⁻³ᵘ` decay; peaks at **0.375** emissive
+    intensity so the underlying skin stays clearly readable through
+    the bloom). This simulates the visual cue real Minecraft
+    creepers fire when they lock onto a player and start their
+    detonation countdown — the bloom hits fast and the residual
+    glow lingers for a beat after, exactly like the in-game effect.
+    The pulse is hard-cleared after the window so the glow can't
+    leak into the long breather phase.
   - **Idle micro-motion** — between gazes, the head sways ±6°
     around Y (~0.18 Hz) and the legs rock ±4° around X in
     alternating front-back pairs (~0.5 Hz), via pivot groups so the
@@ -125,7 +128,7 @@ Threshold) are available.
 - **TNT fuse sound** — the real Minecraft fuse sample (vanilla
   `random/fuse.ogg`, embedded as a base64 OGG data URI in
   `js/sounds.js`) is now owned by the creeper easter egg above: it
-  plays at the start of every 9.5 s stare cycle. Picking the TNT
+  plays at the start of every 16.6 s stare cycle. Picking the TNT
   tile in the block list is silent (just the generic UI click);
   switching away from TNT — or sliding off 15 — cuts any in-flight
   fuse so it can't outlive the creeper.
