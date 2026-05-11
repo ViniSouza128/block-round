@@ -663,7 +663,15 @@ function _getCreeperAtlasMat(){
   tex.magFilter = THREE.NearestFilter;
   tex.minFilter = THREE.NearestFilter;
   tex.generateMipmaps = false;
-  _creeperAtlasMat = new THREE.MeshLambertMaterial({ map: tex });
+  // The emissive channel is what drives the "primed swell" white pulse
+  // every cycle — we lock the colour to white at construction time and
+  // animate only the intensity from the rAF tick. Starts at 0 so the
+  // creeper looks normal until the first stare ignites.
+  _creeperAtlasMat = new THREE.MeshLambertMaterial({
+    map: tex,
+    emissive: 0xffffff,
+    emissiveIntensity: 0,
+  });
   return _creeperAtlasMat;
 }
 
@@ -729,15 +737,29 @@ const CREEPER_LEG_UV = [
    their tops, head around its centre) instead of their geometric
    origins. The body root group's rotation drives the look-at-camera
    turn. */
-// Cycle is rise + hold + fall + breather. The breather is intentionally
+// Cycle = rise + hold + fall + breather. The breather is intentionally
 // long so the creeper "forgets" the user for a stretch and the next
-// stare lands as an ominous beat rather than a constant tic.
-const CREEPER_RISE_S     = 1.5;   // ease into camera-gaze
-const CREEPER_HOLD_S     = 2.0;   // dwell at the gaze
-const CREEPER_FALL_S     = 1.5;   // ease back to neutral
+// stare lands as an ominous beat rather than a constant tic. The stare
+// arc itself is short (2.5 s total) so the gaze reads as a brief
+// "primed" moment rather than a sustained dead-eye glare.
+const CREEPER_RISE_S     = 0.75;  // ease into camera-gaze
+const CREEPER_HOLD_S     = 1.0;   // dwell at the gaze
+const CREEPER_FALL_S     = 0.75;  // ease back to neutral
 const CREEPER_BREATHER_S = 7.0;   // idle pause before the next stare
 const CREEPER_CYCLE_S    = CREEPER_RISE_S + CREEPER_HOLD_S
-                         + CREEPER_FALL_S + CREEPER_BREATHER_S;  // 12 s
+                         + CREEPER_FALL_S + CREEPER_BREATHER_S;  // 9.5 s
+
+// White brightness pulse — the "primed/swell flash" the real creeper
+// fires when it locks onto a player and starts its detonation
+// countdown. Fast attack to peak (~50 ms — looks like a sudden bloom),
+// then a slow exponential decay over the remainder of the 1-s pulse
+// so the residual glow fades naturally instead of cliff-edging to off.
+// Peak emissive 0.75 keeps the underlying creeper texture readable at
+// the bloom (1.0 would wash it to pure white).
+const CREEPER_FLASH_S        = 1.0;
+const CREEPER_FLASH_ATTACK_S = 0.05;
+const CREEPER_FLASH_PEAK     = 0.75;
+const CREEPER_FLASH_DECAY_K  = 3.0;   // exp(-k·u) coefficient, u in [0..1]
 
 let _creeperGroup    = null;   // current creeper THREE.Group (or null)
 let _creeperParts    = null;   // { head, legs:[fl,fr,bl,br] } pivot groups
@@ -781,10 +803,11 @@ function _creeperAnimTick(){
   const t = (performance.now() - _creeperAnimT0) * 0.001;
 
   // Stare-synced TNT fuse — fires once per cycle, exactly when the
-  // rise phase begins. The real Minecraft fuse sample is ~4 s, the
-  // rise+hold+fall stare is 5 s, so a single playback covers the
-  // entire eye-contact beat. Sfx.tnt() internally stops any previous
-  // fuse before starting, so re-entering the cycle never stacks.
+  // rise phase begins. The fuse sample (~4 s) overruns the 2.5 s
+  // stare, which mirrors the real game: the hiss starts before the
+  // explosion and trails off after. Sfx.tnt() internally stops any
+  // previous fuse before starting, so re-entering the cycle never
+  // stacks.
   const cycleIdx = Math.floor(t / CREEPER_CYCLE_S);
   if (cycleIdx > _creeperLastCyc){
     _creeperLastCyc = cycleIdx;
@@ -792,6 +815,25 @@ function _creeperAnimTick(){
       Sfx.tnt();
     }
   }
+
+  // White "primed-swell" pulse — fires from the same moment as the
+  // fuse and the rise. Real MC overlays a brightness multiplier on
+  // the creeper texture as the detonation countdown approaches; we
+  // do the same with the material's emissive channel:
+  //   0 .. ATTACK_S         linear ramp 0 → PEAK   (sudden bloom)
+  //   ATTACK_S .. FLASH_S   exp(-k·u) tail to 0    (slow fade)
+  // Outside that window the pulse is hard-cleared to 0 so the
+  // residual emissive can't leak into the long breather phase.
+  const cycleLocalT = ((t % CREEPER_CYCLE_S) + CREEPER_CYCLE_S) % CREEPER_CYCLE_S;
+  let flashI = 0;
+  if (cycleLocalT < CREEPER_FLASH_ATTACK_S){
+    flashI = (cycleLocalT / CREEPER_FLASH_ATTACK_S) * CREEPER_FLASH_PEAK;
+  } else if (cycleLocalT < CREEPER_FLASH_S){
+    const u = (cycleLocalT - CREEPER_FLASH_ATTACK_S)
+            / (CREEPER_FLASH_S - CREEPER_FLASH_ATTACK_S);  // u in [0..1]
+    flashI = Math.exp(-CREEPER_FLASH_DECAY_K * u) * CREEPER_FLASH_PEAK;
+  }
+  if (_creeperAtlasMat) _creeperAtlasMat.emissiveIntensity = flashI;
 
   // Angle (around Y) that points the creeper's local +Z (its FACE) at
   // the camera. We project onto the XZ plane — the creeper keeps its
@@ -848,6 +890,9 @@ function buildEasterEggCreeper(Dx, Dy, Dz, cx, cy, cz){
     if (typeof Sfx !== 'undefined' && Sfx && typeof Sfx.stopTnt === 'function'){
       Sfx.stopTnt();
     }
+    // Clear any in-flight primed-flash so the cached material doesn't
+    // re-mount the next creeper mid-pulse.
+    if (_creeperAtlasMat) _creeperAtlasMat.emissiveIntensity = 0;
   }
   _creeperWasShown = nowActive;
 
