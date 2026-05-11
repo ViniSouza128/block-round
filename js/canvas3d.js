@@ -584,24 +584,25 @@ function update3D(){
 
   const ext = computeVoxelColumnExtremes(voxels, Dx, Dz);
 
-  // Three render passes:
-  //   1. Transparent voxels in THIN / THICK mode (a hollow shell) — merged
-  //      into a single BufferGeometry per material with same-material
-  //      faces culled, so the shell reads as one continuous pane.
-  //   2. Transparent voxels in FILLED mode — rendered as per-voxel meshes
-  //      so each cube keeps its frame and the dense interior is visible
-  //      through the outer panes (was previously falling back to the
-  //      shell-only path which made Filled and Thin look identical).
-  //   3. Everything opaque — per-voxel Mesh as before, also collected so
-  //      the sand/gravel fall animation can mutate their positions.
+  // Two render passes:
+  //   1. Transparent voxels (glass / ice) — ALWAYS go through the merged
+  //      same-material face-cull path, matching how Minecraft renders
+  //      transparent blocks. The visual difference between Filled and
+  //      Thin comes from the voxel set itself (full solid vs hollow
+  //      shell), NOT from per-cube outlining: a filled mass of glass
+  //      reads as one solid block in MC because every internal face is
+  //      glass-on-glass and gets culled, while a hollow shell still
+  //      shows BOTH the outer hull (glass-vs-outside-air) and the inner
+  //      hull (glass-vs-interior-air) through the see-through panes.
+  //   2. Everything opaque — per-voxel Mesh as before, also collected
+  //      so the sand/gravel fall animation can mutate their positions.
   const transparentKeys = new Set(['glass', 'ice']);
-  const mergeTransparent = !isTransparentFilled;  // only thin/thick merge
   const transparentVoxels = new Map();   // key → voxels[]
   const meshes = [];
   for (let i = 0; i < voxels.length; i++){
     const v = voxels[i];
     const blockKey = pickBlockForVoxel(v, ext, Dz);
-    if (mergeTransparent && transparentKeys.has(blockKey)){
+    if (transparentKeys.has(blockKey)){
       if (!transparentVoxels.has(blockKey)) transparentVoxels.set(blockKey, []);
       transparentVoxels.get(blockKey).push(v);
       continue;
