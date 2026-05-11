@@ -479,7 +479,10 @@ function setupClickDelegation(){
       state.axis = t.dataset.axis;
       syncCutMax();
       document.querySelectorAll('[data-axis]').forEach(b => b.classList.toggle('active', b === t));
-      Sfx.click(); update3D(); pushHistory(); return;
+      // Switching the cut axis changes which side of the figure is
+      // trimmed — re-fit the camera so the visible portion stays
+      // centred on the canvas.
+      Sfx.click(); autoZoom3D(); update3D(); pushHistory(); return;
     }
     if (t.dataset.block){
       const FALLABLE = new Set(['sand', 'gravel']);
@@ -555,7 +558,11 @@ function setupSliders(){
       if (k === 'cut'){
         const max = +sl.max || 1;
         state.cutPct = max > 0 ? (+sl.value / max) : 1;
-        if (state.mode === '3d') update3D();
+        // Recenter the camera every time the cut moves — the visible
+        // bounding box shifts as voxels disappear, and without an
+        // autoZoom call the model drifts toward the bottom-left of
+        // the canvas.
+        if (state.mode === '3d'){ autoZoom3D(); update3D(); }
       } else {
         // Geometry changed → restart any sand/gravel fall from scratch.
         if (typeof _fallReset === 'function') _fallReset();
@@ -698,12 +705,13 @@ function setupKeyboard(){
   document.addEventListener('keydown', e => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
     const k = e.key.toLowerCase();
-    // Undo / Redo. Ctrl+Z = undo, Ctrl+Shift+Z or Ctrl+Y = redo.
-    // Matches the convention every other desktop app uses, including
-    // Photoshop / VS Code / Word, so users don't need to learn anything.
+    // Undo / Redo. Three redo bindings so muscle memory from any host
+    // app works: Ctrl+Y (Word, Excel, most Windows apps), Ctrl+Shift+Z
+    // (Photoshop / web editors), Ctrl+Alt+Z (some Linux DEs / IDEs).
+    // Plain Ctrl+Z is always undo.
     if ((e.ctrlKey || e.metaKey) && (k === 'z' || k === 'y')){
       e.preventDefault();
-      const wantRedo = (k === 'y') || (k === 'z' && e.shiftKey);
+      const wantRedo = (k === 'y') || (k === 'z' && (e.shiftKey || e.altKey));
       const did = wantRedo ? redo() : undo();
       if (did) toast(wantRedo ? 'Redo' : 'Undo');
       return;

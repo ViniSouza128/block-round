@@ -220,11 +220,49 @@ html,body{
   touch-action:none;
   image-rendering:pixelated;
 }
-/* Night mood — swapped sky for a deep navy gradient. The 3D scene
-   itself stays transparent (alpha:true on the WebGLRenderer), so the
-   CSS sky shows through and the voxels keep their lighting. */
+/* ---------- NIGHT MODE -----------------------------------------------------
+   The night theme dims and slightly cools the WHOLE site, not just the
+   canvas sky. It's implemented in three layered tricks:
+
+   1. A `filter:` on the body — `brightness(0.7) saturate(0.85)
+      hue-rotate(-8deg)` — knocks down every texture-backed surface
+      (oak topbar, stone panels, picker strip, dirt sliders) without
+      having to override each one's `background:` rule.
+   2. A `::after` overlay on `.app` paints a translucent navy wash
+      on top of the dimmed surfaces, pushing them toward the night
+      colour palette (the filter alone leaves them grey-ish brown).
+   3. The canvas-frame gets its own bright navy gradient AND opts out
+      of the body filter (compensated to ~1.0 brightness) so it
+      reads as actual night sky, not muddy darkness. */
+body.theme-night{
+  filter:brightness(0.70) saturate(0.85) hue-rotate(-8deg);
+}
+/* Translucent navy wash applied above every surface inside the app. */
+body.theme-night .app{
+  position:relative;
+}
+body.theme-night .app::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:rgba(8, 14, 40, 0.28);
+  pointer-events:none;
+  z-index:1;
+}
+/* Keep the canvas / topbar / actions interactive — z-index pulls them
+   above the overlay so clicks land on the real DOM elements. */
+body.theme-night .topbar,
+body.theme-night .page,
+body.theme-night .toast-host{
+  position:relative;
+  z-index:2;
+}
+/* The canvas itself wants the OPPOSITE treatment — a deep navy sky
+   instead of a dimmed daytime sky. Counter-filter so it reads bright
+   and saturated against the dimmed UI chrome. */
 body.theme-night .canvas-frame{
   background:linear-gradient(to bottom,#0a0f24 0%,#1a2050 55%,#2a2e6a 100%);
+  filter:brightness(1.45) saturate(1.15);
 }
 /* Day / night toggle icons — only one shows at a time. */
 .icon-btn[data-act="theme"] .sun-ico,

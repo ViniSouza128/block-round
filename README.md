@@ -69,10 +69,14 @@ Threshold) are available.
   Minecraft "dig" sample for its material (stone, wood, grass, sand,
   gravel, cloth, glass, snow). Eight vanilla OGGs (~52 KB raw) are
   embedded as data URIs in `js/sounds.js`.
-- **Day / night canvas mood** — the topbar sun/moon button (and the
-  `T` keyboard shortcut) flips the canvas sky between bright blue
-  day and deep-navy night. Voxel lighting is unchanged, so emissive
-  blocks really pop at night.
+- **Day / night mood (site-wide)** — the topbar sun/moon button (and
+  the `T` shortcut) dims the whole interface, not just the canvas.
+  Implementation: a `filter: brightness(0.70) saturate(0.85)
+  hue-rotate(-8deg)` on `body.theme-night`, plus a translucent navy
+  wash overlay on `.app::after`, plus a counter-filter on the canvas
+  itself so the sky stays bright and saturated against the dimmed
+  UI chrome. Emissive blocks (glowstone, sea lantern, shroomlight,
+  magma, crying obsidian) really pop against the night canvas.
 
 ## Controls
 
@@ -89,11 +93,13 @@ Threshold) are available.
   Default axis = **Y**. The cut row now has three options:
   **X** (slice perpendicular to X), **Y** (slice perpendicular to Y),
   and **⟋** (45° diagonal slice through the X + Y plane).
-- **Undo / Redo** via `Ctrl+Z` and `Ctrl+Y` (or `Ctrl+Shift+Z`) walks
-  every figure-changing edit — sliders, render mode, algorithm,
-  shape, axis, block, mode toggle. Slider drags are debounced so one
-  Ctrl+Z undoes one move, not one pixel. Visual-only toggles (camera,
-  edges overlay, center cross, theme) are NOT tracked.
+- **Undo / Redo** via `Ctrl+Z` for undo and any of `Ctrl+Y`,
+  `Ctrl+Shift+Z` or `Ctrl+Alt+Z` for redo (three bindings so muscle
+  memory from any host app works). Walks every figure-changing edit —
+  sliders, render mode, algorithm, shape, axis, block, mode toggle.
+  Slider drags are debounced so one Ctrl+Z undoes one move, not one
+  pixel. Visual-only toggles (camera, edges overlay, center cross,
+  theme) are NOT tracked.
 - **`.schem` export** — the second icon in the top-right canvas
   corner downloads a Sponge schematic v2 file (gzipped NBT) of the
   current figure. WorldEdit (`//schem load`), Litematica and MCEdit
@@ -116,6 +122,11 @@ Threshold) are available.
   three axes; bars are **1 block thick** for odd-sized axes and
   **2 blocks thick** for even, so they always shine through the
   figure's true center voxel(s).
+- **Camera follows the cut** — the auto-fit camera tracks the
+  bounding box of the actually-visible portion of the figure, not
+  the full pre-cut figure. Sliding the cut down recenters the
+  remaining slice on the canvas instead of letting it drift toward
+  one edge.
 - Clicking a tool toggle while on **Info** or **Settings** returns
   to the canvas automatically
 - Keyboard: `G` grid · `C` center guides · `D` download · `I` info ·
