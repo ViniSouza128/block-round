@@ -338,7 +338,7 @@ const BLOCK_SOUND_CATEGORY = {
 function isToolToggle(el){
   if (!el) return false;
   if (el.dataset.route || el.dataset.act === 'logo') return false;
-  if (el.dataset.act === 'info-chip' || el.dataset.act === 'theme') return false;
+  if (el.dataset.act === 'info-chip' || el.dataset.act === 'theme' || el.dataset.act === 'sound') return false;
   return !!(el.dataset.render || el.dataset.algo
          || el.dataset.mode   || el.dataset.shape || el.dataset.axis
          || el.dataset.block  || el.dataset.act);
@@ -373,6 +373,23 @@ function setupClickDelegation(){
       t.classList.toggle('active', state.theme === 'night');
       Sfx.click();
       toast(`Night ${state.theme === 'night' ? 'on' : 'off'}`);
+      return;
+    }
+
+    // Sound toggle — flips Sfx.setEnabled, syncs the Settings page
+    // checkbox so the two surfaces stay aligned, swaps the speaker /
+    // muted-speaker icon via body.sound-off, and surfaces a toast so
+    // the user sees what happened (the most-likely-relevant feedback
+    // sound is muted itself when going from on→off, hence the toast).
+    if (a === 'sound'){
+      const next = !Sfx.isEnabled();
+      Sfx.setEnabled(next);
+      document.body.classList.toggle('sound-off', !next);
+      t.classList.toggle('active', !next);  // pressed look when muted
+      const inp = document.querySelector('[data-pref=sound]');
+      if (inp) inp.checked = next;
+      if (next) Sfx.click();  // a quiet confirm chime only on UNmute
+      toast(`Sounds ${next ? 'on' : 'off'}`);
       return;
     }
 
@@ -589,6 +606,10 @@ function setupPrefs(){
       const k = t.dataset.pref;
       if (k === 'sound'){
         Sfx.setEnabled(t.checked);
+        // Keep the toolbar button's icon + pressed state aligned with
+        // the Settings checkbox so changing one surface updates both.
+        document.body.classList.toggle('sound-off', !t.checked);
+        document.querySelector('[data-act=sound]')?.classList.toggle('active', !t.checked);
         toast(`Sounds ${t.checked ? 'on' : 'off'}`);
       } else if (k in state){
         state[k] = t.checked;
@@ -737,10 +758,9 @@ function setupKeyboard(){
       Sfx.pop();
     }
     else if (k === 's'){
-      Sfx.setEnabled(!Sfx.isEnabled());
-      const inp = document.querySelector('[data-pref=sound]');
-      if (inp) inp.checked = Sfx.isEnabled();
-      toast(`Sounds ${Sfx.isEnabled() ? 'on' : 'off'}`);
+      // Delegate to the toolbar button so body.sound-off + the
+      // pressed-state icon class stay aligned with click-driven toggles.
+      document.querySelector('[data-act=sound]')?.click();
     }
     else if (k === 't'){
       document.querySelector('[data-act=theme]')?.click();

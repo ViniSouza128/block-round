@@ -267,6 +267,17 @@ body.theme-night .canvas-frame{
 .icon-btn[data-act="theme"] .moon-ico{ display:none; }
 body.theme-night .icon-btn[data-act="theme"] .sun-ico{ display:none; }
 body.theme-night .icon-btn[data-act="theme"] .moon-ico{ display:inline-block; }
+
+/* Sound toggle icons — same one-of-two pattern as the theme button.
+   Default is sound-on (the speaker with curves). When body.sound-off
+   is set we swap to the muted-speaker variant. The class lives on
+   <body> rather than the button itself so other code paths can probe
+   it (e.g. CSS-only sound-state indicators on related controls). */
+.icon-btn[data-act="sound"] .snd-on-ico,
+.icon-btn[data-act="sound"] .snd-off-ico{ width:18px; height:18px; }
+.icon-btn[data-act="sound"] .snd-off-ico{ display:none; }
+body.sound-off .icon-btn[data-act="sound"] .snd-on-ico{ display:none; }
+body.sound-off .icon-btn[data-act="sound"] .snd-off-ico{ display:inline-block; }
 .canvas-frame canvas{
   position:absolute; inset:0;
   display:block; width:100%; height:100%;
