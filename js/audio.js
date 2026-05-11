@@ -123,5 +123,24 @@ const Sfx = (() => {
         node.start();
       }).catch(() => {});
     },
+    // Per-category MC place sound. category ∈ {stone, wood, grass, gravel,
+    // sand, cloth, glass, snow}. Plays the vanilla dig sample so each
+    // block category gets its own distinct picker-click thunk.
+    place: (category) => {
+      if (!on) return;
+      const c = ensure(); if (!c) return;
+      const key = 'place_' + category;
+      const src = window.MC_SFX && window.MC_SFX[key];
+      if (!src) return;
+      loadSample(key, src).then(buffer => {
+        if (!on) return;
+        const node = c.createBufferSource();
+        node.buffer = buffer;
+        const g = c.createGain();
+        g.gain.value = 0.55;
+        node.connect(g); g.connect(c.destination);
+        node.start();
+      }).catch(() => {});
+    },
   };
 })();

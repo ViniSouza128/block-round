@@ -177,6 +177,29 @@ function getMaterial3D(key){
     return mats;
   }
 
+  // Light-emitting blocks pick up an emissive map at intensity scaled
+  // by the in-game light level (max 15). The base map stays so the
+  // shadow side still reads, but the texture also shines on its own
+  // — independent of scene lighting — exactly like MC's luminance.
+  const EMISSIVE_BLOCKS = {
+    glowstone:        0.75,  // light 15
+    sea_lantern:      0.70,
+    shroomlight:      0.65,
+    magma:            0.45,
+    crying_obsidian:  0.35,  // light 10
+  };
+  if (EMISSIVE_BLOCKS[key] !== undefined){
+    const tex = getTexture3D(key);
+    const mat = new THREE.MeshLambertMaterial({
+      map: tex,
+      emissive: 0xffffff,
+      emissiveMap: tex,
+      emissiveIntensity: EMISSIVE_BLOCKS[key],
+    });
+    _matCache.set(key, mat);
+    return mat;
+  }
+
   // Glass / Ice — alphaTest keeps panes see-through while the frame stays
   // solid. The actual same-material face culling for "MC-style" rendering
   // happens in buildTransparentMesh() in update3D.
@@ -775,21 +798,23 @@ function update3D(){
   // face-culling path. Slime and Honey additionally get a smaller opaque
   // inner core per voxel — matching real Minecraft, where the jelly cube
   // has a darker solid bead visible through the translucent skin.
+  // Core sizes come straight from the vanilla block models:
+  //   slime  → 10/16 = 0.625 (inner element [3,3,3]..[13,13,13])
+  //   honey  → 14/16 = 0.875 (inner element [1,1,1]..[15,15,15])
   const transparentKeys = TRANSPARENT_BLOCKS;
   const coreKeys = new Set(['slime', 'honey']);
   const transparentVoxels = new Map();   // key → voxels[]
   const meshes = [];
-  const coreGeom = new THREE.BoxGeometry(0.55, 0.55, 0.55);
+  const slimeCoreGeom = new THREE.BoxGeometry(0.625, 0.625, 0.625);
+  const honeyCoreGeom = new THREE.BoxGeometry(0.875, 0.875, 0.875);
   for (let i = 0; i < voxels.length; i++){
     const v = voxels[i];
     const blockKey = pickBlockForVoxel(v, ext, Dz);
     if (transparentKeys.has(blockKey)){
       if (!transparentVoxels.has(blockKey)) transparentVoxels.set(blockKey, []);
       transparentVoxels.get(blockKey).push(v);
-      // Inner core for slime / honey. Smaller cube, opaque texture, sits
-      // centred inside the translucent shell. Glass and Ice don't get a
-      // core — their shell is the whole visual.
       if (coreKeys.has(blockKey)){
+        const coreGeom = blockKey === 'slime' ? slimeCoreGeom : honeyCoreGeom;
         const core = new THREE.Mesh(coreGeom, getInnerCoreMaterial3D(blockKey));
         core.position.set(v.x - cx, v.y - cy, v.z - cz);
         voxelGroup3D.add(core);

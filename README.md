@@ -33,7 +33,8 @@ Threshold) are available.
 | **Grass Block** | Top voxel of each column uses the grass texture (multi-face in 3D: green top, grass-side, dirt bottom); the rest is plain dirt. |
 | **Dirt** | Plain dirt everywhere — no grass cap. |
 | **Glass / Ice** | MC-style rendering: faces between two adjacent same-material voxels are culled, so the figure reads as one big pane (no doubled internal frames). `alphaTest:0.5` keeps the frame solid and the panes see-through. |
-| **Slime / Honey** | Shell-and-core rendering matching real Minecraft: each voxel is a translucent outer cube (alpha-blended skin) wrapping a smaller opaque inner cube. Adjacent shells merge via same-material face cull. Picking the tile plays the vanilla slime jump sound. |
+| **Slime / Honey** | Shell-and-core rendering matching real Minecraft: each voxel is a translucent outer cube wrapping a smaller opaque inner core. Inner-core sizes are pulled straight from the vanilla block models (slime = 10/16 ≈ 0.625, honey = 14/16 ≈ 0.875). Adjacent shells merge via same-material face cull. Picking the tile plays the vanilla slime jump sound. |
+| **Emissive blocks** | Glowstone, Sea Lantern, Shroomlight, Magma and Crying Obsidian render with `emissive + emissiveMap` at intensities scaled to their MC light level, so they self-illuminate the texture independent of scene shadows. |
 | **Multi-face blocks** | Pumpkin · Hay · Melon · Quartz · Bone · Sandstone · Crafting Table · Furnace · Bookshelf · TNT · Mycelium · Podzol · all wood Logs (Oak / Birch / Spruce / Jungle / Acacia / Dark Oak) render distinct textures on top, sides and bottom — matching the real Minecraft block. |
 | **Filled vs. Thin (transparent)** | For Glass and Ice in Filled mode the renderer emits every voxel of the solid volume (not just the outer shell), so the user can see the dense interior of cubes through the front panes. Thin still draws a hollow merged shell. |
 | **Sand / Gravel** | After a 500 ms hold the cells fall onto an invisible floor under gravity, mirroring Minecraft physics. Works in 2D and 3D. Edge overlay opacity is reduced to 25 % on these blocks so the grain reads cleanly. **Soul Sand** doesn't fall (matches MC). Re-clicking the currently-selected Sand / Gravel tile resets the figure and replays the fall. |
@@ -64,6 +65,14 @@ Threshold) are available.
   the fuse ends stops it immediately.
 - **Slime jump sound** — picking the Slime Block or Honey Block tile
   plays the vanilla `mob/slime/small1.ogg` boing.
+- **Per-category place sounds** — every other tile plays the right
+  Minecraft "dig" sample for its material (stone, wood, grass, sand,
+  gravel, cloth, glass, snow). Eight vanilla OGGs (~52 KB raw) are
+  embedded as data URIs in `js/sounds.js`.
+- **Day / night canvas mood** — the topbar sun/moon button (and the
+  `T` keyboard shortcut) flips the canvas sky between bright blue
+  day and deep-navy night. Voxel lighting is unchanged, so emissive
+  blocks really pop at night.
 
 ## Controls
 

@@ -26,6 +26,9 @@ let state = {
   //                          the opaque-block preference).
   edges3d: true,
   edges3dTransparent: false,
+  // Canvas / scene mood. 'day' (default) → bright blue MC sky;
+  // 'night' → deep navy starless sky. Toggled by the topbar button.
+  theme: 'day',
   grid:    false,     // OFF by default — textures already give visual structure
   center:  false,
   overlay: false,
