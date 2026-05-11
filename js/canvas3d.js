@@ -776,12 +776,78 @@ const CREEPER_FLASH_DECAY_K  = 3.0;   // exp(-k·u) coefficient, u in [0..1]
 // the cube head visually plausible.
 const CREEPER_PITCH_CLAMP = Math.PI / 3;
 
+// Random-walk parameters — the creeper wanders within a 3×3 grid
+// centred on its original spawn cell (so ±WALK_RANGE blocks in X
+// and Z). The walk advances only during the breather phase of the
+// stare cycle (blend ≈ 0); the moment the creeper starts looking
+// at the user, the walk state machine freezes. After the stare
+// ends, the walk resumes with a brief pause before the next step
+// — feels like the creeper "catches its breath" after eye contact.
+const CREEPER_WALK_RANGE        = 1;     // ±1 cells → 3×3 footprint
+const CREEPER_WALK_SPEED_BPS    = 0.4;   // blocks per second (slow, deliberate)
+const CREEPER_WALK_PAUSE_MIN_S  = 0.4;   // shortest dwell at a cell
+const CREEPER_WALK_PAUSE_MAX_S  = 1.0;   // longest dwell at a cell
+const CREEPER_WALK_LEG_AMP_DEG  = 18;    // ±° leg swing while a step is in flight
+const CREEPER_WALK_BLEND_THRESH = 0.01;  // below this, treat blend as "idle"
+
 let _creeperGroup    = null;   // current creeper THREE.Group (or null)
 let _creeperParts    = null;   // { head, legs:[fl,fr,bl,br] } pivot groups
 let _creeperAnimRaf  = null;
 let _creeperAnimT0   = 0;
 let _creeperLastCyc  = -1;     // last completed look-cycle index (for fuse trigger)
 let _creeperWasShown = false;  // tracks creeperIsActive() across update3D
+
+// Random-walk state. _creeperPosX/Z is the smoothly interpolated world
+// offset (relative to the spawn-centre cell); during 'walk' phase it
+// lerps from origin → target, during 'pause' it equals the target
+// (i.e. an integer cell in the 3×3). _creeperWalkYaw is the facing
+// direction the body holds while the current step is in flight; it
+// also serves as the BASE yaw the stare-yaw lerps away from.
+let _creeperPosX            = 0;
+let _creeperPosZ            = 0;
+let _creeperOriginX         = 0;
+let _creeperOriginZ         = 0;
+let _creeperTargetX         = 0;
+let _creeperTargetZ         = 0;
+let _creeperWalkPhase       = 'pause';   // 'walk' | 'pause'
+let _creeperWalkPhaseStartT = 0;
+let _creeperWalkPhaseDur    = 0;
+let _creeperWalkYaw         = 0;
+let _creeperPrevBlend       = 0;         // detect stare → idle transition each tick
+
+/* Pick a random neighbour cell of (cx, cz) inside the 3×3 grid.
+   Skips the current cell and any cell outside ±CREEPER_WALK_RANGE.
+   Corner cells have 3 neighbours, edges 5, centre 8 — uniform
+   sampling within the valid set gives the corners less time and
+   keeps the wander biased toward the middle, which looks natural. */
+function _pickCreeperNeighbour(cx, cz){
+  const options = [];
+  for (let dx = -1; dx <= 1; dx++){
+    for (let dz = -1; dz <= 1; dz++){
+      if (dx === 0 && dz === 0) continue;
+      const nx = cx + dx, nz = cz + dz;
+      if (nx < -CREEPER_WALK_RANGE || nx > CREEPER_WALK_RANGE) continue;
+      if (nz < -CREEPER_WALK_RANGE || nz > CREEPER_WALK_RANGE) continue;
+      options.push([nx, nz]);
+    }
+  }
+  return options[Math.floor(Math.random() * options.length)];
+}
+
+/* Wrap a signed angle into [-π, π] so we lerp along the shortest
+   arc between two yaws. Without this, a transition from yaw +170°
+   to yaw -170° would take the long way around (340°) instead of
+   the short 20° flip across the −180/+180 boundary. */
+function _shortestAngle(a){
+  while (a >  Math.PI) a -= 2 * Math.PI;
+  while (a < -Math.PI) a += 2 * Math.PI;
+  return a;
+}
+
+function _randomCreeperPause(){
+  return CREEPER_WALK_PAUSE_MIN_S
+       + Math.random() * (CREEPER_WALK_PAUSE_MAX_S - CREEPER_WALK_PAUSE_MIN_S);
+}
 
 /* Cubic ease-in-out so the body acceleration into and out of the gaze
    feels organic — no abrupt linear ramp. */
@@ -850,66 +916,141 @@ function _creeperAnimTick(){
   }
   if (_creeperAtlasMat) _creeperAtlasMat.emissiveIntensity = flashI;
 
-  // Body YAW (rotation around Y) — points the creeper's local +Z (its
-  // FACE) at the camera in the horizontal plane. atan2(x, z) is correct
-  // because a rotation.y of θ maps local +Z to world (sinθ, 0, cosθ);
-  // solving sinθ = camX/|cam|, cosθ = camZ/|cam| gives θ = atan2(camX, camZ).
-  const targetYaw = (camera3D)
-    ? Math.atan2(camera3D.position.x, camera3D.position.z)
-    : 0;
+  const blend = _creeperLookBlend(t);
+  const now = performance.now();
 
-  // Head PITCH (rotation around X, applied to the head pivot AFTER the
-  // body's yaw) — tilts the face up/down to track tall or short camera
-  // angles. The head's world position is constant: the head pivot sits
-  // on the creeper's central axis (local x=z=0), so the body's yaw
-  // leaves it where it was; we just need the camera's height relative
-  // to the head, plus the horizontal distance.
-  //
-  // pitchTarget > 0 when camera is ABOVE the head; we want the face to
-  // tilt UP in that case. In three.js, Rx(+θ) maps +Z → (0, −sinθ, cosθ)
-  // — that's tilting +Z toward −Y (DOWN). So we apply NEGATIVE pitch
-  // to lift the face up. The angle is clamped to ±CREEPER_PITCH_CLAMP
-  // so an extreme overhead camera doesn't bend the cube head into a
-  // hinge.
+  // -------------------- WALK STATE MACHINE --------------------------
+  // The creeper only advances its random walk while the look-blend is
+  // essentially zero (breather phase). During the stare arc the state
+  // machine is frozen and the body holds its last walk position +
+  // facing. The instant the blend drops back to zero (stare → idle
+  // transition) we reset to a brief 'pause' so the creeper "catches
+  // its breath" before the next step instead of teleporting forward.
+  const stareEnded = (_creeperPrevBlend >= CREEPER_WALK_BLEND_THRESH
+                  && blend < CREEPER_WALK_BLEND_THRESH);
+  if (stareEnded){
+    _creeperWalkPhase       = 'pause';
+    _creeperWalkPhaseStartT = now;
+    _creeperWalkPhaseDur    = _randomCreeperPause() * 1000;
+  }
+  _creeperPrevBlend = blend;
+
+  if (blend < CREEPER_WALK_BLEND_THRESH){
+    const phaseT = now - _creeperWalkPhaseStartT;
+    if (_creeperWalkPhase === 'pause'){
+      // Sit at the target cell. When the pause window expires, pick a
+      // random neighbour of the rounded current cell as the next
+      // target and switch to 'walk'.
+      if (phaseT >= _creeperWalkPhaseDur){
+        const cx = Math.round(_creeperPosX);
+        const cz = Math.round(_creeperPosZ);
+        const [tx, tz] = _pickCreeperNeighbour(cx, cz);
+        _creeperOriginX = _creeperPosX;  // start the lerp from the actual position
+        _creeperOriginZ = _creeperPosZ;  // (may not be a grid cell after a stare)
+        _creeperTargetX = tx;
+        _creeperTargetZ = tz;
+        const dx = tx - _creeperOriginX;
+        const dz = tz - _creeperOriginZ;
+        _creeperWalkYaw      = Math.atan2(dx, dz);
+        _creeperWalkPhase    = 'walk';
+        _creeperWalkPhaseStartT = now;
+        _creeperWalkPhaseDur    = (Math.hypot(dx, dz) / CREEPER_WALK_SPEED_BPS) * 1000;
+      }
+    } else { /* 'walk' */
+      const p = Math.min(1, phaseT / _creeperWalkPhaseDur);
+      _creeperPosX = _creeperOriginX + (_creeperTargetX - _creeperOriginX) * p;
+      _creeperPosZ = _creeperOriginZ + (_creeperTargetZ - _creeperOriginZ) * p;
+      if (p >= 1){
+        // Arrived — clamp to the target cell and dwell.
+        _creeperPosX = _creeperTargetX;
+        _creeperPosZ = _creeperTargetZ;
+        _creeperWalkPhase       = 'pause';
+        _creeperWalkPhaseStartT = now;
+        _creeperWalkPhaseDur    = _randomCreeperPause() * 1000;
+      }
+    }
+  }
+  // Apply the walking position (Y is set once at build to Dy/2 and
+  // never changes — the creeper walks on the figure-top plane).
+  _creeperGroup.position.x = _creeperPosX;
+  _creeperGroup.position.z = _creeperPosZ;
+
+  // -------------------- STARE-AWARE YAW + PITCH ---------------------
+  // Body YAW — interpolates between the walking facing direction and
+  // the camera-facing direction using the look-blend. atan2(dx, dz) is
+  // correct because a rotation.y of θ maps local +Z to world
+  // (sinθ, 0, cosθ); for the body's +Z to point at the camera, solving
+  // sinθ = camDX/|d|, cosθ = camDZ/|d| gives θ = atan2(camDX, camDZ).
+  // The stare yaw is computed relative to the creeper's CURRENT
+  // position (not the spawn origin) so the gaze is correct even when
+  // the creeper has wandered to an edge of the 3×3.
+  let stareYaw = _creeperWalkYaw;
+  if (camera3D){
+    const dxC = camera3D.position.x - _creeperPosX;
+    const dzC = camera3D.position.z - _creeperPosZ;
+    if (Math.hypot(dxC, dzC) > 1e-4) stareYaw = Math.atan2(dxC, dzC);
+  }
+  // Shortest-arc lerp between walk yaw and stare yaw so the body
+  // never spins the long way round at the −π/+π wrap-around.
+  const yawDelta = _shortestAngle(stareYaw - _creeperWalkYaw);
+  _creeperGroup.rotation.y = _creeperWalkYaw + yawDelta * blend;
+
+  // Head PITCH — tilts the face up/down to track tall or short camera
+  // angles. Computed from the head's CURRENT world position (walks
+  // with the body), then clamped so an extreme overhead camera can't
+  // bend the cube head into a hinge. In three.js Rx(+θ) maps +Z toward
+  // −Y (DOWN), so we negate the target to lift the face up when the
+  // camera is above.
   let targetPitch = 0;
   if (camera3D){
+    const headWorldX = _creeperPosX;
+    const headWorldZ = _creeperPosZ;
     const headWorldY = _creeperGroup.position.y
                      + (CREEPER_LEG_H + CREEPER_BODY_H + CREEPER_HEAD_H / 2);
-    const camX = camera3D.position.x;
-    const camZ = camera3D.position.z;
-    const dy   = camera3D.position.y - headWorldY;
-    const dxz  = Math.hypot(camX, camZ);
+    const dy  = camera3D.position.y - headWorldY;
+    const dxz = Math.hypot(camera3D.position.x - headWorldX,
+                           camera3D.position.z - headWorldZ);
     targetPitch = Math.atan2(dy, dxz);
     if (targetPitch >  CREEPER_PITCH_CLAMP) targetPitch =  CREEPER_PITCH_CLAMP;
     if (targetPitch < -CREEPER_PITCH_CLAMP) targetPitch = -CREEPER_PITCH_CLAMP;
   }
 
-  const blend = _creeperLookBlend(t);
-
-  // Body — interpolate between neutral (0) and full camera-facing.
-  // Continuous targetYaw means if the user orbits the camera DURING
-  // the gaze hold, the creeper smoothly tracks them; that intentional
-  // "watching me" feel was the whole point of the easter egg.
-  _creeperGroup.rotation.y = blend * targetYaw;
-
-  // Head — pitch tracks the camera height during the stare, and the
-  // idle micro-sway plays during the breather (scaled down as the gaze
-  // intensifies). Pitch and sway live on different axes (X vs Y) so
+  // Head idle Y-sway — plays during the breather, damps as the gaze
+  // intensifies. Pitch and sway live on different axes (X vs Y) so
   // they never fight; their blend factors are reciprocal so the head
-  // smoothly hands off between "looking at the user" and "idle bobbing".
+  // smoothly hands off between "looking at the user" and "idle bob".
   const idleSway = Math.sin(t * 2 * Math.PI * 0.18) * (6 * Math.PI / 180);
   _creeperParts.head.rotation.x = -blend * targetPitch;
   _creeperParts.head.rotation.y = idleSway * (1 - blend);
 
-  // Legs — also damped during the gaze so the body reads as deliberate
-  // (a 30 % residual sway keeps it from looking like a paused GIF).
-  const legSway = Math.sin(t * 2 * Math.PI * 0.5) * (4 * Math.PI / 180);
-  const legAmp  = 1 - 0.7 * blend;
+  // -------------------- LEGS: WALKING GAIT vs IDLE ------------------
+  // While a step is in flight (blend ≈ 0 AND phase === 'walk'), legs
+  // run a full-amplitude gait: one sine cycle per step, alternating
+  // pairs in opposite phase. Sync to step progress (not wall-clock)
+  // so the legs visibly "finish their stride" exactly when the body
+  // arrives at the target cell — that's what kills the slide effect.
+  //
+  // Otherwise (paused, staring, or transitioning) the legs play the
+  // tiny idle sway, damped by the stare blend so a locked-in gaze
+  // reads as "locked on" rather than "paused mid-bob".
   const [fl, fr, bl, br] = _creeperParts.legs;
-  fl.rotation.x =  legSway * legAmp;
-  br.rotation.x =  legSway * legAmp;
-  fr.rotation.x = -legSway * legAmp;
-  bl.rotation.x = -legSway * legAmp;
+  if (blend < CREEPER_WALK_BLEND_THRESH && _creeperWalkPhase === 'walk'){
+    const phaseT = now - _creeperWalkPhaseStartT;
+    const p = Math.min(1, phaseT / _creeperWalkPhaseDur);
+    const gaitPhase = p * 2 * Math.PI;
+    const swing = Math.sin(gaitPhase) * (CREEPER_WALK_LEG_AMP_DEG * Math.PI / 180);
+    fl.rotation.x =  swing;
+    br.rotation.x =  swing;
+    fr.rotation.x = -swing;
+    bl.rotation.x = -swing;
+  } else {
+    const legSway = Math.sin(t * 2 * Math.PI * 0.5) * (4 * Math.PI / 180);
+    const legAmp  = 1 - 0.7 * blend;
+    fl.rotation.x =  legSway * legAmp;
+    br.rotation.x =  legSway * legAmp;
+    fr.rotation.x = -legSway * legAmp;
+    bl.rotation.x = -legSway * legAmp;
+  }
 
   scheduleRender3D();
   _creeperAnimRaf = requestAnimationFrame(_creeperAnimTick);
@@ -1020,6 +1161,22 @@ function buildEasterEggCreeper(Dx, Dy, Dz, cx, cy, cz){
   // lines up with the end of the grace period — exactly when the
   // first rise begins).
   _creeperLastCyc = 0;
+
+  // Reset the random-walk state machine so a fresh creeper always
+  // starts at the centre cell, facing +Z (the spawn-default), and
+  // begins with a short pause before its first step.
+  _creeperPosX            = 0;
+  _creeperPosZ            = 0;
+  _creeperOriginX         = 0;
+  _creeperOriginZ         = 0;
+  _creeperTargetX         = 0;
+  _creeperTargetZ         = 0;
+  _creeperWalkYaw         = 0;
+  _creeperWalkPhase       = 'pause';
+  _creeperWalkPhaseStartT = performance.now();
+  _creeperWalkPhaseDur    = _randomCreeperPause() * 1000;
+  _creeperPrevBlend       = 0;
+
   _creeperAnimRaf = requestAnimationFrame(_creeperAnimTick);
 }
 
