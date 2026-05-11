@@ -533,47 +533,48 @@ function creeperIsActive(){
 }
 
 function creeperBoundsExtraY(){
-  // Actual creeper height is 1.625 blocks; round up to 2 so the
-  // bounding box uses whole-cell units consistent with the tree's
-  // bookkeeping, and so the head never grazes the canvas edge.
   return creeperIsActive() ? Math.ceil(CREEPER_TOTAL_H) : 0;
 }
 
-/* Procedural "creeper.png" skin — drawn once into two 8×8 pixel canvases:
-     • bodyMat: green-mottled pattern used on all faces of body/legs and
-       on every face of the head EXCEPT the front.
-     • faceMat: same mottled green plus the iconic black eye-and-mouth
-       pattern, used on the head's front (+z) face.
-   Both materials are cached so we generate the canvases only once even
-   if the easter egg re-renders. */
-let _creeperMats = null;
-function _getCreeperMats(){
-  if (_creeperMats) return _creeperMats;
+/* Procedural "creeper.png" entity skin atlas (64×32 px), drawn once into
+   a CanvasTexture and shared by every body part. Mottled-green base
+   tinted to match the real Minecraft creeper texture, plus the iconic
+   black eye-and-mouth pattern painted on the head's front region.
 
-  // Mottled greens, 6 shades — pseudo-random pixel grid keeps the same
-  // skin tile on every body part so the creeper looks consistent.
-  const GREENS = ['#5fbf2f', '#4ca524', '#3d8a1e', '#6cd234', '#52b228', '#46991f'];
-  const drawMottle = (ctx) => {
-    for (let y = 0; y < 8; y++){
-      for (let x = 0; x < 8; x++){
-        ctx.fillStyle = GREENS[(x * 13 + y * 31) % GREENS.length];
-        ctx.fillRect(x, y, 1, 1);
-      }
+   Atlas layout matches the canonical Minecraft creeper.png:
+     HEAD  top (8,0,8,8)   bottom (16,0,8,8)
+           right (0,8,8,8) front (8,8,8,8) left (16,8,8,8) back (24,8,8,8)
+     BODY  top (20,16,4,8) bottom (24,16,4,8)
+           left (16,20,8,12) front (24,20,4,12)
+           right (28,20,8,12) back (36,20,4,12)
+     LEG   top (4,16,4,4)  bottom (8,16,4,4)
+           right (0,20,4,6) front (4,20,4,6)
+           left (8,20,4,6) back (12,20,4,6)
+   Built once, cached for the session. */
+const CREEPER_ATLAS_W = 64;
+const CREEPER_ATLAS_H = 32;
+let _creeperAtlasMat = null;
+function _getCreeperAtlasMat(){
+  if (_creeperAtlasMat) return _creeperAtlasMat;
+
+  const c = document.createElement('canvas');
+  c.width = CREEPER_ATLAS_W; c.height = CREEPER_ATLAS_H;
+  const ctx = c.getContext('2d');
+
+  // Six greens — palette roughly matched to the actual creeper.png.
+  const GREENS = ['#3a7d22', '#43912a', '#4a9e30', '#54ad37', '#5fbe3f', '#6acc48'];
+  // Fill the atlas with a deterministic mottled green; the same body
+  // tile texture is sampled by every part via UV mapping, so a single
+  // continuous pattern gives the creeper a uniform skin appearance.
+  for (let y = 0; y < CREEPER_ATLAS_H; y++){
+    for (let x = 0; x < CREEPER_ATLAS_W; x++){
+      const h = ((x * 7) ^ (y * 13) ^ ((x + y) * 5)) & 0xff;
+      ctx.fillStyle = GREENS[(h >> 5) % GREENS.length];
+      ctx.fillRect(x, y, 1, 1);
     }
-  };
-  const makeTex = (paint) => {
-    const c = document.createElement('canvas');
-    c.width = 8; c.height = 8;
-    paint(c.getContext('2d'));
-    const t = new THREE.CanvasTexture(c);
-    t.magFilter = THREE.NearestFilter;
-    t.minFilter = THREE.NearestFilter;
-    t.generateMipmaps = false;
-    return t;
-  };
+  }
 
-  const bodyTex = makeTex(ctx => drawMottle(ctx));
-  // Iconic creeper face: two 2×2 eye squares + downward-T mouth.
+  // Iconic creeper face — painted over the head-front region (8,8)-(16,16).
   const FACE = [
     '........',
     '.##..##.',
@@ -584,26 +585,122 @@ function _getCreeperMats(){
     '..#..#..',
     '........',
   ];
-  const faceTex = makeTex(ctx => {
-    drawMottle(ctx);
-    ctx.fillStyle = '#0a1a0a';
-    for (let y = 0; y < 8; y++)
-      for (let x = 0; x < 8; x++)
-        if (FACE[y][x] === '#') ctx.fillRect(x, y, 1, 1);
-  });
+  ctx.fillStyle = '#0a1a0a';
+  for (let fy = 0; fy < 8; fy++){
+    for (let fx = 0; fx < 8; fx++){
+      if (FACE[fy][fx] === '#') ctx.fillRect(8 + fx, 8 + fy, 1, 1);
+    }
+  }
 
-  const bodyMat = new THREE.MeshLambertMaterial({ map: bodyTex });
-  const faceMat = new THREE.MeshLambertMaterial({ map: faceTex });
-  // BoxGeometry face order: [+x, -x, +y, -y, +z, -z]. Face on +z (front)
-  // so it greets the default camera angle at theta = π/4.
-  const headMats = [bodyMat, bodyMat, bodyMat, bodyMat, faceMat, bodyMat];
+  const tex = new THREE.CanvasTexture(c);
+  tex.magFilter = THREE.NearestFilter;
+  tex.minFilter = THREE.NearestFilter;
+  tex.generateMipmaps = false;
+  _creeperAtlasMat = new THREE.MeshLambertMaterial({ map: tex });
+  return _creeperAtlasMat;
+}
 
-  _creeperMats = { bodyMat, headMats };
-  return _creeperMats;
+/* Remap a BoxGeometry's UV attribute so each of its six faces samples
+   a specific rectangle of the creeper atlas. `regions` is an array in
+   BoxGeometry face order [+X, -X, +Y, -Y, +Z, -Z], each entry an
+   [atlasX, atlasY, atlasW, atlasH] tuple in pixels (atlas origin
+   top-left). Three.js textures use bottom-left origin, so we flip V. */
+function _setBoxAtlasUVs(geom, regions){
+  const uv = geom.attributes.uv;
+  for (let f = 0; f < 6; f++){
+    const [x, y, w, h] = regions[f];
+    const u1 = x / CREEPER_ATLAS_W;
+    const u2 = (x + w) / CREEPER_ATLAS_W;
+    const v1 = 1 - (y + h) / CREEPER_ATLAS_H;
+    const v2 = 1 - y / CREEPER_ATLAS_H;
+    const i = f * 4;
+    uv.setXY(i + 0, u1, v2);   // top-left vertex of the face
+    uv.setXY(i + 1, u2, v2);   // top-right
+    uv.setXY(i + 2, u1, v1);   // bottom-left
+    uv.setXY(i + 3, u2, v1);   // bottom-right
+  }
+  uv.needsUpdate = true;
+}
+
+// Atlas regions per part — face order is [+X, -X, +Y, -Y, +Z, -Z].
+const CREEPER_HEAD_UV = [
+  [16, 8, 8, 8],   // +X right
+  [ 0, 8, 8, 8],   // -X left  (atlas "right" region renders on the model's left side; symmetric mottle hides the mirror)
+  [ 8, 0, 8, 8],   // +Y top
+  [16, 0, 8, 8],   // -Y bottom
+  [ 8, 8, 8, 8],   // +Z front  (FACE)
+  [24, 8, 8, 8],   // -Z back
+];
+const CREEPER_BODY_UV = [
+  [28, 20, 8, 12], // +X right
+  [16, 20, 8, 12], // -X left
+  [20, 16, 4, 8],  // +Y top
+  [24, 16, 4, 8],  // -Y bottom
+  [24, 20, 4, 12], // +Z front
+  [36, 20, 4, 12], // -Z back
+];
+const CREEPER_LEG_UV = [
+  [ 0, 20, 4, 6],  // +X
+  [ 8, 20, 4, 6],  // -X
+  [ 4, 16, 4, 4],  // +Y top
+  [ 8, 16, 4, 4],  // -Y bottom
+  [ 4, 20, 4, 6],  // +Z front
+  [12, 20, 4, 6],  // -Z back
+];
+
+/* Animation: very slow head Y-sway and gentle leg X-sway driven by a
+   continuous rAF that keeps running while the creeper exists in the
+   scene. Pivot-groups for each leg + the head are what let us rotate
+   them around their joints (legs around their tops, head around its
+   centre) instead of their geometric origins. */
+let _creeperGroup    = null;   // current creeper THREE.Group (or null)
+let _creeperParts    = null;   // { head, legs:[fl,fr,bl,br] } pivot groups
+let _creeperAnimRaf  = null;
+let _creeperAnimT0   = 0;
+let _creeperWasShown = false;  // tracks creeperIsActive() across update3D
+let _creeperWasTnt   = false;  // tracks state.mcBlock === 'tnt' across updates
+function _creeperAnimTick(){
+  if (!_creeperGroup || !_creeperGroup.parent){
+    _creeperAnimRaf = null;
+    return;
+  }
+  const t = (performance.now() - _creeperAnimT0) * 0.001;
+  // Head: ±6° around Y at ~0.18 Hz. Subtle horizontal "scan".
+  _creeperParts.head.rotation.y = Math.sin(t * 2 * Math.PI * 0.18) * (6 * Math.PI / 180);
+  // Legs: ±4° around X at ~0.5 Hz, alternating pairs for a faint sway.
+  const sway = Math.sin(t * 2 * Math.PI * 0.5) * (4 * Math.PI / 180);
+  const [fl, fr, bl, br] = _creeperParts.legs;
+  fl.rotation.x =  sway;
+  br.rotation.x =  sway;
+  fr.rotation.x = -sway;
+  bl.rotation.x = -sway;
+  scheduleRender3D();
+  _creeperAnimRaf = requestAnimationFrame(_creeperAnimTick);
 }
 
 function buildEasterEggCreeper(Dx, Dy, Dz, cx, cy, cz){
-  if (!creeperIsActive()) return;
+  // Reset module-scope creeper handles each rebuild — the previous
+  // group was destroyed when voxelGroup3D was disposed.
+  _creeperGroup = null;
+  _creeperParts = null;
+  if (_creeperAnimRaf){ cancelAnimationFrame(_creeperAnimRaf); _creeperAnimRaf = null; }
+
+  const nowActive = creeperIsActive();
+  // Sound trigger — play the TNT fuse on the slider transition that
+  // brings the creeper into view. If the user JUST switched to TNT,
+  // ui.js has already played the fuse, so we suppress this play to
+  // avoid double-triggering. Slider movement while TNT stays selected
+  // is the only path that fires here.
+  if (nowActive && !_creeperWasShown && _creeperWasTnt){
+    if (typeof Sfx !== 'undefined' && Sfx && typeof Sfx.tnt === 'function'){
+      Sfx.tnt();
+    }
+  }
+  _creeperWasShown = nowActive;
+  _creeperWasTnt   = (state.mcBlock === 'tnt');
+
+  if (!nowActive) return;
+
   // All-or-nothing cut rules — the creeper occupies the top-centre of
   // the figure, so if that voxel is cut away there's nothing to stand
   // on and we hide the entire creeper.
@@ -612,51 +709,68 @@ function buildEasterEggCreeper(Dx, Dy, Dz, cx, cy, cz){
   if (state.axis === 'x'    && state.cut <= centerX)           return;
   if (state.axis === 'diag' && state.cut <= centerX + Dy - 1)  return;
 
-  const { bodyMat, headMats } = _getCreeperMats();
+  const mat = _getCreeperAtlasMat();
 
-  // World position of the figure-top centre point.
-  //   top of figure = world y = Dy/2 (since voxels span y ∈ [-Dy/2, +Dy/2]
-  //   after the -cy offset). x/z are already centred on 0.
-  const groupY = Dy / 2;
-  const group = new THREE.Group();
-  group.position.set(0, groupY, 0);
+  // Root group sits at the figure-top centre. The figure spans world
+  // y ∈ [-Dy/2, +Dy/2] (the -cy offset is already baked into each
+  // voxel's mesh.position), so y = +Dy/2 is the figure's top face.
+  const root = new THREE.Group();
+  root.position.set(0, Dy / 2, 0);
 
-  // Helper — build a box mesh of the given pixel dimensions (16 px =
-  // 1 block) at the given creeper-local centre coordinates.
-  const addPart = (wPx, hPx, dPx, cxLoc, cyLoc, czLoc, mat) => {
-    const w = wPx / 16, h = hPx / 16, d = dPx / 16;
-    const g = new THREE.BoxGeometry(w, h, d);
-    const m = new THREE.Mesh(g, mat);
-    m.position.set(cxLoc, cyLoc, czLoc);
-    group.add(m);
+  // Helper — build a Box with custom UV atlas regions, optionally
+  // wrapping it in a pivot group so rotations happen around a joint
+  // rather than the mesh's geometric centre.
+  const buildPart = (wPx, hPx, dPx, uvRegions) => {
+    const g = new THREE.BoxGeometry(wPx / 16, hPx / 16, dPx / 16);
+    _setBoxAtlasUVs(g, uvRegions);
+    return new THREE.Mesh(g, mat);
   };
 
-  // Legs — four 4×6×4 px columns at the corners of the 8×8 footprint.
-  // Legs splay slightly inward from the head's 0.5-block square so the
-  // 4 leg tops join the bottom of the body without gaps.
-  const legY = CREEPER_LEG_H / 2;                  // y centre of each leg
-  const legXZ = 0.125;                             // ±2 px from centre
-  addPart(4, 6, 4, -legXZ, legY, +legXZ, bodyMat); // front-left
-  addPart(4, 6, 4, +legXZ, legY, +legXZ, bodyMat); // front-right
-  addPart(4, 6, 4, -legXZ, legY, -legXZ, bodyMat); // back-left
-  addPart(4, 6, 4, +legXZ, legY, -legXZ, bodyMat); // back-right
+  // --- Legs --------------------------------------------------------
+  // Each leg is wrapped in a pivot Group at the hip joint (top of the
+  // leg). The leg mesh hangs below the pivot so rotating the pivot
+  // around X sways the foot.
+  const legXZ = 0.125;                       // ±2 px from centre
+  const hipY  = CREEPER_LEG_H;               // joint is at top of leg
+  const legs = [];
+  const mkLeg = (sx, sz) => {
+    const pivot = new THREE.Group();
+    pivot.position.set(sx * legXZ, hipY, sz * legXZ);
+    const mesh = buildPart(4, 6, 4, CREEPER_LEG_UV);
+    mesh.position.set(0, -CREEPER_LEG_H / 2, 0); // hang below joint
+    pivot.add(mesh);
+    root.add(pivot);
+    legs.push(pivot);
+    return pivot;
+  };
+  mkLeg(-1, +1);  // front-left  (front = +z in our convention)
+  mkLeg(+1, +1);  // front-right
+  mkLeg(-1, -1);  // back-left
+  mkLeg(+1, -1);  // back-right
 
-  // Body — 4×12×8 px, centred horizontally above the legs. The 4-px
-  // (0.25 block) x-thickness is what gives a creeper its narrow side
-  // profile vs its broad front view.
-  const bodyY = CREEPER_LEG_H + CREEPER_BODY_H / 2;
-  addPart(4, 12, 8, 0, bodyY, 0, bodyMat);
+  // --- Body --------------------------------------------------------
+  const bodyMesh = buildPart(4, 12, 8, CREEPER_BODY_UV);
+  bodyMesh.position.set(0, CREEPER_LEG_H + CREEPER_BODY_H / 2, 0);
+  root.add(bodyMesh);
 
-  // Head — 8×8×8 px cube on top of body, face on +z front face.
+  // --- Head --------------------------------------------------------
+  // Wrap the head in a pivot so we can rotate it around its own centre
+  // without moving the body. Pivot Y is at the head's centre.
   const headY = CREEPER_LEG_H + CREEPER_BODY_H + CREEPER_HEAD_H / 2;
-  addPart(8, 8, 8, 0, headY, 0, headMats);
+  const headPivot = new THREE.Group();
+  headPivot.position.set(0, headY, 0);
+  const headMesh = buildPart(8, 8, 8, CREEPER_HEAD_UV);
+  headPivot.add(headMesh);
+  root.add(headPivot);
 
-  // Convert the figure-top group coordinates into the voxelGroup3D
-  // coordinate system (which has the figure centred at origin via the
-  // -cy offset already applied to figure voxels). The group's own
-  // position already sets y = Dy/2; voxelGroup3D treats that as world
-  // y directly, so no further offset is needed here.
-  voxelGroup3D.add(group);
+  voxelGroup3D.add(root);
+
+  // Wire the animation loop. Stored module-scope so the rAF tick can
+  // mutate the right parts and stop when the group is removed.
+  _creeperGroup  = root;
+  _creeperParts  = { head: headPivot, legs };
+  _creeperAnimT0 = performance.now();
+  _creeperAnimRaf = requestAnimationFrame(_creeperAnimTick);
 }
 
 function disposeVoxelGroup(){
