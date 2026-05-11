@@ -191,45 +191,30 @@ function updateCamera3D(){
   scheduleRender3D();
 }
 function resetCamera3D(){ theta3D = Math.PI / 4; phi3D = Math.PI / 3; autoZoom3D(); }
-/* Fit the projected silhouette of the bounding box at the current orbit
-   angle. Tighter than fitting the bounding sphere — flat ellipsoids
-   (e.g. 16 × 9 × 16) end up filling the frame instead of leaving an
-   obvious black halo around them. */
+/* autoZoom3D — set distance3D so the bounding sphere of the figure fits
+   inside the viewport with a guaranteed margin at every rotation angle.
+   The bounding sphere radius (half-diagonal of the AABB) is the
+   worst-case projected extent regardless of orientation, so the model
+   never clips the canvas edges no matter where the user drags to.
+   autoZoom3D() is also called on every drag frame so the distance
+   self-corrects continuously as the user rotates. */
 function autoZoom3D(){
   if (!camera3D) return;
   const isEllipse = state.shape === 'ellipse';
-  const Dx = isEllipse ? state.width : state.size;
+  const Dx = isEllipse ? state.width  : state.size;
   const Dy = isEllipse ? state.height : state.size;
-  const Dz = isEllipse ? state.depth : state.size;
+  const Dz = isEllipse ? state.depth  : state.size;
 
-  const dir = new THREE.Vector3(
-    Math.sin(phi3D) * Math.cos(theta3D),
-    Math.cos(phi3D),
-    Math.sin(phi3D) * Math.sin(theta3D)
-  );
-  const view = dir.clone().negate();
-  const worldUp = new THREE.Vector3(0, 1, 0);
-  const right = new THREE.Vector3().crossVectors(view, worldUp);
-  if (right.lengthSq() < 1e-6) right.set(1, 0, 0);
-  right.normalize();
-  const up = new THREE.Vector3().crossVectors(right, view).normalize();
-
+  // Half-diagonal of the AABB = radius of the tightest enclosing sphere.
   const hx = Dx / 2, hy = Dy / 2, hz = Dz / 2;
-  let maxR = 0, maxU = 0;
-  const corner = new THREE.Vector3();
-  for (const sx of [-1, 1]) for (const sy of [-1, 1]) for (const sz of [-1, 1]){
-    corner.set(sx * hx, sy * hy, sz * hz);
-    const r = Math.abs(corner.dot(right));
-    const u = Math.abs(corner.dot(up));
-    if (r > maxR) maxR = r;
-    if (u > maxU) maxU = u;
-  }
+  const R = Math.sqrt(hx * hx + hy * hy + hz * hz);
 
   const vFov = camera3D.fov * Math.PI / 180;
   const hFov = 2 * Math.atan(Math.tan(vFov / 2) * camera3D.aspect);
-  const distV = maxU / Math.tan(vFov / 2);
-  const distH = maxR / Math.tan(hFov / 2);
-  distance3D = Math.max(2, Math.max(distV, distH) * 1.15);
+  const distV = R / Math.tan(vFov / 2);
+  const distH = R / Math.tan(hFov / 2);
+  // 1.20× margin keeps a visible gap between model and canvas edges.
+  distance3D = Math.max(2, Math.max(distV, distH) * 1.20);
   updateCamera3D();
 }
 
