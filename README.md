@@ -33,6 +33,7 @@ Threshold) are available.
 | **Grass Block** | Top voxel of each column uses the grass texture (multi-face in 3D: green top, grass-side, dirt bottom); the rest is plain dirt. |
 | **Dirt** | Plain dirt everywhere — no grass cap. |
 | **Glass / Ice** | MC-style rendering: faces between two adjacent same-material voxels are culled, so the figure reads as one big pane (no doubled internal frames). `alphaTest:0.5` keeps the frame solid and the panes see-through. |
+| **Slime / Honey** | Shell-and-core rendering matching real Minecraft: each voxel is a translucent outer cube (alpha-blended skin) wrapping a smaller opaque inner cube. Adjacent shells merge via same-material face cull. Picking the tile plays the vanilla slime jump sound. |
 | **Multi-face blocks** | Pumpkin · Hay · Melon · Quartz · Bone · Sandstone · Crafting Table · Furnace · Bookshelf · TNT · Mycelium · Podzol · all wood Logs (Oak / Birch / Spruce / Jungle / Acacia / Dark Oak) render distinct textures on top, sides and bottom — matching the real Minecraft block. |
 | **Filled vs. Thin (transparent)** | For Glass and Ice in Filled mode the renderer emits every voxel of the solid volume (not just the outer shell), so the user can see the dense interior of cubes through the front panes. Thin still draws a hollow merged shell. |
 | **Sand / Gravel** | After a 500 ms hold the cells fall onto an invisible floor under gravity, mirroring Minecraft physics. Works in 2D and 3D. Edge overlay opacity is reduced to 25 % on these blocks so the grain reads cleanly. **Soul Sand** doesn't fall (matches MC). Re-clicking the currently-selected Sand / Gravel tile resets the figure and replays the fall. |
@@ -61,6 +62,8 @@ Threshold) are available.
   fuse sample (vanilla `random/fuse.ogg`, embedded as a base64 OGG
   data URI in `js/sounds.js`). Switching to any other block before
   the fuse ends stops it immediately.
+- **Slime jump sound** — picking the Slime Block or Honey Block tile
+  plays the vanilla `mob/slime/small1.ogg` boing.
 
 ## Controls
 
