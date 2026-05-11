@@ -62,16 +62,29 @@ Threshold) are available.
     with breathing room; the figure shifts downward accordingly.
 - **TNT creeper on slider value 15** — spawns a real Minecraft creeper
   standing on top of the figure. **3D only.**
-  - Rendered with its own green-mottled creeper skin and the iconic
-    black eye-and-mouth face on the front of the head — *not* built
-    out of TNT cubes. Both textures are drawn procedurally onto a
-    pair of 8×8 pixel canvases at first activation (no binary asset
-    is shipped).
+  - Built as a proper Minecraft entity model — six box parts (head,
+    body, 4 legs) with per-face UV mapping into a shared 64×32 skin
+    atlas (mottled greens + iconic black face), drawn procedurally
+    onto a canvas at first activation so no binary asset is shipped.
+    The atlas layout matches the canonical `creeper.png` regions
+    (head: rows 0–15; body: rows 16–31, x 16–39; leg: rows 16–31,
+    x 0–15) so each face samples the right pixels.
   - True Minecraft entity proportions (16 px = 1 block): head
     8×8×8 px, body 4×12×8 px, four legs at 4×6×4 px each.
     Total height 1.625 blocks, footprint 0.5 × 0.5 block — sits
     centred on the figure's top face, facing +z so the face is
     visible at the default camera angle.
+  - **Idle animation** — head sways slowly ±6° around Y (~0.18 Hz)
+    and the legs rock ±4° around X in alternating front-back pairs
+    (~0.5 Hz), via pivot groups so the head turns around its own
+    centre and the legs swing from the hip joint. A self-cancelling
+    rAF drives the motion and tears itself down the moment the
+    creeper leaves the scene.
+  - **TNT fuse sound** — the creeper plays the real Minecraft TNT
+    fuse the moment it appears on screen (slider transition into 15
+    with TNT already selected). The double-trigger case — clicking
+    the TNT tile *while* slider is at 15 — is suppressed, because
+    the tile-click handler already fires the same fuse.
   - Sphere mode triggers on `state.size === 15`.
   - Ellipsoid mode triggers on any of `state.width / state.height /
     state.depth === 15`. Coexists with the oak-tree easter egg
