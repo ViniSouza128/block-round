@@ -504,7 +504,8 @@ I \;=\; \max\bigl(0,\;\mathbf{n}\cdot\mathbf{l}\bigr)\cdot \mathit{纹理},
 
 \vspace{0.4em}
 \begin{center}
-\begin{tabular}{@{}lrrll@{}}
+\small
+\begin{tabularx}{\textwidth}{@{}lrrlX@{}}
 \toprule
 \textbf{直径} & \textbf{V (方块)} & \textbf{堆数} & \textbf{储存} & \textbf{典型建造} \\
 \midrule
@@ -515,7 +516,7 @@ D=20  &  4189 & 66  &  2 双箱 & 天文台圆顶 \\
 D=24  &  7238 & 114 &  3 双箱 & 神庙圆顶 \\
 D=32  & 17156 & 269 &  5 双箱 & 大教堂圆顶，世界 boss 竞技场 \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{center}
 
 Block Round 的信息芯片显示的\emph{堆-余数}表示 $N = q \cdot 64 + r$ 反映了生存物品栏显示部分堆的方式：玩家看到 $q$ 个满格加一个显示 $r$ 的格。对 $D=16$，芯片打印\enquote{$2\,145$（$33 \times 64 + 33$）}，告诉玩家完全填充 $33$ 格再加一格 $33$ 个 —— 共 $34$ 格。

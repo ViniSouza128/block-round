@@ -184,7 +184,7 @@ $\displaystyle d_x = \dfrac{i+\tfrac{1}{2}-c_x}{r_x},\qquad
 \textbf{Mapeamento Minecraft.} Para uma torre em survival, o usuário tipicamente quer um \emph{círculo achatado e largo} para a fundação e círculos progressivamente menores conforme a torre sobe. Cada andar é uma aplicação da equação implícita da elipse com os mesmos semi-eixos mas um $z$ diferente. O Block Round calcula a camada 2D uma vez e o usuário simplesmente duplica essa camada com \cmd{/clone $x_1$ $y_1$ $z_1$ $x_2$ $y_2$ $z_2$ $x_3$ $y_2{+}1$ $z_3$} por andar.
 \end{minec}
 
-\begin{figure}[H]
+\begin{figure}[!htbp]
 \centering
 \begin{subfigure}[t]{0.30\linewidth}\centering
   \includegraphics[width=\linewidth]{math_2d_d10_eucl.png}
@@ -319,7 +319,7 @@ b(i,j) \;=\; f(i,j) \;\wedge\;
 Geometricamente: é o \acc{bordo discreto} da forma, análogo discreto da fronteira topológica $\partial F = F \cap \overline{F^{\mathrm{c}}}$. Em Minecraft é o equivalente de \cmd{//hsphere} (esfera oca): só a casca é materializada.
 
 \subsection{Grosso (thick)}
-O modo grosso adiciona aos pixels de borda os \acc{pontes diagonais}: células internas que têm simultaneamente um vizinho-borda horizontal \emph{e} um vizinho-borda vertical. Isso fecha as diagonais de 1 pixel que o modo fino deixa abertas, útil quando o contorno precisa parecer estável num cenário (sem buracos a $45°$) --- particularmente importante para cúpulas de Vidro e Gelo, onde o vazamento de luz pelas frestas diagonais quebraria a ilusão de superfície selada.
+O modo grosso adiciona aos pixels de borda as \acc{pontes diagonais}: células internas que têm simultaneamente um vizinho-borda horizontal \emph{e} um vizinho-borda vertical. Isso preenche as \emph{células diagonais vazias} que o modo fino deixa entre os blocos da casca, útil quando o contorno precisa ser uma superfície contínua sem aberturas --- particularmente importante para cúpulas de Vidro e Gelo, onde cada célula diagonal vazia é, em Minecraft, um bloco de ar pelo qual água, monstros e luz transitam para o interior.
 \begin{align*}
 t(i,j) &= b(i,j) \;\vee\; \bigl(f(i,j) \,\wedge\, h_H \,\wedge\, h_V\bigr), \\
 h_H &= b(i{-}1,j) \;\vee\; b(i{+}1,j), \\
@@ -327,10 +327,10 @@ h_V &= b(i,j{-}1) \;\vee\; b(i,j{+}1).
 \end{align*}
 
 \begin{minec}
-\textbf{Mapeamento Minecraft.} Para uma cúpula de Vidro de $D=20$ (oca), o modo grosso produz uma casca \emph{vedada} de $608$ blocos contra $\approx 510$ blocos do modo fino --- os $\sim 100$ blocos extras são costura diagonal que impede o ciclo dia-noite de vazar luz ambiente pelas frestas diagonais.
+\textbf{Mapeamento Minecraft.} Para uma cúpula de Vidro de $D=20$ (oca), o modo grosso produz uma casca \emph{contínua} de $608$ blocos contra $\approx 510$ blocos do modo fino --- os $\sim 100$ blocos extras são costura diagonal que elimina as células vazias deixadas a $45°$ pela voxelização, fechando o interior contra água, mobs e propagação de luz.
 \end{minec}
 
-\begin{figure}[H]
+\begin{figure}[!htbp]
 \centering
 \begin{subfigure}[t]{0.30\linewidth}\centering
   \includegraphics[width=\linewidth]{math_2d_d20_filled.png}
@@ -382,7 +382,7 @@ a_\xi = \frac{\xi + \tfrac{1}{2} - c_\xi}{r_\xi}\;\;(\xi \in \{x,y,z\}),
 \textbf{Mapeamento Minecraft.} Um elipsóide com $W=20$, $H=10$, $D=20$ produz uma \emph{esfera achatada} ideal para uma cúpula subterrânea ou um teto de estádio. O volume é $V = \tfrac{4}{3}\pi \cdot 10 \cdot 5 \cdot 10 \approx 2\,094$ blocos, equivalente a $33$ stacks de qualquer tipo de bloco. Comando WorldEdit equivalente: \cmd{//ellipsoid stone 10 5 10}.
 \end{minec}
 
-\begin{figure}[H]
+\begin{figure}[!htbp]
 \centering
 \begin{subfigure}[t]{0.46\linewidth}\centering
   \includegraphics[width=\linewidth]{math_3d_sphere_d10.png}
@@ -451,7 +451,7 @@ de modo que $50\%$ num eixo continua sendo $50\%$ quando o usuário troca de eix
 \textbf{Mapeamento Minecraft.} O corte no eixo Y a $50\%$ sobre uma esfera produz a clássica \emph{cúpula} de metade do volume. Para $D=16$: $V_{\mathrm{full}} = 2\,145$ blocos, $V_{\mathrm{cupula}} \approx 1\,095$ blocos ($\approx 18$ packs de $64$). O corte diagonal a $50\%$ produz uma seção \emph{meia-bacia} muito usada para interiores de fontes e arquibancadas de anfiteatro.
 \end{minec}
 
-\begin{figure}[H]
+\begin{figure}[!htbp]
 \centering
 \begin{subfigure}[t]{0.30\linewidth}\centering
   \includegraphics[width=\linewidth]{math_3d_cut_y.png}
@@ -472,17 +472,17 @@ de modo que $50\%$ num eixo continua sendo $50\%$ quando o usuário troca de eix
 % =============================================================================
 \section{Modo Grosso 3D: tridimensionalização por fatias}
 
-Para o modo \emph{thick} em 3D, o projeto aplica o algoritmo grosso 2D em \acc{todas as fatias} nos três eixos: $XY$ para cada $z$, $XZ$ para cada $y$, $YZ$ para cada $x$. Em seguida faz a \emph{união} dos resultados. A motivação geométrica é a estanqueidade: o conjunto mínimo de voxels que tampam todas as diagonais sem duplicar a espessura da casca. Formalmente, sendo $S_z(z)$ a fatia $XY$ na altura $z$ e $T$ o operador grosso 2D:
+Para o modo \emph{thick} em 3D, o projeto aplica o algoritmo grosso 2D em \acc{todas as fatias} nos três eixos: $XY$ para cada $z$, $XZ$ para cada $y$, $YZ$ para cada $x$. Em seguida faz a \emph{união} dos resultados. A motivação geométrica é fechar a casca: o conjunto mínimo de voxels que preenchem todas as células diagonais vazias sem duplicar a espessura. Formalmente, sendo $S_z(z)$ a fatia $XY$ na altura $z$ e $T$ o operador grosso 2D:
 \[
 \mathit{thick3D} \;=\;
 \bigcup_{z} T\bigl(S_z(z)\bigr) \;\cup\;
 \bigcup_{y} T\bigl(S_y(y)\bigr) \;\cup\;
 \bigcup_{x} T\bigl(S_x(x)\bigr)
 \]
-O resultado é depois interseccionado com o conjunto preservado pelo corte. A teoria por trás é \acc{topologia digital}: o operador grosso garante \emph{26-conectividade} da casca (vizinhos incluindo diagonais), útil para construção em Minecraft onde voxels diagonais não se tocam por face --- luz, água e criaturas atravessam frestas diagonais como se a parede não estivesse ali.
+O resultado é depois interseccionado com o conjunto preservado pelo corte. A teoria por trás é \acc{topologia digital}: o operador grosso garante \emph{26-conectividade} da casca (vizinhos incluindo diagonais). Isso é relevante em Minecraft porque, mesmo que dois voxels da casca sejam vizinhos diagonais (compartilham só uma aresta), a célula entre eles continua sendo um bloco de ar pelo qual água e criaturas atravessam o interior --- o modo grosso fecha esses caminhos.
 
 \begin{minec}
-\textbf{Mapeamento Minecraft.} Para uma cúpula de Vidro subaquática sobre um monumento oceânico em survival, o modo grosso é obrigatório: as pontes diagonais impedem que a água entre pelas frestas que o modo fino deixa abertas. Custo: cúpula de $D=20$ em modo grosso exige $\approx 380$ blocos de Vidro contra $\approx 320$ em modo fino --- $19\%$ a mais de material em troca de selamento total.
+\textbf{Mapeamento Minecraft.} Para uma cúpula de Vidro subaquática sobre um monumento oceânico em survival, o modo grosso é obrigatório: as pontes diagonais preenchem as células vazias deixadas pelo modo fino, eliminando os caminhos de blocos-ar pelos quais a água invadiria. Custo: cúpula de $D=20$ em modo grosso exige $\approx 380$ blocos de Vidro contra $\approx 320$ em modo fino --- $19\%$ a mais de material em troca de uma casca completamente fechada.
 \end{minec}
 
 % =============================================================================
@@ -531,7 +531,7 @@ I \;=\; \max\bigl(0,\;\mathbf{n}\cdot\mathbf{l}\bigr)\cdot \mathit{textura},
 \]
 quando os três fatores correspondem ao cosseno do ângulo entre a normal de cada face e a direção de luz fixa. Em \emph{Smooth} os fatores são próximos (faces parecidas); em \emph{Classic} os fatores diferem mais (contraste forte, o visual do Minecraft vanilla). \emph{Blocks} ainda introduz uma reentrância geométrica nos voxels --- uma translação constante de cada face para dentro, para revelar as fronteiras entre voxels mesmo quando vizinhos têm a mesma textura. Para blocos emissivos (Glowstone, Sea Lantern, Shroomlight, Magma, Crying Obsidian) o termo Lambertiano é substituído por uma constante $I = \mathit{fator\_emissivo} \cdot \mathit{textura}$ escalada pelo nível de luz do bloco no MC.
 
-\begin{figure}[H]
+\begin{figure}[!htbp]
 \centering
 \begin{subfigure}[t]{0.30\linewidth}\centering
   \includegraphics[width=\linewidth]{math_3d_shading_classic.png}
@@ -580,7 +580,8 @@ A tabela abaixo converte os volumes canônicos de esfera preenchida em planos de
 
 \vspace{0.4em}
 \begin{center}
-\begin{tabular}{@{}lrrll@{}}
+\small
+\begin{tabularx}{\textwidth}{@{}lrrlX@{}}
 \toprule
 \textbf{Diâmetro} & \textbf{V (blocos)} & \textbf{Packs} & \textbf{Armazenamento} & \textbf{Construção típica} \\
 \midrule
@@ -591,7 +592,7 @@ D=20  &  4189 & 66  &  2 bds & cúpula de observatório \\
 D=24  &  7238 & 114 &  3 bds & cúpula de templo \\
 D=32  & 17156 & 269 &  5 bds & cúpula de catedral, arena de world-boss \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{center}
 
 A representação \emph{stacks-e-resto} $N = q \cdot 64 + r$ exibida pelo chip de info do Block Round espelha a forma como o inventário de survival exibe stacks parciais: o jogador vê $q$ slots cheios mais um slot mostrando $r$. Para $D=16$, o chip imprime \enquote{$2\,145$ ($33 \times 64 + 33$)}, dizendo ao jogador para preencher $33$ slots completamente mais um slot com $33$ itens --- exatamente $34$ slots, o que cabe numa única fileira do inventário mais quatro slots extras.
@@ -618,7 +619,7 @@ F_{\mathrm{exp}} \;=\; \sum_{\mathbf{v}\in V_{\mathrm{solid}}}\;\sum_{\mathbf{n}
 \]
 Para uma esfera de $D=16$ (modo preenchido), $V = 2\,145$, $V_{\mathrm{bordo}} \approx 432$ (a casca), e $F_{\mathrm{exp}} \approx 1\,184$ faces visíveis --- ou seja, a construção precisa de apenas cerca de $432$ blocos \emph{visíveis}; os $1\,713$ restantes são interior e podem ser preenchidos com o bloco mais barato disponível (Terra, Pedra Lisa). O highlight overlay permite ao construtor identificar imediatamente um bloco faltante na casca, porque um voxel ausente produz uma descontinuidade no padrão do overlay que o olho capta de relance.
 
-\begin{figure}[H]
+\begin{figure}[!htbp]
 \centering
 \begin{subfigure}[t]{0.40\linewidth}\centering
   \includegraphics[width=\linewidth]{math_3d_overlay_off.png}
@@ -690,9 +691,9 @@ T_{\mathrm{full}}
 \]
 Para $N = 7\,238$ em survival ($T_{\mathrm{block}} = 2$\,s, $T_{\mathrm{clone}} = 0{,}05$\,s): cheio = $14\,476$\,s $\approx 4$\,h $1$\,min; octante + clones = $1\,810$\,s + $0{,}35$\,s $\approx 30$\,min. Um fator-$8$ de aceleração que casa exatamente com a ordem do subgrupo de reflexões. O grupo octaédrico completo $O_h$ de ordem $48$ poderia em princípio reduzir mais ainda (por um fator de $48$), mas explorar as rotações diagonais exige uma área rotada a $45°$, o que raramente vale o custo de setup no Minecraft vanilla.
 
-\begin{figure}[H]
+\begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.55\linewidth]{math_3d_octants.png}
+\includegraphics[width=0.45\linewidth]{math_3d_octants.png}
 \caption{Esfera $D=10$ com o octante positivo $(+x,+y,+z)$ destacado em verde. Sob a ação do subgrupo $\mathbb{Z}_2^3 \leq O_h$ (ordem 8, gerado pelas três reflexões coordenadas), esse octante determina toda a esfera --- as outras sete regiões são obtidas por uma sequência de \cmd{/clone} com \emph{mode:masked} aplicadas sobre o octante construído manualmente.}
 \label{fig:octants}
 \end{figure}
@@ -734,7 +735,7 @@ deepslate          & pedra  & escuro  & subterrâneos, acentos \\
 \subsection{Gradientes via mistura de blocos}
 Embora um único tipo de bloco entregue um tom, \emph{gradientes} podem ser obtidos intercalando dois ou três tipos por camada. Uma técnica clássica é o gradiente \emph{pedra-para-quartzo} numa cúpula: as camadas de baixo são Pedra Lisa, as camadas equatoriais são uma mistura ruidosa de Pedra Lisa e Diorito, e as camadas de cima são Quartzo. Cada camada continua calculada pelo mesmo algoritmo do Block Round; o que muda é o lookup de textura por voxel. A opção de bloco \emph{Random} do Block Round implementa uma mistura procedural desse tipo por padrão (tampa de grama, terra logo abaixo, minérios esparsos no meio, deepslate perto da bedrock). A matemática é a mesma da decomposição por camada da Seção~19; só a \enquote{tag de bloco} por voxel muda.
 
-\begin{figure}[H]
+\begin{figure}[!htbp]
 \centering
 \begin{subfigure}[t]{0.30\linewidth}\centering
   \includegraphics[width=\linewidth]{math_3d_tex_cobble.png}
@@ -781,7 +782,7 @@ O Block Round ocupa um nicho pequeno mas matematicamente rico no ecossistema de 
 Este apêndice reúne as referências numéricas e de comandos mais usadas pelos usuários do Block Round. Os dados abaixo consolidam as tabelas por seção e os exemplos práticos espalhados pelo documento, organizados para que o apêndice funcione como uma consulta de uma página para planejamento de construção, sintaxe de comandos e um exemplo prático completo.
 
 \subsection*{A.1 Referência abrangente de esferas (preenchida, oca, packs)}
-A tabela abaixo estende as tabelas canônicas de esfera das Seções~10 e~17 adicionando a variante de casca oca (modo \emph{fino}) ao lado do volume preenchido. As contagens de casca oca assumem uma casca de um único voxel e são computadas sob o algoritmo Euclidiano; o modo grosso adiciona cerca de $10{-}15\%$ mais blocos para vedar frestas diagonais conforme a Seção~12.
+A tabela abaixo estende as tabelas canônicas de esfera das Seções~10 e~17 adicionando a variante de casca oca (modo \emph{fino}) ao lado do volume preenchido. As contagens de casca oca assumem uma casca de um único voxel e são computadas sob o algoritmo Euclidiano; o modo grosso adiciona cerca de $10{-}15\%$ mais blocos para preencher as células diagonais vazias conforme a Seção~12.
 
 \vspace{0.4em}
 \begin{center}

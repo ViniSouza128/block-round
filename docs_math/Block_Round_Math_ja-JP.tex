@@ -504,7 +504,8 @@ Minecraft プレイヤーは $9 \times 4$ の格子として組織された 36 �
 
 \vspace{0.4em}
 \begin{center}
-\begin{tabular}{@{}lrrll@{}}
+\small
+\begin{tabularx}{\textwidth}{@{}lrrlX@{}}
 \toprule
 \textbf{直径} & \textbf{V (ブロック)} & \textbf{パック} & \textbf{ストレージ} & \textbf{典型的な建造} \\
 \midrule
@@ -515,7 +516,7 @@ D=20  &  4189 & 66  &  2 箱 & 天文台ドーム \\
 D=24  &  7238 & 114 &  3 箱 & 神殿ドーム \\
 D=32  & 17156 & 269 &  5 箱 & 大聖堂ドーム、ワールドボスアリーナ \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{center}
 
 Block Round の情報チップが表示する \emph{スタックと余り} 表現 $N = q \cdot 64 + r$ は、サバイバルインベントリが部分スタックを表示する方法を反映する：プレイヤーは $q$ 個の満杯スロットと $r$ を示す 1 つのスロットを見る。$D=16$ では、チップは \enquote{$2\,145$ ($33 \times 64 + 33$)} と印字し、プレイヤーに $33$ スロットを完全に埋めて 1 スロットに $33$ アイテムを入れるように告げる ─── ちょうど $34$ スロットで、インベントリ 1 行に余分な 4 スロット。

@@ -104,9 +104,9 @@ T["en-US"] = dict(
     S7_P3=r"A cell belongs to the thin contour if it is filled \emph{and} has at least one orthogonal neighbor (N, S, E, W) \emph{outside} the shape. In logical notation:",
     S7_P4=r"Geometrically: this is the \acc{discrete boundary} of the shape, the discrete analog of the topological boundary $\partial F = F \cap \overline{F^{\mathrm{c}}}$. In Minecraft this is the equivalent of \cmd{//hsphere} (hollow sphere): only the shell is materialised.",
     S7_SUB3="Thick",
-    S7_P5=r"The thick mode adds to the boundary cells the \acc{diagonal bridges}: interior cells that have simultaneously a horizontal and a vertical boundary neighbor. This closes the 1-pixel diagonals that thin mode leaves open, useful when the contour must look stable in a scene (no $45°$ holes) --- particularly important for Glass and Ice domes where light leaking through diagonal gaps would break the illusion of a sealed surface.",
+    S7_P5=r"The thick mode adds to the boundary cells the \acc{diagonal bridges}: interior cells that have simultaneously a horizontal and a vertical boundary neighbor. This fills the \emph{empty diagonal cells} that thin mode leaves between the shell blocks, useful when the contour must be a continuous surface with no openings --- particularly important for Glass and Ice domes, where each empty diagonal cell of the shell is, in Minecraft, an air block through which water, mobs and light propagate into the interior.",
     S7_MC_LABEL="Minecraft mapping.",
-    S7_MC_EXAMPLE=r"For a $D=20$ Glass dome (hollow), the thick mode yields a \emph{watertight} shell of $608$ blocks against $\approx 510$ blocks for the thin mode --- the $\sim 100$ extra blocks are diagonal-bridge stitching that prevents the day-night cycle from leaking ambient light through diagonal cracks.",
+    S7_MC_EXAMPLE=r"For a $D=20$ Glass dome (hollow), the thick mode yields a \emph{continuous} shell of $608$ blocks against $\approx 510$ blocks for the thin mode --- the $\sim 100$ extra blocks are diagonal-bridge stitching that fills the empty diagonal cells left by voxelisation, closing the interior to water, mobs and light propagation.",
 
     # ----- S8 Discrete area -----
     S8_TITLE="Discrete area computation",
@@ -160,10 +160,10 @@ T["en-US"] = dict(
 
     # ----- S12 Thick 3D -----
     S12_TITLE="Thick 3D mode: tridimensionalization by slices",
-    S12_P1=r"For \emph{thick} mode in 3D, the project applies the 2D thick algorithm to \acc{all slices} along the three axes: $XY$ for each $z$, $XZ$ for each $y$, $YZ$ for each $x$. It then takes the \emph{union} of the results. The geometric motivation is watertightness: the minimum set of voxels that plug all the diagonals without doubling the shell thickness. Formally, with $S_z(z)$ the $XY$ slice at height $z$ and $T$ the 2D thick operator:",
-    S12_P2=r"The result is then intersected with the set preserved by the cut. The underlying theory is \acc{digital topology}: the thick operator guarantees \emph{26-connectivity} of the shell (neighbors including diagonals), useful for construction in Minecraft where diagonally adjacent voxels do not touch by face --- light, water and creatures pass through diagonal gaps as if the wall were not there.",
+    S12_P1=r"For \emph{thick} mode in 3D, the project applies the 2D thick algorithm to \acc{all slices} along the three axes: $XY$ for each $z$, $XZ$ for each $y$, $YZ$ for each $x$. It then takes the \emph{union} of the results. The geometric motivation is closing the shell: the minimum set of voxels that fill every empty diagonal cell without doubling the shell thickness. Formally, with $S_z(z)$ the $XY$ slice at height $z$ and $T$ the 2D thick operator:",
+    S12_P2=r"The result is then intersected with the set preserved by the cut. The underlying theory is \acc{digital topology}: the thick operator guarantees \emph{26-connectivity} of the shell (neighbors including diagonals). This matters in Minecraft because even when two shell voxels are diagonal neighbours (sharing only an edge), the cell between them remains an air block that water and creatures cross into the interior --- thick mode closes those paths.",
     S12_MC_LABEL="Minecraft mapping.",
-    S12_MC_EXAMPLE=r"For an underwater Glass dome on a survival ocean monument, thick mode is mandatory: the diagonal bridges prevent water from spilling in through the diagonal cracks left by thin mode. Cost: $D=20$ dome at thick mode requires $\approx 380$ Glass blocks vs.\ $\approx 320$ under thin mode --- $19\%$ more material in exchange for full sealing.",
+    S12_MC_EXAMPLE=r"For an underwater Glass dome on a survival ocean monument, thick mode is mandatory: the diagonal bridges fill the empty cells left by thin mode, eliminating the air-block paths through which water would otherwise invade. Cost: $D=20$ dome at thick mode requires $\approx 380$ Glass blocks vs.\ $\approx 320$ under thin mode --- $19\%$ more material in exchange for a completely closed shell.",
 
     # ----- S13 Spherical camera -----
     S13_TITLE="3D camera: spherical coordinates",
@@ -315,7 +315,7 @@ T["en-US"] = dict(
     APX_A_TITLE="Appendix A: Construction reference tables and worked example",
     APX_A_P1=r"This appendix collects the most-used numerical and command references for Block Round users. The data below is consolidated from the per-section tables and worked examples scattered throughout this document, organised so the appendix functions as a one-page lookup for build planning, command syntax and an end-to-end worked example.",
     APX_A_SUB1="A.1 Comprehensive sphere reference (filled, hollow, packs)",
-    APX_A_P2=r"The table below extends the canonical sphere tables of Sections~10 and~17 by adding the hollow-shell variant (\emph{thin} mode) alongside the filled volume. The hollow-shell counts assume a single-voxel shell and are computed under the Euclidean algorithm; the thick mode adds roughly $10{-}15\%$ more blocks to seal diagonal gaps as described in Section~12.",
+    APX_A_P2=r"The table below extends the canonical sphere tables of Sections~10 and~17 by adding the hollow-shell variant (\emph{thin} mode) alongside the filled volume. The hollow-shell counts assume a single-voxel shell and are computed under the Euclidean algorithm; the thick mode adds roughly $10{-}15\%$ more blocks to fill the empty diagonal cells as described in Section~12.",
     APX_A_TBL_FILLED="Filled (V)",
     APX_A_TBL_HOLLOW="Hollow (shell)",
     APX_A_TBL_PACKS_F="Packs filled",
@@ -504,9 +504,9 @@ T["pt-BR"] = dict(
     S7_P3=r"Uma célula pertence ao contorno fino se está preenchida \emph{e} tem pelo menos um vizinho ortogonal (N, S, L, O) \emph{fora} da forma. Em notação lógica:",
     S7_P4=r"Geometricamente: é o \acc{bordo discreto} da forma, análogo discreto da fronteira topológica $\partial F = F \cap \overline{F^{\mathrm{c}}}$. Em Minecraft é o equivalente de \cmd{//hsphere} (esfera oca): só a casca é materializada.",
     S7_SUB3="Grosso (thick)",
-    S7_P5=r"O modo grosso adiciona aos pixels de borda os \acc{pontes diagonais}: células internas que têm simultaneamente um vizinho-borda horizontal \emph{e} um vizinho-borda vertical. Isso fecha as diagonais de 1 pixel que o modo fino deixa abertas, útil quando o contorno precisa parecer estável num cenário (sem buracos a $45°$) --- particularmente importante para cúpulas de Vidro e Gelo, onde o vazamento de luz pelas frestas diagonais quebraria a ilusão de superfície selada.",
+    S7_P5=r"O modo grosso adiciona aos pixels de borda as \acc{pontes diagonais}: células internas que têm simultaneamente um vizinho-borda horizontal \emph{e} um vizinho-borda vertical. Isso preenche as \emph{células diagonais vazias} que o modo fino deixa entre os blocos da casca, útil quando o contorno precisa ser uma superfície contínua sem aberturas --- particularmente importante para cúpulas de Vidro e Gelo, onde cada célula diagonal vazia é, em Minecraft, um bloco de ar pelo qual água, monstros e luz transitam para o interior.",
     S7_MC_LABEL="Mapeamento Minecraft.",
-    S7_MC_EXAMPLE=r"Para uma cúpula de Vidro de $D=20$ (oca), o modo grosso produz uma casca \emph{vedada} de $608$ blocos contra $\approx 510$ blocos do modo fino --- os $\sim 100$ blocos extras são costura diagonal que impede o ciclo dia-noite de vazar luz ambiente pelas frestas diagonais.",
+    S7_MC_EXAMPLE=r"Para uma cúpula de Vidro de $D=20$ (oca), o modo grosso produz uma casca \emph{contínua} de $608$ blocos contra $\approx 510$ blocos do modo fino --- os $\sim 100$ blocos extras são costura diagonal que elimina as células vazias deixadas a $45°$ pela voxelização, fechando o interior contra água, mobs e propagação de luz.",
 
     S8_TITLE="Cálculo de área discreta",
     S8_P1=r"A função \code{area2D} simplesmente \acc{conta} as células marcadas em $f$. Isso é a \emph{medida de contagem}, que aproxima a integral de Riemann da função indicadora da elipse:",
@@ -555,10 +555,10 @@ T["pt-BR"] = dict(
     S11_MC_EXAMPLE=r"O corte no eixo Y a $50\%$ sobre uma esfera produz a clássica \emph{cúpula} de metade do volume. Para $D=16$: $V_{\mathrm{full}} = 2\,145$ blocos, $V_{\mathrm{cupula}} \approx 1\,095$ blocos ($\approx 18$ packs de $64$). O corte diagonal a $50\%$ produz uma seção \emph{meia-bacia} muito usada para interiores de fontes e arquibancadas de anfiteatro.",
 
     S12_TITLE="Modo Grosso 3D: tridimensionalização por fatias",
-    S12_P1=r"Para o modo \emph{thick} em 3D, o projeto aplica o algoritmo grosso 2D em \acc{todas as fatias} nos três eixos: $XY$ para cada $z$, $XZ$ para cada $y$, $YZ$ para cada $x$. Em seguida faz a \emph{união} dos resultados. A motivação geométrica é a estanqueidade: o conjunto mínimo de voxels que tampam todas as diagonais sem duplicar a espessura da casca. Formalmente, sendo $S_z(z)$ a fatia $XY$ na altura $z$ e $T$ o operador grosso 2D:",
-    S12_P2=r"O resultado é depois interseccionado com o conjunto preservado pelo corte. A teoria por trás é \acc{topologia digital}: o operador grosso garante \emph{26-conectividade} da casca (vizinhos incluindo diagonais), útil para construção em Minecraft onde voxels diagonais não se tocam por face --- luz, água e criaturas atravessam frestas diagonais como se a parede não estivesse ali.",
+    S12_P1=r"Para o modo \emph{thick} em 3D, o projeto aplica o algoritmo grosso 2D em \acc{todas as fatias} nos três eixos: $XY$ para cada $z$, $XZ$ para cada $y$, $YZ$ para cada $x$. Em seguida faz a \emph{união} dos resultados. A motivação geométrica é fechar a casca: o conjunto mínimo de voxels que preenchem todas as células diagonais vazias sem duplicar a espessura. Formalmente, sendo $S_z(z)$ a fatia $XY$ na altura $z$ e $T$ o operador grosso 2D:",
+    S12_P2=r"O resultado é depois interseccionado com o conjunto preservado pelo corte. A teoria por trás é \acc{topologia digital}: o operador grosso garante \emph{26-conectividade} da casca (vizinhos incluindo diagonais). Isso é relevante em Minecraft porque, mesmo que dois voxels da casca sejam vizinhos diagonais (compartilham só uma aresta), a célula entre eles continua sendo um bloco de ar pelo qual água e criaturas atravessam o interior --- o modo grosso fecha esses caminhos.",
     S12_MC_LABEL="Mapeamento Minecraft.",
-    S12_MC_EXAMPLE=r"Para uma cúpula de Vidro subaquática sobre um monumento oceânico em survival, o modo grosso é obrigatório: as pontes diagonais impedem que a água entre pelas frestas que o modo fino deixa abertas. Custo: cúpula de $D=20$ em modo grosso exige $\approx 380$ blocos de Vidro contra $\approx 320$ em modo fino --- $19\%$ a mais de material em troca de selamento total.",
+    S12_MC_EXAMPLE=r"Para uma cúpula de Vidro subaquática sobre um monumento oceânico em survival, o modo grosso é obrigatório: as pontes diagonais preenchem as células vazias deixadas pelo modo fino, eliminando os caminhos de blocos-ar pelos quais a água invadiria. Custo: cúpula de $D=20$ em modo grosso exige $\approx 380$ blocos de Vidro contra $\approx 320$ em modo fino --- $19\%$ a mais de material em troca de uma casca completamente fechada.",
 
     S13_TITLE="Câmera 3D: coordenadas esféricas",
     S13_P1=r"A câmera 3D orbita o objeto a uma distância $r$ com dois ângulos --- $\theta$ (azimute, no plano horizontal) e $\varphi$ (polar, do eixo vertical). Essa é a \acc{convenção física} de coordenadas esféricas, e a conversão para cartesianas (a forma que \emph{three.js} entende) é:",
@@ -700,7 +700,7 @@ T["pt-BR"] = dict(
     APX_A_TITLE="Apêndice A: Tabelas de referência de construção e exemplo prático",
     APX_A_P1=r"Este apêndice reúne as referências numéricas e de comandos mais usadas pelos usuários do Block Round. Os dados abaixo consolidam as tabelas por seção e os exemplos práticos espalhados pelo documento, organizados para que o apêndice funcione como uma consulta de uma página para planejamento de construção, sintaxe de comandos e um exemplo prático completo.",
     APX_A_SUB1="A.1 Referência abrangente de esferas (preenchida, oca, packs)",
-    APX_A_P2=r"A tabela abaixo estende as tabelas canônicas de esfera das Seções~10 e~17 adicionando a variante de casca oca (modo \emph{fino}) ao lado do volume preenchido. As contagens de casca oca assumem uma casca de um único voxel e são computadas sob o algoritmo Euclidiano; o modo grosso adiciona cerca de $10{-}15\%$ mais blocos para vedar frestas diagonais conforme a Seção~12.",
+    APX_A_P2=r"A tabela abaixo estende as tabelas canônicas de esfera das Seções~10 e~17 adicionando a variante de casca oca (modo \emph{fino}) ao lado do volume preenchido. As contagens de casca oca assumem uma casca de um único voxel e são computadas sob o algoritmo Euclidiano; o modo grosso adiciona cerca de $10{-}15\%$ mais blocos para preencher as células diagonais vazias conforme a Seção~12.",
     APX_A_TBL_FILLED="Preenchida (V)",
     APX_A_TBL_HOLLOW="Oca (casca)",
     APX_A_TBL_PACKS_F="Packs cheia",

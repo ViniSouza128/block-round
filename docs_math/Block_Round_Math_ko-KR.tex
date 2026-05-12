@@ -507,7 +507,8 @@ Minecraft 플레이어는 $9 \times 4$ 격자로 구성된 36칸 \emph{인벤토
 
 \vspace{0.4em}
 \begin{center}
-\begin{tabular}{@{}lrrll@{}}
+\small
+\begin{tabularx}{\textwidth}{@{}lrrlX@{}}
 \toprule
 \textbf{지름} & \textbf{V (블록)} & \textbf{팩} & \textbf{저장} & \textbf{전형적인 빌드} \\
 \midrule
@@ -518,7 +519,7 @@ D=20  &  4189 & 66  &  2 더블 & 천문대 돔 \\
 D=24  &  7238 & 114 &  3 더블 & 사원 돔 \\
 D=32  & 17156 & 269 &  5 더블 & 대성당 돔, 월드 보스 경기장 \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{center}
 
 Block Round의 정보 칩이 표시하는 \emph{스택과 나머지} 표현 $N = q \cdot 64 + r$은 생존 인벤토리가 부분 스택을 표시하는 방식을 반영한다: 플레이어는 $q$개의 가득 찬 칸과 $r$을 보이는 한 칸을 본다. $D=16$의 경우, 칩은 \enquote{$2\,145$ ($33 \times 64 + 33$)}을 출력하여 플레이어에게 $33$칸을 완전히 채우고 한 칸에 $33$개의 아이템을 채우라고 알린다 — 정확히 $34$칸이다.

@@ -504,7 +504,8 @@ Die Tabelle wandelt die kanonischen gefüllten-Kugel-Volumen in Sammelpläne um.
 
 \vspace{0.4em}
 \begin{center}
-\begin{tabular}{@{}lrrll@{}}
+\small
+\begin{tabularx}{\textwidth}{@{}lrrlX@{}}
 \toprule
 \textbf{Durchmesser} & \textbf{V (Blöcke)} & \textbf{Packs} & \textbf{Lagerung} & \textbf{Typischer Bau} \\
 \midrule
@@ -515,7 +516,7 @@ D=20  &  4189 & 66  &  2 DT & Observatoriums-Kuppel \\
 D=24  &  7238 & 114 &  3 DT & Tempel-Kuppel \\
 D=32  & 17156 & 269 &  5 DT & Kathedral-Kuppel, World-Boss-Arena \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{center}
 
 Die \emph{Stacks-und-Rest}-Darstellung $N = q \cdot 64 + r$, die der Info-Chip von Block Round zeigt, spiegelt wider, wie das Survival-Inventar partielle Stacks anzeigt: der Spieler sieht $q$ volle Slots plus einen Slot, der $r$ zeigt. Für $D=16$ druckt der Chip \enquote{$2\,145$ ($33 \times 64 + 33$)}, was dem Spieler sagt, $33$ Slots vollständig zu füllen plus einen Slot mit $33$ Items --- genau $34$ Slots.

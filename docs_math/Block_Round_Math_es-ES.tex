@@ -504,7 +504,8 @@ La tabla convierte los volúmenes canónicos de esfera rellena en planes de reco
 
 \vspace{0.4em}
 \begin{center}
-\begin{tabular}{@{}lrrll@{}}
+\small
+\begin{tabularx}{\textwidth}{@{}lrrlX@{}}
 \toprule
 \textbf{Diámetro} & \textbf{V (bloques)} & \textbf{Packs} & \textbf{Almacenamiento} & \textbf{Construcción típica} \\
 \midrule
@@ -515,7 +516,7 @@ D=20  &  4189 & 66  &  2 cd & cúpula de observatorio \\
 D=24  &  7238 & 114 &  3 cd & cúpula de templo \\
 D=32  & 17156 & 269 &  5 cd & cúpula de catedral, arena de world-boss \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{center}
 
 La representación \emph{stacks-y-resto} $N = q \cdot 64 + r$ que muestra el chip de info refleja cómo el inventario de supervivencia exhibe stacks parciales: $q$ slots llenos más un slot mostrando $r$. Para $D=16$, el chip imprime \enquote{$2\,145$ ($33 \times 64 + 33$)} --- $33$ slots completos más uno con $33$ ítems, exactamente $34$ slots, una fila más cuatro slots.

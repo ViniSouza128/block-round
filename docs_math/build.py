@@ -517,7 +517,8 @@ I \;=\; \max\bigl(0,\;\mathbf{n}\cdot\mathbf{l}\bigr)\cdot \mathit{«S15_BASECOL
 
 \vspace{0.4em}
 \begin{center}
-\begin{tabular}{@{}lrrll@{}}
+\small
+\begin{tabularx}{\textwidth}{@{}lrrlX@{}}
 \toprule
 \textbf{«S17_TBL_H1»} & \textbf{«S17_TBL_H2»} & \textbf{«S17_TBL_H3»} & \textbf{«S17_TBL_H4»} & \textbf{«S17_TBL_H5»} \\
 \midrule
@@ -528,7 +529,7 @@ D=20  &  4189 & 66  &  2 «S17_DCHEST_PLURAL» & «S17_TBL_USE_20» \\
 D=24  &  7238 & 114 &  3 «S17_DCHEST_PLURAL» & «S17_TBL_USE_24» \\
 D=32  & 17156 & 269 &  5 «S17_DCHEST_PLURAL» & «S17_TBL_USE_32» \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{center}
 
 «S17_P6»
@@ -943,7 +944,7 @@ def build(loc):
 # BLOCOS DE FIGURA — somente pt-BR nesta revisão
 # ============================================================================
 FIG_BLOCKS_PT_BR = {
-    "FIG_3ALG": r"""\begin{figure}[H]
+    "FIG_3ALG": r"""\begin{figure}[!htbp]
 \centering
 \begin{subfigure}[t]{0.30\linewidth}\centering
   \includegraphics[width=\linewidth]{math_2d_d10_eucl.png}
@@ -961,7 +962,7 @@ FIG_BLOCKS_PT_BR = {
 \label{fig:comp-d10}
 \end{figure}""",
 
-    "FIG_MODES": r"""\begin{figure}[H]
+    "FIG_MODES": r"""\begin{figure}[!htbp]
 \centering
 \begin{subfigure}[t]{0.30\linewidth}\centering
   \includegraphics[width=\linewidth]{math_2d_d20_filled.png}
@@ -979,7 +980,7 @@ FIG_BLOCKS_PT_BR = {
 \label{fig:modes}
 \end{figure}""",
 
-    "FIG_3D": r"""\begin{figure}[H]
+    "FIG_3D": r"""\begin{figure}[!htbp]
 \centering
 \begin{subfigure}[t]{0.46\linewidth}\centering
   \includegraphics[width=\linewidth]{math_3d_sphere_d10.png}
@@ -993,7 +994,7 @@ FIG_BLOCKS_PT_BR = {
 \label{fig:3d-shapes}
 \end{figure}""",
 
-    "FIG_CUTS": r"""\begin{figure}[H]
+    "FIG_CUTS": r"""\begin{figure}[!htbp]
 \centering
 \begin{subfigure}[t]{0.30\linewidth}\centering
   \includegraphics[width=\linewidth]{math_3d_cut_y.png}
@@ -1011,7 +1012,7 @@ FIG_BLOCKS_PT_BR = {
 \label{fig:cuts}
 \end{figure}""",
 
-    "FIG_SHADING": r"""\begin{figure}[H]
+    "FIG_SHADING": r"""\begin{figure}[!htbp]
 \centering
 \begin{subfigure}[t]{0.30\linewidth}\centering
   \includegraphics[width=\linewidth]{math_3d_shading_classic.png}
@@ -1029,7 +1030,7 @@ FIG_BLOCKS_PT_BR = {
 \label{fig:shading}
 \end{figure}""",
 
-    "FIG_OVERLAY": r"""\begin{figure}[H]
+    "FIG_OVERLAY": r"""\begin{figure}[!htbp]
 \centering
 \begin{subfigure}[t]{0.40\linewidth}\centering
   \includegraphics[width=\linewidth]{math_3d_overlay_off.png}
@@ -1043,14 +1044,14 @@ FIG_BLOCKS_PT_BR = {
 \label{fig:overlay}
 \end{figure}""",
 
-    "FIG_OCTANTS": r"""\begin{figure}[H]
+    "FIG_OCTANTS": r"""\begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.55\linewidth]{math_3d_octants.png}
+\includegraphics[width=0.45\linewidth]{math_3d_octants.png}
 \caption{Esfera $D=10$ com o octante positivo $(+x,+y,+z)$ destacado em verde. Sob a ação do subgrupo $\mathbb{Z}_2^3 \leq O_h$ (ordem 8, gerado pelas três reflexões coordenadas), esse octante determina toda a esfera --- as outras sete regiões são obtidas por uma sequência de \cmd{/clone} com \emph{mode:masked} aplicadas sobre o octante construído manualmente.}
 \label{fig:octants}
 \end{figure}""",
 
-    "FIG_TEXTURES": r"""\begin{figure}[H]
+    "FIG_TEXTURES": r"""\begin{figure}[!htbp]
 \centering
 \begin{subfigure}[t]{0.30\linewidth}\centering
   \includegraphics[width=\linewidth]{math_3d_tex_cobble.png}

@@ -504,7 +504,8 @@ Le tableau convertit les volumes canoniques de sphère pleine en plans de collec
 
 \vspace{0.4em}
 \begin{center}
-\begin{tabular}{@{}lrrll@{}}
+\small
+\begin{tabularx}{\textwidth}{@{}lrrlX@{}}
 \toprule
 \textbf{Diamètre} & \textbf{V (blocs)} & \textbf{Packs} & \textbf{Stockage} & \textbf{Construction typique} \\
 \midrule
@@ -515,7 +516,7 @@ D=20  &  4189 & 66  &  2 cd & dôme d'observatoire \\
 D=24  &  7238 & 114 &  3 cd & dôme de temple \\
 D=32  & 17156 & 269 &  5 cd & dôme de cathédrale, arène de boss \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{center}
 
 La représentation \emph{piles-et-reste} $N = q \cdot 64 + r$ affichée par la puce d'info reflète la manière dont l'inventaire de survie affiche les piles partielles : $q$ emplacements pleins plus un emplacement montrant $r$. Pour $D=16$, la puce imprime \enquote{$2\,145$ ($33 \times 64 + 33$)} --- $33$ emplacements complets plus un avec $33$ items, soit exactement $34$ emplacements (une ligne plus quatre).
