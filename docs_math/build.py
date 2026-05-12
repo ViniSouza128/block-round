@@ -626,6 +626,8 @@ T_{\mathrm{full}}
 
 «S21_P3»
 
+«FIG_TEXTURES»
+
 \subsection{«S21_SUB2»}
 «S21_P4»
 
@@ -648,8 +650,6 @@ deepslate          & «S21_BLK_FAMILY_STONE»  & «S21_BLK_TONE_DARK»  & «S21_
 \subsection{«S21_SUB3»}
 «S21_P5»
 
-«FIG_TEXTURES»
-
 % =============================================================================
 \section{«S22_TITLE»}
 
@@ -669,6 +669,9 @@ deepslate          & «S21_BLK_FAMILY_STONE»  & «S21_BLK_TONE_DARK»  & «S21_
 «S22_P2»
 
 «S22_P3»
+
+% =============================================================================
+«BIBLIOGRAPHY»
 
 \clearpage
 
@@ -911,7 +914,8 @@ def build(loc):
     # Figure blocks: only the pt-BR build embeds them in this revision.
     # Other locales get an empty string for each FIG_* key.
     fig_keys = ("FIG_3ALG", "FIG_MODES", "FIG_3D", "FIG_CUTS",
-                "FIG_SHADING", "FIG_OVERLAY", "FIG_OCTANTS", "FIG_TEXTURES")
+                "FIG_SHADING", "FIG_OVERLAY", "FIG_OCTANTS", "FIG_TEXTURES",
+                "BIBLIOGRAPHY")
     for k in fig_keys:
         cfg.setdefault(k, "")
     if loc == "pt-BR":
@@ -1068,6 +1072,118 @@ FIG_BLOCKS_PT_BR = {
 \caption{A mesma esfera de diâmetro $D=8$ renderizada com três blocos diferentes. A silhueta voxelizada (matemática) é idêntica nas três: o algoritmo escolhe os voxels, a textura é uma camada estética posterior que não altera nem o volume nem a topologia.}
 \label{fig:textures}
 \end{figure}""",
+
+    "BIBLIOGRAPHY": r"""\section*{\color{accent}Referências bibliográficas}
+\addcontentsline{toc}{section}{Referências bibliográficas}
+\label{sec:bib}
+
+\subsection*{Referências técnicas (rasterização e topologia digital)}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=0.3em,topsep=0.3em]
+  \item \textbf{Bresenham, J. E.} \emph{Algorithm for computer control of a digital plotter}.
+        IBM Systems Journal, vol.~4, n.~1, p.~25--30, 1965.
+        Disponível em \href{https://doi.org/10.1147/sj.41.0025}{doi:10.1147/sj.41.0025}.
+        --- artigo original do algoritmo de meio-ponto inteiro tratado na §5 deste documento.
+
+  \item \textbf{Pitteway, M.~L.~V.} \emph{Algorithm for drawing ellipses or hyperbolae
+        with a digital plotter}. The Computer Journal, vol.~10, n.~3, p.~282--289, 1967.
+        Disponível em \href{https://doi.org/10.1093/comjnl/10.3.282}{doi:10.1093/comjnl/10.3.282}.
+        --- generalização do algoritmo de Bresenham para cônicas arbitrárias,
+        base da extensão para elipses descrita na §5.
+
+  \item \textbf{Kappel, A.} \emph{An ellipse-drawing algorithm for raster displays}.
+        Em \emph{Fundamental Algorithms for Computer Graphics} (R.~A.~Earnshaw, ed.),
+        NATO ASI Series F-17, Springer, 1985, p.~257--280.
+        --- formulação por duas regiões usada na implementação de elipses.
+
+  \item \textbf{Klette, R.; Rosenfeld, A.} \emph{Digital Geometry: Geometric Methods
+        for Digital Picture Analysis}. Morgan Kaufmann, 2004. 656 páginas.
+        --- referência padrão para topologia digital, operadores de bordo
+        ($\partial F$), 4-/6-/26-conectividade. Usada nas §7, §12 e §18.
+
+  \item \textbf{Foley, J.~D.; van Dam, A.; Feiner, S.~K.; Hughes, J.~F.}
+        \emph{Computer Graphics: Principles and Practice}. 3.\textordmasculine{} ed., Addison-Wesley, 2014.
+        --- tratamento clássico de rasterização, modelos de iluminação,
+        projeção perspectiva. Relevante para as §13--15.
+\end{itemize}
+
+\subsection*{Especificações e ferramentas Minecraft referenciadas}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=0.3em,topsep=0.3em]
+  \item \textbf{Sponge Project.} \emph{Sponge Schematic Specification, version~2}.
+        \href{https://github.com/SpongePowered/Schematic-Specification}{github.com/SpongePowered/Schematic-Specification}.
+        --- formato de arquivo \code{.schem} (gzip + NBT) que o Block Round
+        exporta. Carregável por WorldEdit, Litematica e MCEdit.
+
+  \item \textbf{EngineHub.} \emph{WorldEdit Documentation}.
+        \href{https://worldedit.enginehub.org/}{worldedit.enginehub.org}.
+        --- referência oficial para os comandos \cmd{//sphere}, \cmd{//hsphere},
+        \cmd{//ellipsoid}, \cmd{//cyl}, \cmd{//schem load} citados ao longo do documento.
+
+  \item \textbf{Mojang AB.} \emph{Minecraft Wiki --- Inventory}.
+        \href{https://minecraft.wiki/w/Inventory}{minecraft.wiki/w/Inventory}.
+        --- referência sobre slots, stacks, baús simples (27 slots) e
+        baús duplos (54 slots) usados na §17.
+
+  \item \textbf{Mojang AB.} \emph{Minecraft Wiki --- Commands/fill, /clone}.
+        \href{https://minecraft.wiki/w/Commands/fill}{minecraft.wiki/w/Commands/fill},
+        \href{https://minecraft.wiki/w/Commands/clone}{minecraft.wiki/w/Commands/clone}.
+        --- comandos vanilla \cmd{/fill} e \cmd{/clone} citados nas §17 e §20.
+
+  \item \textbf{Masady} (\emph{Litematica} mod).
+        \href{https://github.com/maruohon/litematica}{github.com/maruohon/litematica}.
+        --- mod do Minecraft Java Edition que importa schematics e exibe
+        um fantasma translúcido da construção a executar.
+\end{itemize}
+
+\subsection*{Geometria, álgebra linear e teoria de grupos}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=0.3em,topsep=0.3em]
+  \item \textbf{Lima, E.~L.} \emph{Geometria Analítica e Álgebra Linear}. Coleção
+        Matemática Universitária, IMPA, 2.\textordmasculine{} ed., 2014.
+        --- equação implícita da elipse, álgebra de planos no $\mathbb{R}^3$,
+        coordenadas esféricas. Base do conteúdo das §3, §9 e §13.
+
+  \item \textbf{Armstrong, M.~A.} \emph{Groups and Symmetry}. Undergraduate Texts in
+        Mathematics, Springer, 1988.
+        --- exposição introdutória ao grupo octaédrico $O_h$ e seus subgrupos,
+        usada na §20.
+
+  \item \textbf{Coxeter, H.~S.~M.} \emph{Regular Polytopes}. 3.\textordmasculine{} ed., Dover, 1973.
+        --- referência canônica para os grupos de simetria dos sólidos regulares,
+        incluindo o tratamento detalhado de $O_h$ de ordem 48 mencionado na §20.
+
+  \item \textbf{Hilbert, D.; Cohn-Vossen, S.} \emph{Geometry and the Imagination}.
+        AMS Chelsea, 1990 [orig.~1932].
+        --- tratamento clássico de quádricas e visualização geométrica,
+        base intuitiva da §9.
+\end{itemize}
+
+\subsection*{Algoritmos, estruturas de dados, complexidade}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=0.3em,topsep=0.3em]
+  \item \textbf{Cormen, T.~H.; Leiserson, C.~E.; Rivest, R.~L.; Stein, C.}
+        \emph{Introduction to Algorithms}. 4.\textordmasculine{} ed., MIT Press, 2022.
+        --- análise de complexidade dos três algoritmos da §4--6, divisão
+        com teto da §17.
+
+  \item \textbf{Wirth, N.} \emph{Algorithms + Data Structures = Programs}.
+        Prentice-Hall, 1976.
+        --- exposição clássica do algoritmo de Bresenham para retas e
+        sua extensão para circunferências.
+\end{itemize}
+
+\subsection*{Recursos online complementares}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=0.3em,topsep=0.3em]
+  \item Block Round --- aplicativo: \href{https://vinisouza128.github.io/block-round/}{vinisouza128.github.io/block-round/}.
+  \item Block Round --- repositório: \href{https://github.com/ViniSouza128/block-round}{github.com/ViniSouza128/block-round}.
+  \item Projeto irmão Pixel Round (versão sem texturas Minecraft):
+        \href{https://github.com/ViniSouza128/pixel-round}{github.com/ViniSouza128/pixel-round}.
+  \item Plano de aula em pt-BR (3.\textordmasculine{} ano EM):
+        \href{https://vinisouza128.github.io/block-round/docs_aula/Plano_de_Aula_pt-BR.pdf}{docs\_aula/Plano\_de\_Aula\_pt-BR.pdf}.
+\end{itemize}
+""",
 }
 
 if __name__ == "__main__":

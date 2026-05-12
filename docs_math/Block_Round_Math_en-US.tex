@@ -620,6 +620,8 @@ For each voxel face the renderer consults the block model:
 
 Most blocks (Stone, Cobblestone, Diamond Block, Oak Planks) use the \emph{same texture on all six faces}. Multi-face blocks (Grass Block, Pumpkin, Hay Bale, Quartz Pillar, all wood Logs, Crafting Table, Furnace, Bookshelf, TNT) use \emph{different textures} on top, sides and bottom: Grass Block has a green grass top, a grass-and-dirt side and a plain dirt bottom; an Oak Log has the wood-grain end on top and bottom and bark on the four sides. Crucially the \emph{mathematics of which voxels to place} does not depend on which texture is used --- the silhouette of a Diamond sphere and a Cobblestone sphere of the same diameter is identical. The texture decision is a \emph{purely aesthetic} layer applied after the geometric algorithm has finished.
 
+
+
 \subsection{Block families and tones}
 For the survival builder choosing among the dozens of available blocks, the relevant question is not the texture index but the \emph{tone family}: light/dark, warm/cool, uniform/patterned. The table below classifies the most common blocks used in Block Round builds:
 
@@ -642,8 +644,6 @@ deepslate          & stone  & dark  & underground, accents \\
 \subsection{Gradients by mixing blocks}
 Although a single block type provides one tone, \emph{gradients} can be obtained by interleaving two or three block types per layer. A classic Minecraft technique is the \emph{stone-to-quartz} gradient on a dome: the bottom layers are Smooth Stone, the equatorial layers are a noisy mix of Smooth Stone and Diorite, and the top layers are Quartz. Each layer remains computed by the same Block Round algorithm; what changes is the per-voxel texture lookup. Block Round's \emph{Random} block option implements one such procedural mix by default (grass cap, dirt sub-layer, sparse ores in the middle, deepslate near bedrock). The mathematics is the same as Section~19's layer decomposition; only the per-voxel \enquote{block tag} differs.
 
-
-
 % =============================================================================
 \section{Conclusion}
 
@@ -663,6 +663,9 @@ This document described, in a systematic way, the mathematical foundations emplo
 The central observation that the study allows to formulate is the following: on a discrete grid, \acc{there is no single correct representation} of a continuous curve. Each algorithm presented in this document corresponds to a distinct mathematical definition of the cell-inclusion criterion, and each definition produces a silhouette with its own formal properties --- smoothness in the Euclidean algorithm, the stepped pattern of Bresenham, larger coverage in the corner-coverage criterion. The choice of algorithm is therefore a technical decision that must consider the intended visual representation, the desired metric characteristics of the resulting shape, and --- specifically for Block Round --- the inventory and time cost of physically constructing the shape in-game.
 
 Block Round occupies a small but mathematically rich slice of the Minecraft tooling ecosystem: it sits between purely geometric tools (WorldEdit, Litematica) and purely visual tools (resource packs, shaders), offering an explicit, derivable, and reproducible bridge from the continuous equation to the discrete placement plan. The companion project Pixel Round provides the same algorithms without the Minecraft layer, suitable for traditional pixel art and voxel art applications. Together the two projects exemplify how the same continuous-to-discrete mathematical pipeline supports radically different artistic and constructive workflows.
+
+% =============================================================================
+
 
 \clearpage
 

@@ -620,6 +620,8 @@ Pour chaque face de voxel le moteur consulte le modèle du bloc :
 
 La plupart des blocs (Pierre, Pierres Moussues, Bloc de Diamant, Planches de Chêne) utilisent la \emph{même texture sur les six faces}. Les blocs multi-faces (Bloc d'Herbe, Citrouille, Botte de Foin, Pilier de Quartz, tous les rondins, Établi, Fourneau, Bibliothèque, TNT) utilisent des \emph{textures différentes} en haut, côté et bas : Bloc d'Herbe a un haut vert, un côté herbe-et-terre et un bas de terre ; un Rondin de Chêne a l'anneau du bois en haut/bas et l'écorce sur les quatre côtés. Crucialement, la \emph{mathématique de quels voxels poser} ne dépend pas de la texture --- la silhouette d'une sphère de Diamant et celle d'une sphère de Pierres Moussues du même diamètre est identique. La décision de texture est une couche \emph{purement esthétique} appliquée après l'algorithme géométrique.
 
+
+
 \subsection{Familles de blocs et tons}
 Pour le bâtisseur de survie choisissant parmi les dizaines de blocs disponibles, la question pertinente n'est pas l'indice de texture mais la \emph{famille tonale} : clair/sombre, chaud/froid, uniforme/à motif. Le tableau classe les blocs les plus utilisés en constructions Block Round :
 
@@ -642,8 +644,6 @@ deepslate          & pierre  & sombre  & souterrains, accents \\
 \subsection{Dégradés par mélange de blocs}
 Bien qu'un seul type de bloc fournisse un ton, des \emph{dégradés} s'obtiennent en alternant deux ou trois types par couche. Une technique classique est le dégradé \emph{pierre-vers-quartz} sur un dôme : couches inférieures Pierre Lisse, couches équatoriales un mélange bruité de Pierre Lisse et Diorite, couches supérieures Quartz. Chaque couche reste calculée par le même algorithme Block Round ; ce qui change est la consultation de texture par voxel. L'option de bloc \emph{Random} de Block Round implémente un tel mélange procédural par défaut (sommet d'herbe, terre dessous, minerais épars, deepslate près du bedrock). La mathématique est celle de la décomposition par couche de la Section~19 ; seule l'\enquote{étiquette de bloc} par voxel change.
 
-
-
 % =============================================================================
 \section{Conclusion}
 
@@ -663,6 +663,9 @@ Ce document a décrit, de manière systématique, les fondements mathématiques 
 L'observation centrale que l'étude permet de formuler est la suivante : sur une grille discrète, \acc{il n'existe pas de représentation unique correcte} d'une courbe continue. Chaque algorithme présenté dans ce document correspond à une définition mathématique distincte du critère d'inclusion des cellules, et chaque définition produit une silhouette aux propriétés formelles propres --- douceur dans Euclidien, motif en escalier de Bresenham, couverture plus large dans la couverture-par-coin. Le choix de l'algorithme est donc une décision technique qui doit considérer la représentation visuelle souhaitée, les caractéristiques métriques visées et --- spécifiquement pour Block Round --- le coût en inventaire et en temps de construire physiquement la forme dans le jeu.
 
 Block Round occupe une niche petite mais mathématiquement riche dans l'écosystème d'outils Minecraft : il se situe entre les outils purement géométriques (WorldEdit, Litematica) et les outils purement visuels (resource packs, shaders), offrant un pont explicite, dérivable et reproductible de l'équation continue au plan de pose discret. Le projet frère Pixel Round offre les mêmes algorithmes sans la couche Minecraft, adapté au pixel art et au voxel art traditionnels. Ensemble les deux projets illustrent comment le même pipeline mathématique continu-vers-discret soutient des flux artistiques et constructifs radicalement différents.
+
+% =============================================================================
+
 
 \clearpage
 

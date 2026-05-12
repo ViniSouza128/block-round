@@ -620,6 +620,8 @@ Für jede Voxelfläche konsultiert der Renderer das Block-Modell:
 
 Die meisten Blöcke (Stein, Bruchstein, Diamantblock, Eichenholzbretter) verwenden die \emph{gleiche Textur auf allen sechs Flächen}. Mehrflächige Blöcke (Grasblock, Kürbis, Heuballen, Quarzsäule, alle Holzstämme, Werkbank, Ofen, Bücherregal, TNT) verwenden \emph{unterschiedliche Texturen} oben, an den Seiten und unten: Grasblock hat grünes Oben, Gras-Erde-Seite und reine Erde unten; ein Eichenstamm hat den Holzmaserring oben und unten und Rinde an den vier Seiten. Entscheidend: die \emph{Mathematik, welche Voxel zu platzieren sind}, hängt nicht von der verwendeten Textur ab --- die Silhouette einer Diamantkugel und einer Bruchsteinkugel desselben Durchmessers ist identisch. Die Texturentscheidung ist eine \emph{rein ästhetische} Schicht, angewendet nachdem der geometrische Algorithmus fertig ist.
 
+
+
 \subsection{Blockfamilien und Töne}
 Für den Survival-Bauer, der aus den Dutzenden verfügbarer Blöcke wählt, ist die relevante Frage nicht der Texturindex, sondern die \emph{Tonalitätsfamilie}: hell/dunkel, warm/kühl, einheitlich/gemustert. Die Tabelle klassifiziert die häufigsten Blöcke in Block-Round-Bauten:
 
@@ -642,8 +644,6 @@ deepslate          & Stein  & dunkel  & Unterirdisch, Akzente \\
 \subsection{Gradienten durch Block-Mischung}
 Obwohl ein einzelner Blocktyp einen Ton liefert, können \emph{Gradienten} durch Wechsel zwischen zwei oder drei Blocktypen pro Schicht erzielt werden. Eine klassische Technik ist der \emph{Stein-zu-Quarz}-Gradient auf einer Kuppel: untere Schichten Glatter Stein, äquatoriale Schichten eine verrauschte Mischung aus Glattem Stein und Diorit, obere Schichten Quarz. Jede Schicht bleibt vom selben Block-Round-Algorithmus berechnet; was sich ändert, ist das Per-Voxel-Textur-Lookup. Die \emph{Random}-Block-Option von Block Round implementiert eine solche prozedurale Mischung standardmäßig (Grasoberteil, Erde darunter, vereinzelte Erze in der Mitte, Tiefenschiefer nahe Grundgestein). Die Mathematik ist dieselbe wie die Schichtzerlegung von Abschnitt~19; nur das \enquote{Block-Tag} pro Voxel ändert sich.
 
-
-
 % =============================================================================
 \section{Fazit}
 
@@ -663,6 +663,9 @@ Dieses Dokument beschrieb systematisch die in Block Round verwendeten mathematis
 Die zentrale Beobachtung, die die Studie formuliert, ist die folgende: Auf einem diskreten Gitter \acc{existiert keine einzige korrekte Darstellung} einer stetigen Kurve. Jeder in diesem Dokument dargestellte Algorithmus entspricht einer eigenen mathematischen Definition des Zell-Einschluss-Kriteriums, und jede Definition produziert eine Silhouette mit eigenen formalen Eigenschaften --- Glätte beim Euklidischen Algorithmus, Stufenmuster bei Bresenham, größere Abdeckung beim Eckabdeckungskriterium. Die Wahl des Algorithmus ist daher eine technische Entscheidung, die die beabsichtigte visuelle Repräsentation, die gewünschten metrischen Eigenschaften und --- speziell für Block Round --- die Inventar- und Zeitkosten des physischen In-Game-Baus berücksichtigen muss.
 
 Block Round besetzt eine kleine, aber mathematisch reichhaltige Nische im Minecraft-Tooling-Ökosystem: Es liegt zwischen rein geometrischen Tools (WorldEdit, Litematica) und rein visuellen Tools (Resource Packs, Shader) und bietet eine explizite, ableitbare und reproduzierbare Brücke von der stetigen Gleichung zum diskreten Platzierungsplan. Das Schwesterprojekt Pixel Round bietet dieselben Algorithmen ohne die Minecraft-Schicht, geeignet für traditionelle Pixel-Art- und Voxel-Art-Anwendungen. Zusammen veranschaulichen die beiden Projekte, wie dieselbe stetig-zu-diskret-Pipeline radikal verschiedene künstlerische und konstruktive Arbeitsabläufe unterstützt.
+
+% =============================================================================
+
 
 \clearpage
 
