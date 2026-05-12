@@ -54,6 +54,13 @@
 % que so quebra em "." e "/"). Carregado DEPOIS de hyperref.
 \usepackage{xurl}
 
+% emergencystretch da fold ao motor de justificacao quando ele falha em
+% encaixar uma linha mesmo apos quebrar URLs longas. 1.5em (~18pt) basta
+% para absorver os 2-8pt de overhang em paragrafos densos da bibliografia
+% sem deixar TeX desperar e quebrar URLs char-a-char (o que acontecia
+% com 3em + \Urlmuskip stretch positivo).
+\setlength{\emergencystretch}{1.5em}
+
 \color{ink}
 
 \titleformat{\section}
@@ -96,6 +103,11 @@
 \newcommand{\code}[1]{\texttt{\small #1}}
 \newcommand{\acc}[1]{\textcolor{accent}{\textbf{#1}}}
 \newcommand{\cmd}[1]{\textcolor{earth}{\texttt{\small #1}}}
+% biblink: link clicavel cujo texto de exibicao pode quebrar em qualquer
+% caractere (igual \url, via xurl). Evita URLs vazando alem da margem
+% direita. \nolinkurl formata como URL sem criar link; o \href externo
+% prove a clicabilidade.
+\newcommand{\biblink}[2]{\href{#1}{\nolinkurl{#2}}}
 
 \begin{document}
 
@@ -341,7 +353,7 @@ h_V &= b(i,j{-}1) \;\vee\; b(i,j{+}1).
 \end{subfigure}\hfill
 \begin{subfigure}[t]{0.30\linewidth}\centering
   \includegraphics[width=\linewidth]{math_2d_d20_thin.png}
-  \caption{\emph{Fino} (\emph{1 voxel})}
+  \caption{\emph{Fino (\emph{1 voxel})}}
 \end{subfigure}\hfill
 \begin{subfigure}[t]{0.30\linewidth}\centering
   \includegraphics[width=\linewidth]{math_2d_d20_thick.png}
@@ -788,14 +800,13 @@ O Block Round ocupa um nicho pequeno mas matematicamente rico no ecossistema de 
 \begin{itemize}[leftmargin=1.4em,itemsep=0.3em,topsep=0.3em]
   \item \textbf{Bresenham, J. E.} \emph{Algorithm for computer control of a digital plotter}.
         IBM Systems Journal, vol.~4, n.~1, p.~25--30, 1965.
-        Disponível em \href{https://doi.org/10.1147/sj.41.0025}{doi:10.1147/sj.41.0025}.
+        Disponível em \biblink{https://doi.org/10.1147/sj.41.0025}{doi:10.1147/sj.41.0025}.
         --- artigo original do algoritmo de meio-ponto inteiro tratado na §5 deste documento.
 
   \item \textbf{Pitteway, M.~L.~V.} \emph{Algorithm for drawing ellipses or hyperbolae
         with a digital plotter}. The Computer Journal, vol.~10, n.~3, p.~282--289, 1967.
-        Disponível em \href{https://doi.org/10.1093/comjnl/10.3.282}{doi:10.1093/comjnl/10.3.282}.
-        --- generalização do algoritmo de Bresenham para cônicas arbitrárias,
-        base da extensão para elipses descrita na §5.
+        Disponível em \biblink{https://doi.org/10.1093/comjnl/10.3.282}{doi:10.1093/comjnl/10.3.282}.
+        --- generalização do algoritmo de Bresenham para cônicas arbitrárias, base da extensão para elipses descrita na §5.
 
   \item \textbf{Kappel, A.} \emph{An ellipse-drawing algorithm for raster displays}.
         Em \emph{Fundamental Algorithms for Computer Graphics} (R.~A.~Earnshaw, ed.),
@@ -804,42 +815,36 @@ O Block Round ocupa um nicho pequeno mas matematicamente rico no ecossistema de 
 
   \item \textbf{Klette, R.; Rosenfeld, A.} \emph{Digital Geometry: Geometric Methods
         for Digital Picture Analysis}. Morgan Kaufmann, 2004. 656 páginas.
-        --- referência padrão para topologia digital, operadores de bordo
-        ($\partial F$), 4-/6-/26-conectividade. Usada nas §7, §12 e §18.
+        --- referência padrão para topologia digital, operadores de bordo ($\partial F$), 4-/6-/26-conectividade. Usada nas §7, §12 e §18.
 
   \item \textbf{Foley, J.~D.; van Dam, A.; Feiner, S.~K.; Hughes, J.~F.}
         \emph{Computer Graphics: Principles and Practice}. 3.\textordmasculine{} ed., Addison-Wesley, 2014.
-        --- tratamento clássico de rasterização, modelos de iluminação,
-        projeção perspectiva. Relevante para as §13--15.
+        --- tratamento clássico de rasterização, modelos de iluminação, projeção perspectiva. Relevante para as §13--15.
 \end{itemize}
 
 \subsection*{Especificações e ferramentas Minecraft referenciadas}
 
 \begin{itemize}[leftmargin=1.4em,itemsep=0.3em,topsep=0.3em]
   \item \textbf{Sponge Project.} \emph{Sponge Schematic Specification, version~2}.
-        \href{https://github.com/SpongePowered/Schematic-Specification}{github.com/SpongePowered/Schematic-Specification}.
-        --- formato de arquivo \code{.schem} (gzip + NBT) que o Block Round
-        exporta. Carregável por WorldEdit, Litematica e MCEdit.
+        \biblink{https://github.com/SpongePowered/Schematic-Specification}{github.com/SpongePowered/Schematic-Specification}.
+        --- formato de arquivo \code{.schem} (gzip + NBT) que o Block Round exporta. Carregável por WorldEdit, Litematica e MCEdit.
 
   \item \textbf{EngineHub.} \emph{WorldEdit Documentation}.
-        \href{https://worldedit.enginehub.org/}{worldedit.enginehub.org}.
-        --- referência oficial para os comandos \cmd{//sphere}, \cmd{//hsphere},
-        \cmd{//ellipsoid}, \cmd{//cyl}, \cmd{//schem load} citados ao longo do documento.
+        \biblink{https://worldedit.enginehub.org/}{worldedit.enginehub.org}.
+        --- referência oficial para os comandos \cmd{//sphere}, \cmd{//hsphere}, \cmd{//ellipsoid}, \cmd{//cyl}, \cmd{//schem load} citados ao longo do documento.
 
   \item \textbf{Mojang AB.} \emph{Minecraft Wiki --- Inventory}.
-        \href{https://minecraft.wiki/w/Inventory}{minecraft.wiki/w/Inventory}.
-        --- referência sobre slots, stacks, baús simples (27 slots) e
-        baús duplos (54 slots) usados na §17.
+        \biblink{https://minecraft.wiki/w/Inventory}{minecraft.wiki/w/Inventory}.
+        --- referência sobre slots, stacks, baús simples (27 slots) e baús duplos (54 slots) usados na §17.
 
   \item \textbf{Mojang AB.} \emph{Minecraft Wiki --- Commands/fill, /clone}.
-        \href{https://minecraft.wiki/w/Commands/fill}{minecraft.wiki/w/Commands/fill},
-        \href{https://minecraft.wiki/w/Commands/clone}{minecraft.wiki/w/Commands/clone}.
+        \biblink{https://minecraft.wiki/w/Commands/fill}{minecraft.wiki/w/Commands/fill},
+        \biblink{https://minecraft.wiki/w/Commands/clone}{minecraft.wiki/w/Commands/clone}.
         --- comandos vanilla \cmd{/fill} e \cmd{/clone} citados nas §17 e §20.
 
   \item \textbf{Masady} (\emph{Litematica} mod).
-        \href{https://github.com/maruohon/litematica}{github.com/maruohon/litematica}.
-        --- mod do Minecraft Java Edition que importa schematics e exibe
-        um fantasma translúcido da construção a executar.
+        \biblink{https://github.com/maruohon/litematica}{github.com/maruohon/litematica}.
+        --- mod do Minecraft Java Edition que importa schematics e exibe um fantasma translúcido da construção a executar.
 \end{itemize}
 
 \subsection*{Geometria, álgebra linear e teoria de grupos}
@@ -852,17 +857,14 @@ O Block Round ocupa um nicho pequeno mas matematicamente rico no ecossistema de 
 
   \item \textbf{Armstrong, M.~A.} \emph{Groups and Symmetry}. Undergraduate Texts in
         Mathematics, Springer, 1988.
-        --- exposição introdutória ao grupo octaédrico $O_h$ e seus subgrupos,
-        usada na §20.
+        --- exposição introdutória ao grupo octaédrico $O_h$ e seus subgrupos, usada na §20.
 
   \item \textbf{Coxeter, H.~S.~M.} \emph{Regular Polytopes}. 3.\textordmasculine{} ed., Dover, 1973.
-        --- referência canônica para os grupos de simetria dos sólidos regulares,
-        incluindo o tratamento detalhado de $O_h$ de ordem 48 mencionado na §20.
+        --- referência canônica para os grupos de simetria dos sólidos regulares, incluindo o tratamento detalhado de $O_h$ de ordem 48 mencionado na §20.
 
   \item \textbf{Hilbert, D.; Cohn-Vossen, S.} \emph{Geometry and the Imagination}.
         AMS Chelsea, 1990 [orig.~1932].
-        --- tratamento clássico de quádricas e visualização geométrica,
-        base intuitiva da §9.
+        --- tratamento clássico de quádricas e visualização geométrica, base intuitiva da §9.
 \end{itemize}
 
 \subsection*{Algoritmos, estruturas de dados, complexidade}
@@ -870,24 +872,22 @@ O Block Round ocupa um nicho pequeno mas matematicamente rico no ecossistema de 
 \begin{itemize}[leftmargin=1.4em,itemsep=0.3em,topsep=0.3em]
   \item \textbf{Cormen, T.~H.; Leiserson, C.~E.; Rivest, R.~L.; Stein, C.}
         \emph{Introduction to Algorithms}. 4.\textordmasculine{} ed., MIT Press, 2022.
-        --- análise de complexidade dos três algoritmos da §4--6, divisão
-        com teto da §17.
+        --- análise de complexidade dos três algoritmos da §4--6, divisão com teto da §17.
 
   \item \textbf{Wirth, N.} \emph{Algorithms + Data Structures = Programs}.
         Prentice-Hall, 1976.
-        --- exposição clássica do algoritmo de Bresenham para retas e
-        sua extensão para circunferências.
+        --- exposição clássica do algoritmo de Bresenham para retas e sua extensão para circunferências.
 \end{itemize}
 
 \subsection*{Recursos online complementares}
 
 \begin{itemize}[leftmargin=1.4em,itemsep=0.3em,topsep=0.3em]
-  \item Block Round --- aplicativo: \href{https://vinisouza128.github.io/block-round/}{vinisouza128.github.io/block-round/}.
-  \item Block Round --- repositório: \href{https://github.com/ViniSouza128/block-round}{github.com/ViniSouza128/block-round}.
+  \item Block Round --- aplicativo: \biblink{https://vinisouza128.github.io/block-round/}{vinisouza128.github.io/block-round/}.
+  \item Block Round --- repositório: \biblink{https://github.com/ViniSouza128/block-round}{github.com/ViniSouza128/block-round}.
   \item Projeto irmão Pixel Round (versão sem texturas Minecraft):
-        \href{https://github.com/ViniSouza128/pixel-round}{github.com/ViniSouza128/pixel-round}.
+        \biblink{https://github.com/ViniSouza128/pixel-round}{github.com/ViniSouza128/pixel-round}.
   \item Plano de aula em pt-BR (3.\textordmasculine{} ano EM):
-        \href{https://vinisouza128.github.io/block-round/docs_aula/Plano_de_Aula_pt-BR.pdf}{docs\_aula/Plano\_de\_Aula\_pt-BR.pdf}.
+        \biblink{https://vinisouza128.github.io/block-round/docs_aula/Plano_de_Aula_pt-BR.pdf}{docs\_aula/Plano\_de\_Aula\_pt-BR.pdf}.
 \end{itemize}
 
 
@@ -929,7 +929,8 @@ A tabela a seguir resume os comandos WorldEdit e do Minecraft vanilla mais relev
 
 \vspace{0.4em}
 \begin{center}
-\begin{tabular}{@{}lll@{}}
+\small
+\begin{tabularx}{\textwidth}{@{}llX@{}}
 \toprule
 \textbf{Comando} & \textbf{Mod / origem} & \textbf{Resultado} \\
 \midrule
@@ -940,7 +941,7 @@ A tabela a seguir resume os comandos WorldEdit e do Minecraft vanilla mais relev
 \cmd{/fill ... stone}      & vanilla & preencher caixa com um tipo de bloco  \\
 \cmd{/clone ... mode:masked} & vanilla & copiar região para novo local  \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{center}
 
 Para usuários do Litematica o fluxo é diferente: em vez de rodar comandos, o arquivo schematic (Block Round exporta \code{.schem}, formato Sponge v2) é carregado no mod Litematica, que então exibe um fantasma translúcido da figura que o jogador coloca bloco a bloco. É o equivalente survival-mode mais próximo da experiência WorldEdit em creative.
@@ -1023,8 +1024,8 @@ Os conceitos matemáticos desenvolvidos neste documento têm literaturas bem est
   \item M.~L.~V.~Pitteway, \emph{Algorithm for drawing ellipses or hyperbolae with a digital plotter}, Computer Journal, vol.~10, 1967 --- generaliza Bresenham para cônicas arbitrárias.
   \item A.~Kappel, \emph{An ellipse-drawing algorithm for raster displays}, ACM Comm.\ vol.~28, 1985 --- a formulação elíptica de duas regiões usada na Seção~5.
   \item R.~Klette e A.~Rosenfeld, \emph{Digital Geometry: Geometric Methods for Digital Picture Analysis}, Morgan Kaufmann, 2004 --- referência padrão para topologia digital e os operadores de bordo das Seções~7 e~18.
-  \item Documentação do WorldEdit, \emph{enginehub.org/worldedit/} --- referência oficial dos comandos \cmd{//sphere}, \cmd{//hsphere}, \cmd{//ellipsoid}, \cmd{//copy} usados ao longo deste documento.
-  \item Especificação Sponge Schematic v2, \emph{github.com/SpongePowered/Schematic-Specification} --- o formato de arquivo que o Block Round exporta como \code{.schem}.
+  \item Documentação do WorldEdit, \biblink{https://enginehub.org/worldedit/}{enginehub.org/worldedit/} --- referência oficial dos comandos \cmd{//sphere}, \cmd{//hsphere}, \cmd{//ellipsoid}, \cmd{//copy} usados ao longo deste documento.
+  \item Especificação Sponge Schematic v2, \biblink{https://github.com/SpongePowered/Schematic-Specification}{github.com/SpongePowered/Schematic-Specification} --- o formato de arquivo que o Block Round exporta como \code{.schem}.
 \end{itemize}
 
 As oito áreas teóricas listadas na Seção~22 têm tratamentos em nível de livro-texto que vão muito além do que um único documento técnico pode resumir. A contribuição do Block Round não está na teoria em si mas na síntese específica: aplicar rasterização clássica ao cenário do Minecraft de voxels com textura, com as considerações explícitas de inventário e custo de simetria que normalmente são omitidas das ferramentas puramente geométricas.
@@ -1039,7 +1040,7 @@ Um comentário final sobre reprodutibilidade: todo o pipeline deste documento --
 
 \vspace{0.6em}
 
-O Block Round é mantido por Vinícius Rodrigues de Souza. O projeto irmão Pixel Round está disponível em \emph{github.com/ViniSouza128/pixel-round}; o repositório atual do Block Round está em \emph{github.com/ViniSouza128/block-round}.
+O Block Round é mantido por Vinícius Rodrigues de Souza. O projeto irmão Pixel Round está disponível em \biblink{https://github.com/ViniSouza128/pixel-round}{github.com/ViniSouza128/pixel-round}; o repositório atual do Block Round está em \biblink{https://github.com/ViniSouza128/block-round}{github.com/ViniSouza128/block-round}.
 
 Comentários, correções e melhorias de tradução são bem-vindos pelo issue tracker do repositório do projeto. Revisão por falantes nativos das oito locales não-inglesas é particularmente valorizada, já que as localizações foram preparadas com revisão substancial mas a terminologia técnico-matemática se beneficia de correção nativa.
 

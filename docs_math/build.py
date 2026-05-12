@@ -67,6 +67,13 @@ TEX = r"""% !TEX program = xelatex
 % que so quebra em "." e "/"). Carregado DEPOIS de hyperref.
 \usepackage{xurl}
 
+% emergencystretch da fold ao motor de justificacao quando ele falha em
+% encaixar uma linha mesmo apos quebrar URLs longas. 1.5em (~18pt) basta
+% para absorver os 2-8pt de overhang em paragrafos densos da bibliografia
+% sem deixar TeX desperar e quebrar URLs char-a-char (o que acontecia
+% com 3em + \Urlmuskip stretch positivo).
+\setlength{\emergencystretch}{1.5em}
+
 \color{ink}
 
 \titleformat{\section}
@@ -109,6 +116,11 @@ TEX = r"""% !TEX program = xelatex
 \newcommand{\code}[1]{\texttt{\small #1}}
 \newcommand{\acc}[1]{\textcolor{accent}{\textbf{#1}}}
 \newcommand{\cmd}[1]{\textcolor{earth}{\texttt{\small #1}}}
+% biblink: link clicavel cujo texto de exibicao pode quebrar em qualquer
+% caractere (igual \url, via xurl). Evita URLs vazando alem da margem
+% direita. \nolinkurl formata como URL sem criar link; o \href externo
+% prove a clicabilidade.
+\newcommand{\biblink}[2]{\href{#1}{\nolinkurl{#2}}}
 
 \begin{document}
 
@@ -716,7 +728,8 @@ deepslate          & «S21_BLK_FAMILY_STONE»  & «S21_BLK_TONE_DARK»  & «S21_
 
 \vspace{0.4em}
 \begin{center}
-\begin{tabular}{@{}lll@{}}
+\small
+\begin{tabularx}{\textwidth}{@{}llX@{}}
 \toprule
 \textbf{«APX_A_CMD_H1»} & \textbf{«APX_A_CMD_H2»} & \textbf{«APX_A_CMD_H3»} \\
 \midrule
@@ -727,7 +740,7 @@ deepslate          & «S21_BLK_FAMILY_STONE»  & «S21_BLK_TONE_DARK»  & «S21_
 \cmd{/fill ... stone}      & «APX_A_CMD_DESC_5» & «APX_A_CMD_RESULT_5»  \\
 \cmd{/clone ... mode:masked} & «APX_A_CMD_DESC_6» & «APX_A_CMD_RESULT_6»  \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{center}
 
 «APX_A_P5»
@@ -909,6 +922,9 @@ def fonts_for(loc):
 # TRADUÇÕES (importadas dos módulos de traduções)
 # ============================================================================
 from translations import T
+# FIG_BLOCKS contem {locale: {FIG_3ALG, ..., BIBLIOGRAPHY}}, gerado em
+# fig_blocks.py a partir de templates + dicts de traducao por locale.
+from fig_blocks import FIG_BLOCKS
 
 # ============================================================================
 # BUILD
@@ -916,15 +932,14 @@ from translations import T
 def build(loc):
     cfg = dict(T[loc])
     cfg["FONT_SETUP"] = fonts_for(loc)
-    # Figure blocks: only the pt-BR build embeds them in this revision.
-    # Other locales get an empty string for each FIG_* key.
+    # Figure blocks + bibliografia: gerados por _build_fig_blocks(loc).
+    # Locales sem traducao registrada caem em string vazia (legado).
     fig_keys = ("FIG_3ALG", "FIG_MODES", "FIG_3D", "FIG_CUTS",
                 "FIG_SHADING", "FIG_OVERLAY", "FIG_OCTANTS", "FIG_TEXTURES",
                 "BIBLIOGRAPHY")
     for k in fig_keys:
         cfg.setdefault(k, "")
-    if loc == "pt-BR":
-        cfg.update(FIG_BLOCKS_PT_BR)
+    cfg.update(FIG_BLOCKS.get(loc, {}))
     out = TEX
     # ordem de substituição não importa porque chaves são únicas
     for k, v in cfg.items():
@@ -948,248 +963,6 @@ def build(loc):
         if p.exists(): p.unlink()
     return tex_path.with_suffix(".pdf")
 
-
-# ============================================================================
-# BLOCOS DE FIGURA — somente pt-BR nesta revisão
-# ============================================================================
-FIG_BLOCKS_PT_BR = {
-    "FIG_3ALG": r"""\begin{figure}[!ht]
-\centering
-\begin{subfigure}[t]{0.30\linewidth}\centering
-  \includegraphics[width=\linewidth]{math_2d_d10_eucl.png}
-  \caption{\emph{Euclidiano}}
-\end{subfigure}\hfill
-\begin{subfigure}[t]{0.30\linewidth}\centering
-  \includegraphics[width=\linewidth]{math_2d_d10_bres.png}
-  \caption{\emph{Bresenham}}
-\end{subfigure}\hfill
-\begin{subfigure}[t]{0.30\linewidth}\centering
-  \includegraphics[width=\linewidth]{math_2d_d10_thr.png}
-  \caption{\emph{Limiar}}
-\end{subfigure}
-\caption{Mesma circunferência de diâmetro $D=10$ sob os três critérios. Cada figura é o conjunto de células marcadas pela respectiva versão da desigualdade $d_x^2+d_y^2\leq 1$, renderizada com a textura \emph{cobblestone} do Minecraft. Note como a transição entre filas, as células de quina e os pontos cardeais variam --- três respostas matematicamente corretas sob critérios distintos.}
-\label{fig:comp-d10}
-\end{figure}""",
-
-    "FIG_MODES": r"""\begin{figure}[!ht]
-\centering
-\begin{subfigure}[t]{0.30\linewidth}\centering
-  \includegraphics[width=\linewidth]{math_2d_d20_filled.png}
-  \caption{\emph{Preenchido}}
-\end{subfigure}\hfill
-\begin{subfigure}[t]{0.30\linewidth}\centering
-  \includegraphics[width=\linewidth]{math_2d_d20_thin.png}
-  \caption{\emph{Fino} (\emph{1 voxel})}
-\end{subfigure}\hfill
-\begin{subfigure}[t]{0.30\linewidth}\centering
-  \includegraphics[width=\linewidth]{math_2d_d20_thick.png}
-  \caption{\emph{Grosso}}
-\end{subfigure}
-\caption{Os três modos de renderização para a mesma circunferência euclidiana de $D=20$. O modo \emph{Fino} corresponde ao bordo discreto topológico ($\partial F$); o modo \emph{Grosso} adiciona blocos diagonais para fechar buracos a $45^\circ$, essencial para construções estanques (cúpulas de Vidro/Gelo subaquáticas).}
-\label{fig:modes}
-\end{figure}""",
-
-    "FIG_3D": r"""\begin{figure}[!ht]
-\centering
-\begin{subfigure}[t]{0.46\linewidth}\centering
-  \includegraphics[width=\linewidth]{math_3d_sphere_d10.png}
-  \caption{Esfera $D=10$, $r_x=r_y=r_z=5$.}
-\end{subfigure}\hfill
-\begin{subfigure}[t]{0.46\linewidth}\centering
-  \includegraphics[width=\linewidth]{math_3d_ellipsoid.png}
-  \caption{Elipsóide $W=20,\,H=10,\,D=12$.}
-\end{subfigure}
-\caption{Voxelização em $\mathbb{R}^3$. Cada cubo é um voxel; sua coordenada $(i,j,k)$ no centro é testada na equação implícita $a_x^2+a_y^2+a_z^2\leq 1$. As escadarias visíveis na superfície são consequência matemática da discretização --- exatamente o aspecto que dá ao Minecraft sua identidade visual.}
-\label{fig:3d-shapes}
-\end{figure}""",
-
-    "FIG_CUTS": r"""\begin{figure}[!ht]
-\centering
-\begin{subfigure}[t]{0.30\linewidth}\centering
-  \includegraphics[width=\linewidth]{math_3d_cut_y.png}
-  \caption{Corte $Y$ 50\% (cúpula)}
-\end{subfigure}\hfill
-\begin{subfigure}[t]{0.30\linewidth}\centering
-  \includegraphics[width=\linewidth]{math_3d_cut_x.png}
-  \caption{Corte $X$ 50\%}
-\end{subfigure}\hfill
-\begin{subfigure}[t]{0.30\linewidth}\centering
-  \includegraphics[width=\linewidth]{math_3d_cut_diag.png}
-  \caption{Diagonal 50\%}
-\end{subfigure}
-\caption{Três cortes na mesma esfera $D=16$, todos preservando 50\% do volume. O corte $Y$ produz a cúpula clássica $V_{\mathrm{cúpula}}=\tfrac{2}{3}\pi r^3$; o diagonal expõe a hipotenusa $x+y=k$ característica desse plano de corte.}
-\label{fig:cuts}
-\end{figure}""",
-
-    "FIG_SHADING": r"""\begin{figure}[!ht]
-\centering
-\begin{subfigure}[t]{0.30\linewidth}\centering
-  \includegraphics[width=\linewidth]{math_3d_shading_classic.png}
-  \caption{\emph{Classic} (contraste forte)}
-\end{subfigure}\hfill
-\begin{subfigure}[t]{0.30\linewidth}\centering
-  \includegraphics[width=\linewidth]{math_3d_shading_blocks.png}
-  \caption{\emph{Blocks} (default)}
-\end{subfigure}\hfill
-\begin{subfigure}[t]{0.30\linewidth}\centering
-  \includegraphics[width=\linewidth]{math_3d_shading_smooth.png}
-  \caption{\emph{Smooth} (faces parecidas)}
-\end{subfigure}
-\caption{Três multiplicadores de luz aplicados às mesmas três faces visíveis. \emph{Classic} dá o aspecto canônico Minecraft vanilla; \emph{Smooth} reduz o contraste para superfícies suaves; \emph{Blocks} é o intermediário com inset geométrico que revela fronteiras entre voxels mesmo quando a textura é a mesma.}
-\label{fig:shading}
-\end{figure}""",
-
-    "FIG_OVERLAY": r"""\begin{figure}[!ht]
-\centering
-\begin{subfigure}[t]{0.40\linewidth}\centering
-  \includegraphics[width=\linewidth]{math_3d_overlay_off.png}
-  \caption{Overlay \emph{OFF}}
-\end{subfigure}\hfill
-\begin{subfigure}[t]{0.40\linewidth}\centering
-  \includegraphics[width=\linewidth]{math_3d_overlay_on.png}
-  \caption{Overlay \emph{ON} (default)}
-\end{subfigure}
-\caption{Mesmo conjunto de voxels com e sem o contorno preto nas arestas expostas. Com o \emph{highlight overlay} ON, um bloco faltante na casca produz uma descontinuidade no padrão que o olho detecta de relance --- ferramenta de validação rápida durante a construção em survival.}
-\label{fig:overlay}
-\end{figure}""",
-
-    "FIG_OCTANTS": r"""\begin{figure}[!ht]
-\centering
-\includegraphics[width=0.45\linewidth]{math_3d_octants.png}
-\caption{Esfera $D=10$ com o octante positivo $(+x,+y,+z)$ destacado em verde. Sob a ação do subgrupo $\mathbb{Z}_2^3 \leq O_h$ (ordem 8, gerado pelas três reflexões coordenadas), esse octante determina toda a esfera --- as outras sete regiões são obtidas por uma sequência de \cmd{/clone} com \emph{mode:masked} aplicadas sobre o octante construído manualmente.}
-\label{fig:octants}
-\end{figure}""",
-
-    "FIG_TEXTURES": r"""\begin{figure}[!ht]
-\centering
-\begin{subfigure}[t]{0.30\linewidth}\centering
-  \includegraphics[width=\linewidth]{math_3d_tex_cobble.png}
-  \caption{\emph{Cobblestone}}
-\end{subfigure}\hfill
-\begin{subfigure}[t]{0.30\linewidth}\centering
-  \includegraphics[width=\linewidth]{math_3d_tex_oak.png}
-  \caption{\emph{Oak Planks}}
-\end{subfigure}\hfill
-\begin{subfigure}[t]{0.30\linewidth}\centering
-  \includegraphics[width=\linewidth]{math_3d_tex_quartz.png}
-  \caption{\emph{Quartz Block}}
-\end{subfigure}
-\caption{A mesma esfera de diâmetro $D=8$ renderizada com três blocos diferentes. A silhueta voxelizada (matemática) é idêntica nas três: o algoritmo escolhe os voxels, a textura é uma camada estética posterior que não altera nem o volume nem a topologia.}
-\label{fig:textures}
-\end{figure}""",
-
-    "BIBLIOGRAPHY": r"""\section*{\color{accent}Referências bibliográficas}
-\addcontentsline{toc}{section}{Referências bibliográficas}
-\label{sec:bib}
-
-\subsection*{Referências técnicas (rasterização e topologia digital)}
-
-\begin{itemize}[leftmargin=1.4em,itemsep=0.3em,topsep=0.3em]
-  \item \textbf{Bresenham, J. E.} \emph{Algorithm for computer control of a digital plotter}.
-        IBM Systems Journal, vol.~4, n.~1, p.~25--30, 1965.
-        Disponível em \href{https://doi.org/10.1147/sj.41.0025}{doi:10.1147/sj.41.0025}.
-        --- artigo original do algoritmo de meio-ponto inteiro tratado na §5 deste documento.
-
-  \item \textbf{Pitteway, M.~L.~V.} \emph{Algorithm for drawing ellipses or hyperbolae
-        with a digital plotter}. The Computer Journal, vol.~10, n.~3, p.~282--289, 1967.
-        Disponível em \href{https://doi.org/10.1093/comjnl/10.3.282}{doi:10.1093/comjnl/10.3.282}.
-        --- generalização do algoritmo de Bresenham para cônicas arbitrárias,
-        base da extensão para elipses descrita na §5.
-
-  \item \textbf{Kappel, A.} \emph{An ellipse-drawing algorithm for raster displays}.
-        Em \emph{Fundamental Algorithms for Computer Graphics} (R.~A.~Earnshaw, ed.),
-        NATO ASI Series F-17, Springer, 1985, p.~257--280.
-        --- formulação por duas regiões usada na implementação de elipses.
-
-  \item \textbf{Klette, R.; Rosenfeld, A.} \emph{Digital Geometry: Geometric Methods
-        for Digital Picture Analysis}. Morgan Kaufmann, 2004. 656 páginas.
-        --- referência padrão para topologia digital, operadores de bordo
-        ($\partial F$), 4-/6-/26-conectividade. Usada nas §7, §12 e §18.
-
-  \item \textbf{Foley, J.~D.; van Dam, A.; Feiner, S.~K.; Hughes, J.~F.}
-        \emph{Computer Graphics: Principles and Practice}. 3.\textordmasculine{} ed., Addison-Wesley, 2014.
-        --- tratamento clássico de rasterização, modelos de iluminação,
-        projeção perspectiva. Relevante para as §13--15.
-\end{itemize}
-
-\subsection*{Especificações e ferramentas Minecraft referenciadas}
-
-\begin{itemize}[leftmargin=1.4em,itemsep=0.3em,topsep=0.3em]
-  \item \textbf{Sponge Project.} \emph{Sponge Schematic Specification, version~2}.
-        \href{https://github.com/SpongePowered/Schematic-Specification}{github.com/SpongePowered/Schematic-Specification}.
-        --- formato de arquivo \code{.schem} (gzip + NBT) que o Block Round
-        exporta. Carregável por WorldEdit, Litematica e MCEdit.
-
-  \item \textbf{EngineHub.} \emph{WorldEdit Documentation}.
-        \href{https://worldedit.enginehub.org/}{worldedit.enginehub.org}.
-        --- referência oficial para os comandos \cmd{//sphere}, \cmd{//hsphere},
-        \cmd{//ellipsoid}, \cmd{//cyl}, \cmd{//schem load} citados ao longo do documento.
-
-  \item \textbf{Mojang AB.} \emph{Minecraft Wiki --- Inventory}.
-        \href{https://minecraft.wiki/w/Inventory}{minecraft.wiki/w/Inventory}.
-        --- referência sobre slots, stacks, baús simples (27 slots) e
-        baús duplos (54 slots) usados na §17.
-
-  \item \textbf{Mojang AB.} \emph{Minecraft Wiki --- Commands/fill, /clone}.
-        \href{https://minecraft.wiki/w/Commands/fill}{minecraft.wiki/w/Commands/fill},
-        \href{https://minecraft.wiki/w/Commands/clone}{minecraft.wiki/w/Commands/clone}.
-        --- comandos vanilla \cmd{/fill} e \cmd{/clone} citados nas §17 e §20.
-
-  \item \textbf{Masady} (\emph{Litematica} mod).
-        \href{https://github.com/maruohon/litematica}{github.com/maruohon/litematica}.
-        --- mod do Minecraft Java Edition que importa schematics e exibe
-        um fantasma translúcido da construção a executar.
-\end{itemize}
-
-\subsection*{Geometria, álgebra linear e teoria de grupos}
-
-\begin{itemize}[leftmargin=1.4em,itemsep=0.3em,topsep=0.3em]
-  \item \textbf{Lima, E.~L.} \emph{Geometria Analítica e Álgebra Linear}. Coleção
-        Matemática Universitária, IMPA, 2.\textordmasculine{} ed., 2014.
-        --- equação implícita da elipse, álgebra de planos no $\mathbb{R}^3$,
-        coordenadas esféricas. Base do conteúdo das §3, §9 e §13.
-
-  \item \textbf{Armstrong, M.~A.} \emph{Groups and Symmetry}. Undergraduate Texts in
-        Mathematics, Springer, 1988.
-        --- exposição introdutória ao grupo octaédrico $O_h$ e seus subgrupos,
-        usada na §20.
-
-  \item \textbf{Coxeter, H.~S.~M.} \emph{Regular Polytopes}. 3.\textordmasculine{} ed., Dover, 1973.
-        --- referência canônica para os grupos de simetria dos sólidos regulares,
-        incluindo o tratamento detalhado de $O_h$ de ordem 48 mencionado na §20.
-
-  \item \textbf{Hilbert, D.; Cohn-Vossen, S.} \emph{Geometry and the Imagination}.
-        AMS Chelsea, 1990 [orig.~1932].
-        --- tratamento clássico de quádricas e visualização geométrica,
-        base intuitiva da §9.
-\end{itemize}
-
-\subsection*{Algoritmos, estruturas de dados, complexidade}
-
-\begin{itemize}[leftmargin=1.4em,itemsep=0.3em,topsep=0.3em]
-  \item \textbf{Cormen, T.~H.; Leiserson, C.~E.; Rivest, R.~L.; Stein, C.}
-        \emph{Introduction to Algorithms}. 4.\textordmasculine{} ed., MIT Press, 2022.
-        --- análise de complexidade dos três algoritmos da §4--6, divisão
-        com teto da §17.
-
-  \item \textbf{Wirth, N.} \emph{Algorithms + Data Structures = Programs}.
-        Prentice-Hall, 1976.
-        --- exposição clássica do algoritmo de Bresenham para retas e
-        sua extensão para circunferências.
-\end{itemize}
-
-\subsection*{Recursos online complementares}
-
-\begin{itemize}[leftmargin=1.4em,itemsep=0.3em,topsep=0.3em]
-  \item Block Round --- aplicativo: \href{https://vinisouza128.github.io/block-round/}{vinisouza128.github.io/block-round/}.
-  \item Block Round --- repositório: \href{https://github.com/ViniSouza128/block-round}{github.com/ViniSouza128/block-round}.
-  \item Projeto irmão Pixel Round (versão sem texturas Minecraft):
-        \href{https://github.com/ViniSouza128/pixel-round}{github.com/ViniSouza128/pixel-round}.
-  \item Plano de aula em pt-BR (3.\textordmasculine{} ano EM):
-        \href{https://vinisouza128.github.io/block-round/docs_aula/Plano_de_Aula_pt-BR.pdf}{docs\_aula/Plano\_de\_Aula\_pt-BR.pdf}.
-\end{itemize}
-""",
-}
 
 if __name__ == "__main__":
     import io

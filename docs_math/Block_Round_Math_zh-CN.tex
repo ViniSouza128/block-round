@@ -46,9 +46,20 @@
             linkcolor=linkc,
             urlcolor=linkc,
             citecolor=linkc,
+            breaklinks=true,
             bookmarks=true,bookmarksopen=true,
             pdftitle={Block Round — 项目的数学原理},
             pdfauthor={Vinícius Rodrigues de Souza}]{hyperref}
+% xurl permite quebrar URLs em qualquer caractere (alternativa a url
+% que so quebra em "." e "/"). Carregado DEPOIS de hyperref.
+\usepackage{xurl}
+
+% emergencystretch da fold ao motor de justificacao quando ele falha em
+% encaixar uma linha mesmo apos quebrar URLs longas. 1.5em (~18pt) basta
+% para absorver os 2-8pt de overhang em paragrafos densos da bibliografia
+% sem deixar TeX desperar e quebrar URLs char-a-char (o que acontecia
+% com 3em + \Urlmuskip stretch positivo).
+\setlength{\emergencystretch}{1.5em}
 
 \color{ink}
 
@@ -82,8 +93,7 @@
   colback=accent!7, colframe=accent!50!rule, boxrule=0.6pt, arc=2pt,
   left=10pt,right=10pt,top=8pt,bottom=8pt,
   before skip=10pt, after skip=10pt,
-  breakable,
-  before={\par\needspace{5\baselineskip}}
+  breakable
 }
 
 \setlength{\parskip}{0.75em}
@@ -93,6 +103,11 @@
 \newcommand{\code}[1]{\texttt{\small #1}}
 \newcommand{\acc}[1]{\textcolor{accent}{\textbf{#1}}}
 \newcommand{\cmd}[1]{\textcolor{earth}{\texttt{\small #1}}}
+% biblink: link clicavel cujo texto de exibicao pode quebrar em qualquer
+% caractere (igual \url, via xurl). Evita URLs vazando alem da margem
+% direita. \nolinkurl formata como URL sem criar link; o \href externo
+% prove a clicabilidade.
+\newcommand{\biblink}[2]{\href{#1}{\nolinkurl{#2}}}
 
 \begin{document}
 
@@ -184,7 +199,23 @@ $\displaystyle d_x = \dfrac{i+\tfrac{1}{2}-c_x}{r_x},\qquad
 \textbf{Minecraft 映射。} 在生存模式中建塔时，用户通常希望基础是\emph{宽而扁的圆}，向上逐渐变小。每层楼都是同一隐式椭圆方程的应用，半轴相同但 $z$ 不同。Block Round 一次计算 2D 层，用户通过每层 \cmd{/clone} 命令复制该层。
 \end{minec}
 
-
+\begin{figure}[!ht]
+\centering
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d10_eucl.png}
+  \caption{\emph{欧几里得}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d10_bres.png}
+  \caption{\emph{Bresenham}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d10_thr.png}
+  \caption{\emph{阈值}}
+\end{subfigure}
+\caption{在三种判定下直径 $D=10$ 的同一圆周。每幅图显示对应版本的不等式 $d_x^2+d_y^2\leq 1$ 所标记的单元集合,使用 Minecraft 的 \emph{cobblestone} 材质渲染。注意行间过渡、角点单元和基本方位的差异——三种在不同判定下都数学正确的答案。}
+\label{fig:comp-d10}
+\end{figure}
 
 % =============================================================================
 \section{欧氏算法（距离测试）}
@@ -311,10 +342,26 @@ h_V &= b(i,j{-}1) \;\vee\; b(i,j{+}1).
 \end{align*}
 
 \begin{minec}
-\textbf{Minecraft 映射。} 对于 $D=20$ 的玻璃圆顶（中空），粗模式产生 $608$ 块的\emph{密封}外壳，细模式约 $510$ 块 —— 多出的约 $100$ 块是对角缝合，防止环境光从对角缝隙漏进。
+\textbf{Minecraft 映射。} 对于 $D=20$ 的玻璃圆顶（中空），粗模式产生 $608$ 块的\emph{密封}外壳，细模式约 $510$ 块 —— 多出的约 $100$ 块是对角桥补充了细模式留下的对角空体素，防止环境光从这些空气格漏入。
 \end{minec}
 
-
+\begin{figure}[!ht]
+\centering
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d20_filled.png}
+  \caption{\emph{填充}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d20_thin.png}
+  \caption{\emph{细 (\emph{1 体素})}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d20_thick.png}
+  \caption{\emph{粗}}
+\end{subfigure}
+\caption{同一 $D=20$ 欧几里得圆周的三种渲染模式。\emph{细}模式对应离散拓扑边界 ($\partial F$);\emph{粗}模式增加对角块以封闭 $45^\circ$ 的孔洞,这对密封构造(水下玻璃/冰穹顶)至关重要。}
+\label{fig:modes}
+\end{figure}
 
 % =============================================================================
 \section{离散面积计算}
@@ -350,7 +397,19 @@ a_\xi = \frac{\xi + \tfrac{1}{2} - c_\xi}{r_\xi}\;\;(\xi \in \{x,y,z\}),
 \textbf{Minecraft 映射。} $W=20$、$H=10$、$D=20$ 的椭球产生\emph{扁平球}，适合地下圆顶或体育馆顶。体积约 $2\,094$ 块（$33$ 堆）。等效 WorldEdit 命令：\cmd{//ellipsoid stone 10 5 10}。
 \end{minec}
 
-
+\begin{figure}[!ht]
+\centering
+\begin{subfigure}[t]{0.46\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_sphere_d10.png}
+  \caption{球体 $D=10$, $r_x=r_y=r_z=5$.}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.46\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_ellipsoid.png}
+  \caption{椭球体 $W=20,\,H=10,\,D=12$.}
+\end{subfigure}
+\caption{$\mathbb{R}^3$ 中的体素化。每个立方体是一个体素;以其中心坐标 $(i,j,k)$ 代入隐式方程 $a_x^2+a_y^2+a_z^2\leq 1$ 进行检验。表面上可见的阶梯是离散化的数学必然结果——正是赋予 Minecraft 视觉标识的特性。}
+\label{fig:3d-shapes}
+\end{figure}
 
 % =============================================================================
 \section{体素化与体积计算}
@@ -407,7 +466,23 @@ X 和 Y 平面垂直于坐标轴，法向量分别为 $(1,0,0)$ 和 $(0,1,0)$。
 \textbf{Minecraft 映射。} 球上 Y 轴 $50\%$ 切割产生标准的\emph{圆顶}，体积减半。对 $D=16$：$V_{\mathrm{full}} = 2\,145$ 块，$V_{\mathrm{圆顶}} \approx 1\,095$ 块（约 $18$ 堆）。$50\%$ 的对角切割产生\emph{半碗}截面，常用于喷泉内部和圆形剧场座位。
 \end{minec}
 
-
+\begin{figure}[!ht]
+\centering
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_cut_y.png}
+  \caption{$Y$ 切 50\%(穹顶)}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_cut_x.png}
+  \caption{$X$ 切 50\%}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_cut_diag.png}
+  \caption{对角 50\%}
+\end{subfigure}
+\caption{对同一 $D=16$ 球体的三种切法,均保留 50\% 体积。$Y$ 切产生经典穹顶 $V_{\mathrm{穹顶}}=\tfrac{2}{3}\pi r^3$;对角切暴露出该切割平面特有的斜边 $x+y=k$。}
+\label{fig:cuts}
+\end{figure}
 
 % =============================================================================
 \section{粗 3D 模式：通过切片的三维化}
@@ -419,10 +494,10 @@ X 和 Y 平面垂直于坐标轴，法向量分别为 $(1,0,0)$ 和 $(0,1,0)$。
 \bigcup_{y} T\bigl(S_y(y)\bigr) \;\cup\;
 \bigcup_{x} T\bigl(S_x(x)\bigr)
 \]
-结果随后与切割保留的集合相交。背后理论是\acc{数字拓扑}：粗算子保证外壳的 \emph{26-连通性}，对 Minecraft 建造有用，因为对角相邻体素不通过面相接 —— 光、水和生物穿过对角缝隙就像墙不在那里。
+结果随后与切割保留的集合相交。背后理论是\acc{数字拓扑}：粗算子保证外壳的 \emph{26-连通性}，对 Minecraft 建造有用，因为对角相邻体素不通过面相接 —— 光、水和生物穿过这些对角的空体素（即空气方块）就像墙不在那里。
 
 \begin{minec}
-\textbf{Minecraft 映射。} 对于生存模式中海底神殿上的水下玻璃圆顶，粗模式是强制的：对角桥防止水通过细模式留下的对角缝隙渗入。代价：$D=20$ 粗模式圆顶约需 $380$ 块玻璃，对比细模式约 $320$ 块 —— 多出 $19\%$ 材料换取完全密封。
+\textbf{Minecraft 映射。} 对于生存模式中海底神殿上的水下玻璃圆顶，粗模式是强制的：对角桥填补了细模式留下的对角空体素（空气方块），从而阻止水从这些空气格渗入。代价：$D=20$ 粗模式圆顶约需 $380$ 块玻璃，对比细模式约 $320$ 块 —— 多出 $19\%$ 材料换取完全密封。
 \end{minec}
 
 % =============================================================================
@@ -471,7 +546,23 @@ I \;=\; \max\bigl(0,\;\mathbf{n}\cdot\mathbf{l}\bigr)\cdot \mathit{纹理},
 \]
 三个因子对应每个面法线与固定光照方向夹角的余弦。在 \emph{Smooth} 中因子相近（面相似）；在 \emph{Classic} 中因子差异更大（强对比，原版 Minecraft 的外观）。\emph{Blocks} 额外引入几何内缩 —— 每个面向内的常数平移，以揭示体素间的边界，即使相邻体素带相同纹理。对发光方块（萤石、海晶灯、菌光体、岩浆、哭泣的黑曜石）Lambert 项被常数 $I = \mathit{发光因子} \cdot \mathit{纹理}$ 替换。
 
-
+\begin{figure}[!ht]
+\centering
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_shading_classic.png}
+  \caption{\emph{Classic} (强对比)}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_shading_blocks.png}
+  \caption{\emph{Blocks} (默认)}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_shading_smooth.png}
+  \caption{\emph{Smooth} (面相近)}
+\end{subfigure}
+\caption{对同样三个可见面应用三种光照倍数。\emph{Classic} 给出标志性的 Minecraft 原版外观;\emph{Smooth} 降低对比度以呈现平滑表面;\emph{Blocks} 为中间默认值,其几何内嵌即使在材质相同时也能显露体素边界。}
+\label{fig:shading}
+\end{figure}
 
 % =============================================================================
 \section{过渡：从连续数学到游戏内建造}
@@ -499,8 +590,10 @@ I \;=\; \max\bigl(0,\;\mathbf{n}\cdot\mathbf{l}\bigr)\cdot \mathit{纹理},
 \]
 \emph{单箱}容 $27 \times 64 = 1\,728$ 个。\emph{潜影盒}（便携容器）容 $27 \times 64 = 1\,728$ 个，但本身可放\emph{进}箱格，因此装满 $54$ 个潜影盒的双箱可容 $54 \times 1\,728 = 93\,312$ 个。对超大型建造，相关容量单位是\emph{装满潜影盒的双箱}。
 
+\needspace{18\baselineskip}
 \subsection{参考表：标准球}
 下表将标准实心球体积转换为采集计划。最后一列建议每个直径的建造场景：
+\nopagebreak
 
 \vspace{0.4em}
 \begin{center}
@@ -543,7 +636,19 @@ F_{\mathrm{exp}} \;=\; \sum_{\mathbf{v}\in V_{\mathrm{solid}}}\;\sum_{\mathbf{n}
 \]
 对 $D=16$ 球（实心模式），$V = 2\,145$，$V_{\mathrm{边界}} \approx 432$，$F_{\mathrm{exp}} \approx 1\,184$ 个可见面 —— 建造只需约 $432$ 个\emph{可见}方块；其余 $1\,713$ 块是内部，可用最便宜的方块（泥土、圆石）填充。覆盖层让玩家立即发现外壳中遗漏的方块。
 
-
+\begin{figure}[!ht]
+\centering
+\begin{subfigure}[t]{0.40\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_overlay_off.png}
+  \caption{叠加 \emph{OFF}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.40\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_overlay_on.png}
+  \caption{叠加 \emph{ON}(默认)}
+\end{subfigure}
+\caption{同一体素集合在外露棱上有/无黑色轮廓的对比。开启 \emph{highlight overlay} 时,外壳上缺失的方块会产生肉眼一瞥即可察觉的图案不连续——生存建造中的快速验证工具。}
+\label{fig:overlay}
+\end{figure}
 
 % =============================================================================
 \section{逐层建造（水平分解）}
@@ -603,7 +708,12 @@ T_{\mathrm{full}}
 \]
 对生存中 $N = 7\,238$（$T_{\mathrm{block}} = 2$\,s，$T_{\mathrm{clone}} = 0{,}05$\,s）：完整 = $14\,476$\,s $\approx 4$\,h $1$\,min；八分体 + 克隆 = $1\,810$\,s + $0{,}35$\,s $\approx 30$\,min。$8$ 倍加速恰好对应反射子群的阶。完整阶 $48$ 的 $O_h$ 原则上可进一步减少（$48$ 倍），但利用对角旋转需 $45°$ 旋转的建造区域，在原版 Minecraft 中很少值得设置成本。
 
-
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=0.45\linewidth]{math_3d_octants.png}
+\caption{$D=10$ 球体,正八分卦象 $(+x,+y,+z)$ 以绿色高亮。在子群 $\mathbb{Z}_2^3 \leq O_h$(阶 8,由三个坐标反射生成)的作用下,该八分卦象决定整个球——其余七个区域通过对手工构建的八分卦象施加一系列带 \emph{mode:masked} 的 \cmd{/clone} 调用得到。}
+\label{fig:octants}
+\end{figure}
 
 % =============================================================================
 \section{方块纹理与视觉构图}
@@ -620,7 +730,23 @@ Minecraft 方块不是平面着色单元，而是\emph{六个面有纹理的立�
 
 大多数方块（石头、圆石、钻石块、橡木板）\emph{六面同纹理}。多面方块（草方块、南瓜、干草捆、石英柱、所有原木、工作台、熔炉、书架、TNT）使用\emph{不同纹理}：草方块顶绿、侧草混土、底纯土；橡木原木顶底带年轮、四侧带树皮。关键的是，\emph{放置哪些体素的数学}不依赖所用纹理 —— 钻石球和圆石球同直径的轮廓完全相同。纹理决策是几何算法完成后应用的\emph{纯审美}层。
 
-
+\begin{figure}[!ht]
+\centering
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_tex_cobble.png}
+  \caption{\emph{Cobblestone}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_tex_oak.png}
+  \caption{\emph{Oak Planks}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_tex_quartz.png}
+  \caption{\emph{Quartz Block}}
+\end{subfigure}
+\caption{同一 $D=8$ 球体使用三种不同方块渲染。体素化轮廓(数学)在三者中完全相同:算法选定体素;材质是事后施加的纯粹美学层,既不改变体积也不改变拓扑。}
+\label{fig:textures}
+\end{figure}
 
 \subsection{方块家族与色调}
 对生存玩家从数十种可用方块中选择，相关问题不是纹理索引而是\emph{色调家族}：浅/深、暖/冷、均匀/有纹样。下表分类 Block Round 建造中最常用的方块：
@@ -665,6 +791,103 @@ deepslate          & 石  & 暗  & 地下，点缀 \\
 Block Round 在 Minecraft 工具生态系统中占据小但数学上丰富的一块：位于纯几何工具（WorldEdit、Litematica）和纯视觉工具（资源包、着色器）之间，提供从连续方程到离散放置计划的明确、可推导、可重现的桥梁。姊妹项目 Pixel Round 提供相同算法但没有 Minecraft 层，适合传统像素艺术和体素艺术应用。两项目共同例证同一连续到离散数学管线如何支持截然不同的艺术和构造工作流。
 
 % =============================================================================
+\section*{\color{accent}参考文献}
+\addcontentsline{toc}{section}{参考文献}
+\label{sec:bib}
+
+\subsection*{技术参考(光栅化与数字拓扑)}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=0.3em,topsep=0.3em]
+  \item \textbf{Bresenham, J. E.} \emph{Algorithm for computer control of a digital plotter}.
+        IBM Systems Journal, vol.~4, n.~1, p.~25--30, 1965.
+        可获取于 \biblink{https://doi.org/10.1147/sj.41.0025}{doi:10.1147/sj.41.0025}.
+        --- 本文档第 §5 节所讨论的整数中点算法的原始论文。
+
+  \item \textbf{Pitteway, M.~L.~V.} \emph{Algorithm for drawing ellipses or hyperbolae
+        with a digital plotter}. The Computer Journal, vol.~10, n.~3, p.~282--289, 1967.
+        可获取于 \biblink{https://doi.org/10.1093/comjnl/10.3.282}{doi:10.1093/comjnl/10.3.282}.
+        --- 将 Bresenham 算法推广至任意圆锥曲线,是第 §5 节中椭圆扩展的基础。
+
+  \item \textbf{Kappel, A.} \emph{An ellipse-drawing algorithm for raster displays}.
+        收录于 \emph{Fundamental Algorithms for Computer Graphics} (R.~A.~Earnshaw, ed.),
+        NATO ASI Series F-17, Springer, 1985, p.~257--280.
+        --- 椭圆实现中所采用的两区域公式。
+
+  \item \textbf{Klette, R.; Rosenfeld, A.} \emph{Digital Geometry: Geometric Methods
+        for Digital Picture Analysis}. Morgan Kaufmann, 2004. 656 页.
+        --- 数字拓扑、边界算子 ($\partial F$)、4-/6-/26-连通性的标准参考。用于 §7、§12 和 §18。
+
+  \item \textbf{Foley, J.~D.; van Dam, A.; Feiner, S.~K.; Hughes, J.~F.}
+        \emph{Computer Graphics: Principles and Practice}. 第3版, Addison-Wesley, 2014.
+        --- 光栅化、光照模型、透视投影的经典论述。与 §13--15 相关。
+\end{itemize}
+
+\subsection*{所引用的 Minecraft 规范与工具}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=0.3em,topsep=0.3em]
+  \item \textbf{Sponge Project.} \emph{Sponge Schematic Specification, version~2}.
+        \biblink{https://github.com/SpongePowered/Schematic-Specification}{github.com/SpongePowered/Schematic-Specification}.
+        --- Block Round 导出的 \code{.schem} 文件格式(gzip + NBT)。可由 WorldEdit、Litematica 和 MCEdit 加载。
+
+  \item \textbf{EngineHub.} \emph{WorldEdit Documentation}.
+        \biblink{https://worldedit.enginehub.org/}{worldedit.enginehub.org}.
+        --- 全文中引用的 \cmd{//sphere}、\cmd{//hsphere}、\cmd{//ellipsoid}、\cmd{//cyl}、\cmd{//schem load} 命令的官方参考。
+
+  \item \textbf{Mojang AB.} \emph{Minecraft Wiki --- Inventory}.
+        \biblink{https://minecraft.wiki/w/Inventory}{minecraft.wiki/w/Inventory}.
+        --- §17 中所用关于槽位、堆叠、单箱(27 槽)和双箱(54 槽)的参考资料。
+
+  \item \textbf{Mojang AB.} \emph{Minecraft Wiki --- Commands/fill, /clone}.
+        \biblink{https://minecraft.wiki/w/Commands/fill}{minecraft.wiki/w/Commands/fill},
+        \biblink{https://minecraft.wiki/w/Commands/clone}{minecraft.wiki/w/Commands/clone}.
+        --- §17 与 §20 中引用的原版命令 \cmd{/fill} 与 \cmd{/clone}。
+
+  \item \textbf{Masady} (\emph{Litematica} mod).
+        \biblink{https://github.com/maruohon/litematica}{github.com/maruohon/litematica}.
+        --- 导入示意图并以半透明幽灵显示待施工建筑的 Minecraft Java 版模组。
+\end{itemize}
+
+\subsection*{几何、线性代数与群论}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=0.3em,topsep=0.3em]
+  \item \textbf{王萼芳, 石生明 (编)} \emph{高等代数}. 高等教育出版社, 北京, 2003.
+        --- 椭圆的隐式方程、$\mathbb{R}^3$ 中的平面代数、球坐标。
+        §3、§9 与 §13 内容的基础。
+
+  \item \textbf{Armstrong, M.~A.} \emph{Groups and Symmetry}. Undergraduate Texts in
+        Mathematics, Springer, 1988.
+        --- 八面体群 $O_h$ 及其子群的入门论述,用于 §20。
+
+  \item \textbf{Coxeter, H.~S.~M.} \emph{Regular Polytopes}. 第3版, Dover, 1973.
+        --- 正多面体对称群的经典参考,包含 §20 中提及的 48 阶 $O_h$ 的详细处理。
+
+  \item \textbf{Hilbert, D.; Cohn-Vossen, S.} \emph{Geometry and the Imagination}.
+        AMS Chelsea, 1990 [orig.~1932].
+        --- 二次曲面与几何可视化的经典论述,§9 的直观基础。
+\end{itemize}
+
+\subsection*{算法、数据结构、复杂度}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=0.3em,topsep=0.3em]
+  \item \textbf{Cormen, T.~H.; Leiserson, C.~E.; Rivest, R.~L.; Stein, C.}
+        \emph{Introduction to Algorithms}. 第4版, MIT Press, 2022.
+        --- §4--6 三种算法的复杂度分析,§17 的向上取整除法。
+
+  \item \textbf{Wirth, N.} \emph{Algorithms + Data Structures = Programs}.
+        Prentice-Hall, 1976.
+        --- Bresenham 直线算法及其向圆周推广的经典论述。
+\end{itemize}
+
+\subsection*{补充在线资源}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=0.3em,topsep=0.3em]
+  \item Block Round --- 应用程序: \biblink{https://vinisouza128.github.io/block-round/}{vinisouza128.github.io/block-round/}.
+  \item Block Round --- 代码仓库: \biblink{https://github.com/ViniSouza128/block-round}{github.com/ViniSouza128/block-round}.
+  \item 姊妹项目 Pixel Round(无 Minecraft 材质版本):
+        \biblink{https://github.com/ViniSouza128/pixel-round}{github.com/ViniSouza128/pixel-round}.
+  \item pt-BR 教案(高中3年级):
+        \biblink{https://vinisouza128.github.io/block-round/docs_aula/Plano_de_Aula_pt-BR.pdf}{docs\_aula/Plano\_de\_Aula\_pt-BR.pdf}.
+\end{itemize}
 
 
 \clearpage
@@ -705,7 +928,8 @@ Block Round 在 Minecraft 工具生态系统中占据小但数学上丰富的一
 
 \vspace{0.4em}
 \begin{center}
-\begin{tabular}{@{}lll@{}}
+\small
+\begin{tabularx}{\textwidth}{@{}llX@{}}
 \toprule
 \textbf{命令} & \textbf{模组 / 来源} & \textbf{结果} \\
 \midrule
@@ -716,7 +940,7 @@ Block Round 在 Minecraft 工具生态系统中占据小但数学上丰富的一
 \cmd{/fill ... stone}      & 原版 & 用一种方块填充立方体  \\
 \cmd{/clone ... mode:masked} & 原版 & 将区域复制到新位置  \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{center}
 
 对 Litematica 用户工作流不同：而不是运行命令，将 schematic 文件（Block Round 导出 \code{.schem}，Sponge 格式 v2）加载到 Litematica 模组中，该模组显示玩家逐块放置的图形的半透明幽灵。这是最接近 WorldEdit 创造体验的生存模式等价物。
@@ -799,8 +1023,8 @@ Block Round 应用提供一组与画布角按钮对应的键盘快捷键。列�
   \item M.~L.~V.~Pitteway, \emph{Algorithm for drawing ellipses or hyperbolae with a digital plotter}, Computer Journal, vol.~10, 1967 ── 将 Bresenham 推广到任意圆锥曲线。
   \item A.~Kappel, \emph{An ellipse-drawing algorithm for raster displays}, ACM Comm.\ vol.~28, 1985 ── 第 5 节使用的两区域椭圆公式。
   \item R.~Klette 与 A.~Rosenfeld, \emph{Digital Geometry: Geometric Methods for Digital Picture Analysis}, Morgan Kaufmann, 2004 ── 数字拓扑和第 7、18 节边界算子的标准参考。
-  \item WorldEdit 文档, \emph{enginehub.org/worldedit/} ── 本文档中使用的 \cmd{//sphere}、\cmd{//hsphere}、\cmd{//ellipsoid}、\cmd{//copy} 系列命令的官方参考。
-  \item Sponge Schematic 规范 v2, \emph{github.com/SpongePowered/Schematic-Specification} ── Block Round 导出为 \code{.schem} 的文件格式。
+  \item WorldEdit 文档, \biblink{https://enginehub.org/worldedit/}{enginehub.org/worldedit/} ── 本文档中使用的 \cmd{//sphere}、\cmd{//hsphere}、\cmd{//ellipsoid}、\cmd{//copy} 系列命令的官方参考。
+  \item Sponge Schematic 规范 v2, \biblink{https://github.com/SpongePowered/Schematic-Specification}{github.com/SpongePowered/Schematic-Specification} ── Block Round 导出为 \code{.schem} 的文件格式。
 \end{itemize}
 
 第 22 节列出的八个理论领域各自有教科书级处理，远超单一技术文档所能总结的范围。Block Round 的贡献不在于理论本身，而在于具体综合：将经典光栅化应用于带纹理体素的 Minecraft 设置，并明确处理通常在纯几何工具中省略的物品栏和对称成本考虑。
@@ -815,7 +1039,7 @@ Block Round 应用提供一组与画布角按钮对应的键盘快捷键。列�
 
 \vspace{0.6em}
 
-Block Round 由 Vinícius Rodrigues de Souza 维护。姊妹项目 Pixel Round 可在 \emph{github.com/ViniSouza128/pixel-round} 获取；当前 Block Round 仓库位于 \emph{github.com/ViniSouza128/block-round}。
+Block Round 由 Vinícius Rodrigues de Souza 维护。姊妹项目 Pixel Round 可在 \biblink{https://github.com/ViniSouza128/pixel-round}{github.com/ViniSouza128/pixel-round} 获取；当前 Block Round 仓库位于 \biblink{https://github.com/ViniSouza128/block-round}{github.com/ViniSouza128/block-round}。
 
 欢迎通过项目仓库的 issue tracker 提交评论、修正和翻译改进。对八种非英语区域设置的母语审校特别受重视，因为本地化经过实质性审校，但技术 - 数学术语会因母语者修正而受益。
 

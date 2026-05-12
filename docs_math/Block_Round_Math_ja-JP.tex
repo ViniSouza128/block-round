@@ -46,9 +46,20 @@
             linkcolor=linkc,
             urlcolor=linkc,
             citecolor=linkc,
+            breaklinks=true,
             bookmarks=true,bookmarksopen=true,
             pdftitle={Block Round — プロジェクトの数学},
             pdfauthor={Vinícius Rodrigues de Souza}]{hyperref}
+% xurl permite quebrar URLs em qualquer caractere (alternativa a url
+% que so quebra em "." e "/"). Carregado DEPOIS de hyperref.
+\usepackage{xurl}
+
+% emergencystretch da fold ao motor de justificacao quando ele falha em
+% encaixar uma linha mesmo apos quebrar URLs longas. 1.5em (~18pt) basta
+% para absorver os 2-8pt de overhang em paragrafos densos da bibliografia
+% sem deixar TeX desperar e quebrar URLs char-a-char (o que acontecia
+% com 3em + \Urlmuskip stretch positivo).
+\setlength{\emergencystretch}{1.5em}
 
 \color{ink}
 
@@ -82,8 +93,7 @@
   colback=accent!7, colframe=accent!50!rule, boxrule=0.6pt, arc=2pt,
   left=10pt,right=10pt,top=8pt,bottom=8pt,
   before skip=10pt, after skip=10pt,
-  breakable,
-  before={\par\needspace{5\baselineskip}}
+  breakable
 }
 
 \setlength{\parskip}{0.75em}
@@ -93,6 +103,11 @@
 \newcommand{\code}[1]{\texttt{\small #1}}
 \newcommand{\acc}[1]{\textcolor{accent}{\textbf{#1}}}
 \newcommand{\cmd}[1]{\textcolor{earth}{\texttt{\small #1}}}
+% biblink: link clicavel cujo texto de exibicao pode quebrar em qualquer
+% caractere (igual \url, via xurl). Evita URLs vazando alem da margem
+% direita. \nolinkurl formata como URL sem criar link; o \href externo
+% prove a clicabilidade.
+\newcommand{\biblink}[2]{\href{#1}{\nolinkurl{#2}}}
 
 \begin{document}
 
@@ -184,7 +199,23 @@ $\displaystyle d_x = \dfrac{i+\tfrac{1}{2}-c_x}{r_x},\qquad
 \textbf{Minecraft へのマッピング。} サバイバルで塔を建てる場合、ユーザーは基礎には \emph{幅広く平らな円} を、塔が上がるにつれて徐々に小さい円を望むのが普通である。各階は同じ半軸で異なる $z$ を持つ陰関数方程式の適用である。Block Round は 2D 層を一度計算し、ユーザーは \cmd{/clone} で各階を複製する。
 \end{minec}
 
-
+\begin{figure}[!ht]
+\centering
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d10_eucl.png}
+  \caption{\emph{ユークリッド}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d10_bres.png}
+  \caption{\emph{Bresenham}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d10_thr.png}
+  \caption{\emph{しきい値}}
+\end{subfigure}
+\caption{3 つの基準による直径 $D=10$ の同一円周。各図は対応する不等式 $d_x^2+d_y^2\leq 1$ により選ばれたセル集合を示し,Minecraft の \emph{cobblestone} テクスチャで描画されている。行間の遷移,角セル,基本方位の違いに注目——いずれも異なる基準のもとで数学的に正しい 3 つの答えである。}
+\label{fig:comp-d10}
+\end{figure}
 
 % =============================================================================
 \section{ユークリッドアルゴリズム（距離テスト）}
@@ -311,10 +342,26 @@ h_V &= b(i,j{-}1) \;\vee\; b(i,j{+}1).
 \end{align*}
 
 \begin{minec}
-\textbf{Minecraft へのマッピング。} $D=20$ のガラスドーム（中空）について、太モードは $608$ ブロックの \emph{気密な} 外殻を生むのに対し、細モードでは約 $510$ ブロック ─── 余分な $\sim 100$ ブロックは対角縫合で、環境光が対角の隙間から漏れるのを防ぐ。
+\textbf{Minecraft へのマッピング。} $D=20$ のガラスドーム（中空）について、太モードは $608$ ブロックの \emph{気密な} 外殻を生むのに対し、細モードでは約 $510$ ブロック ─── 余分な $\sim 100$ ブロックは対角橋であり,細モードが残す対角に空いたセル(空気ブロック)を通って環境光が漏れるのを防ぐ。
 \end{minec}
 
-
+\begin{figure}[!ht]
+\centering
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d20_filled.png}
+  \caption{\emph{塗りつぶし}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d20_thin.png}
+  \caption{\emph{細 (\emph{1 ボクセル})}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d20_thick.png}
+  \caption{\emph{太}}
+\end{subfigure}
+\caption{同一の $D=20$ ユークリッド円周に対する 3 つの描画モード。\emph{細}モードは離散位相境界 ($\partial F$) に対応し,\emph{太}モードは $45^\circ$ の穴を塞ぐ対角ブロックを追加する——水中のガラス/氷ドームなど密閉構造には必須である。}
+\label{fig:modes}
+\end{figure}
 
 % =============================================================================
 \section{離散面積の計算}
@@ -350,7 +397,19 @@ a_\xi = \frac{\xi + \tfrac{1}{2} - c_\xi}{r_\xi}\;\;(\xi \in \{x,y,z\}),
 \textbf{Minecraft へのマッピング。} $W=20$、$H=10$、$D=20$ の楕円体は \emph{扁平な球} を生み、地下ドームや球技場の屋根に最適。体積は約 $2\,094$ ブロック（$33$ スタック）。等価な WorldEdit コマンド：\cmd{//ellipsoid stone 10 5 10}。
 \end{minec}
 
-
+\begin{figure}[!ht]
+\centering
+\begin{subfigure}[t]{0.46\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_sphere_d10.png}
+  \caption{球 $D=10$, $r_x=r_y=r_z=5$.}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.46\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_ellipsoid.png}
+  \caption{楕円体 $W=20,\,H=10,\,D=12$.}
+\end{subfigure}
+\caption{$\mathbb{R}^3$ におけるボクセル化。各立方体が 1 ボクセルで,その中心座標 $(i,j,k)$ を陰関数 $a_x^2+a_y^2+a_z^2\leq 1$ に代入して判定する。表面に見える階段状は離散化の数学的帰結である——まさに Minecraft に視覚的アイデンティティを与えている特性に他ならない。}
+\label{fig:3d-shapes}
+\end{figure}
 
 % =============================================================================
 \section{ボクセル化と体積計算}
@@ -407,7 +466,23 @@ X と Y 平面は座標軸に垂直で、法線ベクトルは $(1,0,0)$ と $(0
 \textbf{Minecraft へのマッピング。} 球に対する Y 軸 $50\%$ 切断は体積の半分の標準的な \emph{ドーム} を生む。$D=16$ で：$V_{\mathrm{full}} = 2\,145$ ブロック、$V_{\mathrm{dome}} \approx 1\,095$ ブロック（約 $18$ スタック）。$50\%$ の対角切断は \emph{半ボウル} 断面を生み、噴水内部や円形劇場の座席によく使われる。
 \end{minec}
 
-
+\begin{figure}[!ht]
+\centering
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_cut_y.png}
+  \caption{$Y$ カット 50\%(ドーム)}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_cut_x.png}
+  \caption{$X$ カット 50\%}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_cut_diag.png}
+  \caption{対角 50\%}
+\end{subfigure}
+\caption{同一の $D=16$ 球に対する 3 通りの切断で,いずれも体積の 50\% を保持する。$Y$ 切断は古典的なドーム $V_{\mathrm{dome}}=\tfrac{2}{3}\pi r^3$ を与え,対角切断はその切断面に特徴的な斜辺 $x+y=k$ を露出させる。}
+\label{fig:cuts}
+\end{figure}
 
 % =============================================================================
 \section{太 3D モード：スライスによる三次元化}
@@ -419,7 +494,7 @@ X と Y 平面は座標軸に垂直で、法線ベクトルは $(1,0,0)$ と $(0
 \bigcup_{y} T\bigl(S_y(y)\bigr) \;\cup\;
 \bigcup_{x} T\bigl(S_x(x)\bigr)
 \]
-結果は切断によって保存された集合と共通部分を取る。背景理論は \acc{数字位相}：太演算子はシェルの \emph{26-連結性}（対角を含む隣接）を保証する。これは Minecraft 建築で有用である。なぜなら対角に隣接するボクセルは面で触れない ─── 光、水、生物が対角の隙間を壁がないかのように通過する。
+結果は切断によって保存された集合と共通部分を取る。背景理論は \acc{数字位相}：太演算子はシェルの \emph{26-連結性}（対角を含む隣接）を保証する。これは Minecraft 建築で有用である。なぜなら対角に隣接するボクセルは面で触れない ─── 光,水,生物がこれらの対角に空いたセル(空気ブロック)を壁がないかのように通過する。
 
 \begin{minec}
 \textbf{Minecraft へのマッピング。} 海底神殿上のサバイバル水中ガラスドームには太モードが必須：対角橋は細モードが残す対角の亀裂から水が漏れ込むのを防ぐ。コスト：$D=20$ ドームは太モードで約 $380$ ガラスブロックに対し細モードでは約 $320$ ─── $19\%$ 多い材料と引き換えに完全封止。
@@ -471,7 +546,23 @@ I \;=\; \max\bigl(0,\;\mathbf{n}\cdot\mathbf{l}\bigr)\cdot \mathit{テクスチ�
 \]
 ここで 3 つの因子は各面の法線と固定光方向との角度の余弦に対応する。\emph{Smooth} では因子が近い（似た面）；\emph{Classic} では因子がより異なる（強コントラスト、Minecraft バニラの見た目）。\emph{Blocks} はさらに幾何的なくぼみをボクセルに導入する ─── 各面を内側に一定平行移動して、隣接するボクセルが同じテクスチャを持っていてもボクセル間境界を明らかにする。発光ブロック（グロウストーン、シーランタン、シュルームライト、マグマ、エンチャント obsidian）ではランバート項が定数 $I = \mathit{emissive\_factor} \cdot \mathit{texture}$ に置き換えられる。
 
-
+\begin{figure}[!ht]
+\centering
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_shading_classic.png}
+  \caption{\emph{Classic} (強コントラスト)}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_shading_blocks.png}
+  \caption{\emph{Blocks} (デフォルト)}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_shading_smooth.png}
+  \caption{\emph{Smooth} (面が近似)}
+\end{subfigure}
+\caption{同じ 3 つの可視面に対する 3 種類の光乗数。\emph{Classic} は Minecraft バニラの定番外観,\emph{Smooth} は滑らかな表面のためにコントラストを下げ,\emph{Blocks} は同一テクスチャでもボクセル境界を浮き上がらせる幾何的インセットを伴う中間デフォルトである。}
+\label{fig:shading}
+\end{figure}
 
 % =============================================================================
 \section{移行：連続数学からゲーム内構築へ}
@@ -499,8 +590,10 @@ Minecraft プレイヤーは $9 \times 4$ の格子として組織された 36 �
 \]
 \emph{単一チェスト} は $27 \times 64 = 1\,728$ アイテムを保持する。\emph{シュルカーボックス}（携帯可能なコンテナ）は $27 \times 64 = 1\,728$ アイテムを保持するが、それ自体をチェストスロット \emph{内} に格納できるので、$54$ 個のシュルカーボックスで埋めたラージチェストは最大 $54 \times 1\,728 = 93\,312$ アイテムを保持できる。メガ建造では関連する容量単位は \emph{シュルカーで満たされたラージチェスト} である。
 
+\needspace{18\baselineskip}
 \subsection{参照表：標準的な球}
 以下の表は標準的な充填球の体積を収集計画に変換する。最後の列は各直径の建設文脈を提案する：
+\nopagebreak
 
 \vspace{0.4em}
 \begin{center}
@@ -543,7 +636,19 @@ F_{\mathrm{exp}} \;=\; \sum_{\mathbf{v}\in V_{\mathrm{solid}}}\;\sum_{\mathbf{n}
 \]
 $D=16$ の球（充填モード）の場合、$V = 2\,145$、$V_{\mathrm{境界}} \approx 432$（外殻）、$F_{\mathrm{exp}} \approx 1\,184$ 可視面 ─── 建造は約 $432$ の \emph{見える} ブロックだけ必要で、残りの $1\,713$ ブロックは内部で最も安価なブロック（土、丸石）で埋められる。オーバーレイは外殻のブロック欠落を即座に発見できるようにする。
 
-
+\begin{figure}[!ht]
+\centering
+\begin{subfigure}[t]{0.40\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_overlay_off.png}
+  \caption{オーバーレイ \emph{OFF}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.40\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_overlay_on.png}
+  \caption{オーバーレイ \emph{ON}(デフォルト)}
+\end{subfigure}
+\caption{露出辺の黒い輪郭の有無による同一ボクセル集合の対比。\emph{highlight overlay} を ON にすると,殻に欠けたブロックがあると一目でわかるパターンの不連続が生じる——サバイバル建築中の素早い検証手段である。}
+\label{fig:overlay}
+\end{figure}
 
 % =============================================================================
 \section{層ごとの建造（水平分解）}
@@ -603,7 +708,12 @@ T_{\mathrm{full}}
 \]
 サバイバルで $N = 7\,238$ の場合（$T_{\mathrm{block}} = 2$\,s、$T_{\mathrm{clone}} = 0{,}05$\,s）：完全 = $14\,476$\,s $\approx 4$ 時間 $1$ 分；八分体 + クローン = $1\,810$\,s + $0{,}35$\,s $\approx 30$ 分。$8$ 倍の加速で、反射部分群の位数と正確に一致する。位数 $48$ の完全八面体群 $O_h$ は原理的にさらに削減できる（$48$ 倍）が、対角回転を活用するには $45°$ 回転した建造領域が必要で、バニラ Minecraft ではセットアップコストを払う価値が稀。
 
-
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=0.45\linewidth]{math_3d_octants.png}
+\caption{$D=10$ の球で,正の八分象限 $(+x,+y,+z)$ を緑で強調表示。部分群 $\mathbb{Z}_2^3 \leq O_h$(位数 8,3 つの座標反射で生成)の作用のもと,この八分象限が球全体を決定する——他の 7 領域は手作業で構築した八分象限に対し \emph{mode:masked} 付きの \cmd{/clone} を順に適用して得られる。}
+\label{fig:octants}
+\end{figure}
 
 % =============================================================================
 \section{ブロックテクスチャと視覚的構成}
@@ -620,7 +730,23 @@ Minecraft ブロックは平面に着色されたセルではなく、\emph{6 �
 
 ほとんどのブロック（石、丸石、ダイヤモンドブロック、オークの板材）は \emph{6 面すべてに同じテクスチャ} を使う。多面ブロック（草ブロック、カボチャ、干し草の俵、クォーツの柱、すべての木の原木、作業台、かまど、本棚、TNT）は頂、側、底で \emph{異なるテクスチャ} を使う：草ブロックは緑の頂、草混じり土の側、ただの土の底；オークの原木は頂と底に木目のリング、4 つの側面に樹皮を持つ。決定的に、\emph{どのボクセルを配置するかの数学} は使用するテクスチャに依存しない ─── 同じ直径のダイヤモンド球と丸石球のシルエットは同一である。テクスチャの決定は幾何アルゴリズム完了後に適用される \emph{純粋に審美的} な層である。
 
-
+\begin{figure}[!ht]
+\centering
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_tex_cobble.png}
+  \caption{\emph{Cobblestone}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_tex_oak.png}
+  \caption{\emph{Oak Planks}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_tex_quartz.png}
+  \caption{\emph{Quartz Block}}
+\end{subfigure}
+\caption{同一の $D=8$ 球を 3 種類の異なるブロックで描画。ボクセル化されたシルエット(数学)は 3 つとも同一であり,アルゴリズムがボクセルを選び,テクスチャは体積も位相も変えない後付けの純粋に美的なレイヤーに過ぎない。}
+\label{fig:textures}
+\end{figure}
 
 \subsection{ブロック族と色調}
 利用可能な数十のブロックから選ぶサバイバル建築者にとって、関連する質問はテクスチャインデックスではなく \emph{色調族}：明/暗、暖/冷、均一/パターン化。以下の表は Block Round 建造で最もよく使われるブロックを分類する：
@@ -665,6 +791,103 @@ deepslate          & 石  & 暗  & 地下、アクセント \\
 Block Round は Minecraft ツールエコシステムにおいて小さいが数学的に豊かなニッチを占める：純幾何ツール（WorldEdit、Litematica）と純視覚ツール（リソースパック、シェーダー）の間に位置し、連続方程式から離散配置プランへの明示的、導出可能、再現可能な橋を提供する。姉妹プロジェクト Pixel Round は Minecraft 層なしで同じアルゴリズムを提供し、伝統的なピクセルアートとボクセルアートアプリケーションに適している。両プロジェクトは同じ連続から離散への数学的パイプラインがいかに根本的に異なる芸術的および建設的ワークフローを支えるかを例示する。
 
 % =============================================================================
+\section*{\color{accent}参考文献}
+\addcontentsline{toc}{section}{参考文献}
+\label{sec:bib}
+
+\subsection*{技術文献(ラスタライズと離散位相)}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=0.3em,topsep=0.3em]
+  \item \textbf{Bresenham, J. E.} \emph{Algorithm for computer control of a digital plotter}.
+        IBM Systems Journal, vol.~4, n.~1, p.~25--30, 1965.
+        入手先 \biblink{https://doi.org/10.1147/sj.41.0025}{doi:10.1147/sj.41.0025}.
+        --- 本書 §5 で扱う整数ミッドポイント・アルゴリズムの原論文。
+
+  \item \textbf{Pitteway, M.~L.~V.} \emph{Algorithm for drawing ellipses or hyperbolae
+        with a digital plotter}. The Computer Journal, vol.~10, n.~3, p.~282--289, 1967.
+        入手先 \biblink{https://doi.org/10.1093/comjnl/10.3.282}{doi:10.1093/comjnl/10.3.282}.
+        --- Bresenham アルゴリズムの任意の円錐曲線への一般化で,§5 で述べる楕円拡張の基礎。
+
+  \item \textbf{Kappel, A.} \emph{An ellipse-drawing algorithm for raster displays}.
+        所収 \emph{Fundamental Algorithms for Computer Graphics} (R.~A.~Earnshaw, ed.),
+        NATO ASI Series F-17, Springer, 1985, p.~257--280.
+        --- 楕円実装で用いる二領域定式化。
+
+  \item \textbf{Klette, R.; Rosenfeld, A.} \emph{Digital Geometry: Geometric Methods
+        for Digital Picture Analysis}. Morgan Kaufmann, 2004. 656 ページ.
+        --- 離散位相,境界作用素 ($\partial F$),4-/6-/26-連結性の標準参考。§7,§12,§18 で使用。
+
+  \item \textbf{Foley, J.~D.; van Dam, A.; Feiner, S.~K.; Hughes, J.~F.}
+        \emph{Computer Graphics: Principles and Practice}. 第3版, Addison-Wesley, 2014.
+        --- ラスタライズ,照明モデル,透視投影の古典的論述。§13--15 に関連。
+\end{itemize}
+
+\subsection*{参照した Minecraft の仕様とツール}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=0.3em,topsep=0.3em]
+  \item \textbf{Sponge Project.} \emph{Sponge Schematic Specification, version~2}.
+        \biblink{https://github.com/SpongePowered/Schematic-Specification}{github.com/SpongePowered/Schematic-Specification}.
+        --- Block Round が出力する \code{.schem} 形式(gzip + NBT)。WorldEdit,Litematica,MCEdit で読み込み可能。
+
+  \item \textbf{EngineHub.} \emph{WorldEdit Documentation}.
+        \biblink{https://worldedit.enginehub.org/}{worldedit.enginehub.org}.
+        --- 本書全体で引用される \cmd{//sphere},\cmd{//hsphere},\cmd{//ellipsoid},\cmd{//cyl},\cmd{//schem load} コマンドの公式リファレンス。
+
+  \item \textbf{Mojang AB.} \emph{Minecraft Wiki --- Inventory}.
+        \biblink{https://minecraft.wiki/w/Inventory}{minecraft.wiki/w/Inventory}.
+        --- §17 で用いるスロット,スタック,単一チェスト(27 スロット)および二連チェスト(54 スロット)の参考。
+
+  \item \textbf{Mojang AB.} \emph{Minecraft Wiki --- Commands/fill, /clone}.
+        \biblink{https://minecraft.wiki/w/Commands/fill}{minecraft.wiki/w/Commands/fill},
+        \biblink{https://minecraft.wiki/w/Commands/clone}{minecraft.wiki/w/Commands/clone}.
+        --- §17 および §20 で引用するバニラコマンド \cmd{/fill} と \cmd{/clone}。
+
+  \item \textbf{Masady} (\emph{Litematica} mod).
+        \biblink{https://github.com/maruohon/litematica}{github.com/maruohon/litematica}.
+        --- スキーマティックを読み込み,施工対象の半透明なゴーストを表示する Minecraft Java Edition の mod。
+\end{itemize}
+
+\subsection*{幾何学,線形代数,群論}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=0.3em,topsep=0.3em]
+  \item \textbf{齋藤正彦} \emph{線型代数入門}. 東京大学出版会, 1966.
+        --- 楕円の陰関数表示,$\mathbb{R}^3$ における平面の代数,
+        球面座標。§3,§9,§13 の内容の基礎。
+
+  \item \textbf{Armstrong, M.~A.} \emph{Groups and Symmetry}. Undergraduate Texts in
+        Mathematics, Springer, 1988.
+        --- 八面体群 $O_h$ とその部分群の入門的解説,§20 で使用。
+
+  \item \textbf{Coxeter, H.~S.~M.} \emph{Regular Polytopes}. 第3版, Dover, 1973.
+        --- 正多面体の対称群の標準的参考。§20 で言及される位数 48 の $O_h$ の詳細な扱いを含む。
+
+  \item \textbf{Hilbert, D.; Cohn-Vossen, S.} \emph{Geometry and the Imagination}.
+        AMS Chelsea, 1990 [orig.~1932].
+        --- 二次曲面と幾何学的可視化の古典的論述,§9 の直観的基礎。
+\end{itemize}
+
+\subsection*{アルゴリズム,データ構造,計算量}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=0.3em,topsep=0.3em]
+  \item \textbf{Cormen, T.~H.; Leiserson, C.~E.; Rivest, R.~L.; Stein, C.}
+        \emph{Introduction to Algorithms}. 第4版, MIT Press, 2022.
+        --- §4--6 の 3 アルゴリズムの計算量解析と,§17 の天井除算。
+
+  \item \textbf{Wirth, N.} \emph{Algorithms + Data Structures = Programs}.
+        Prentice-Hall, 1976.
+        --- Bresenham の直線アルゴリズムとその円周への拡張についての古典的論述。
+\end{itemize}
+
+\subsection*{補足オンライン資料}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=0.3em,topsep=0.3em]
+  \item Block Round --- アプリ: \biblink{https://vinisouza128.github.io/block-round/}{vinisouza128.github.io/block-round/}.
+  \item Block Round --- リポジトリ: \biblink{https://github.com/ViniSouza128/block-round}{github.com/ViniSouza128/block-round}.
+  \item 姉妹プロジェクト Pixel Round(Minecraft テクスチャ非使用版):
+        \biblink{https://github.com/ViniSouza128/pixel-round}{github.com/ViniSouza128/pixel-round}.
+  \item pt-BR の指導案(高校3年生):
+        \biblink{https://vinisouza128.github.io/block-round/docs_aula/Plano_de_Aula_pt-BR.pdf}{docs\_aula/Plano\_de\_Aula\_pt-BR.pdf}.
+\end{itemize}
 
 
 \clearpage
@@ -676,7 +899,7 @@ Block Round は Minecraft ツールエコシステムにおいて小さいが数
 本付録は Block Round ユーザーが最もよく使う数値・コマンド参照を集めたものである。データは文書全体に散らばる節別の表と詳細例を統合し、建造計画、コマンド構文、エンドツーエンドの詳細例の一ページ参照として機能するよう整理されている。
 
 \subsection*{A.1 球の包括的リファレンス（充填・中空・パック）}
-以下の表は第 10 節と第 17 節の標準球表を拡張し、中空殻バリアント（\emph{細}モード）を充填体積と並べて記載する。中空殻のカウントは 1 ボクセル厚を仮定しユークリッドアルゴリズムで計算される；太モードは第 12 節の説明通り対角隙間を封じるため約 $10{-}15\%$ 多くのブロックを加える。
+以下の表は第 10 節と第 17 節の標準球表を拡張し、中空殻バリアント（\emph{細}モード）を充填体積と並べて記載する。中空殻のカウントは 1 ボクセル厚を仮定しユークリッドアルゴリズムで計算される；太モードは第 12 節の説明通り対角に空いたセル(空気ブロック)を埋めるため約 $10{-}15\%$ 多くのブロックを加える。
 
 \vspace{0.4em}
 \begin{center}
@@ -705,7 +928,8 @@ Block Round は Minecraft ツールエコシステムにおいて小さいが数
 
 \vspace{0.4em}
 \begin{center}
-\begin{tabular}{@{}lll@{}}
+\small
+\begin{tabularx}{\textwidth}{@{}llX@{}}
 \toprule
 \textbf{コマンド} & \textbf{モッド / 出所} & \textbf{結果} \\
 \midrule
@@ -716,7 +940,7 @@ Block Round は Minecraft ツールエコシステムにおいて小さいが数
 \cmd{/fill ... stone}      & バニラ & 一種類のブロックで箱を埋める  \\
 \cmd{/clone ... mode:masked} & バニラ & 領域を新しい場所にコピー  \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{center}
 
 Litematica ユーザーの場合ワークフローは異なる：コマンド実行の代わりに、schematic ファイル（Block Round は \code{.schem}、Sponge 形式 v2 をエクスポート）を Litematica モッドにロードし、それが図形の半透明な幽霊を表示し、プレイヤーがブロック単位で配置する。これは WorldEdit のクリエイティブ体験に最も近いサバイバルモード等価物。
@@ -799,8 +1023,8 @@ Block Round アプリはキャンバスのコーナーボタンを反映する�
   \item M.~L.~V.~Pitteway, \emph{Algorithm for drawing ellipses or hyperbolae with a digital plotter}, Computer Journal, vol.~10, 1967 ── Bresenham を任意の円錐曲線に一般化。
   \item A.~Kappel, \emph{An ellipse-drawing algorithm for raster displays}, ACM Comm.\ vol.~28, 1985 ── 第 5 節で使用される 2 領域楕円公式。
   \item R.~Klette と A.~Rosenfeld, \emph{Digital Geometry: Geometric Methods for Digital Picture Analysis}, Morgan Kaufmann, 2004 ── 第 7 節と第 18 節の数字位相と境界演算子の標準参照。
-  \item WorldEdit ドキュメント, \emph{enginehub.org/worldedit/} ── 本文書全体で使用される \cmd{//sphere}、\cmd{//hsphere}、\cmd{//ellipsoid}、\cmd{//copy} 系コマンドの公式参照。
-  \item Sponge Schematic 仕様 v2, \emph{github.com/SpongePowered/Schematic-Specification} ── Block Round が \code{.schem} としてエクスポートするファイル形式。
+  \item WorldEdit ドキュメント, \biblink{https://enginehub.org/worldedit/}{enginehub.org/worldedit/} ── 本文書全体で使用される \cmd{//sphere}、\cmd{//hsphere}、\cmd{//ellipsoid}、\cmd{//copy} 系コマンドの公式参照。
+  \item Sponge Schematic 仕様 v2, \biblink{https://github.com/SpongePowered/Schematic-Specification}{github.com/SpongePowered/Schematic-Specification} ── Block Round が \code{.schem} としてエクスポートするファイル形式。
 \end{itemize}
 
 第 22 節にリストされた 8 つの理論領域には、それぞれ単一の技術文書が要約できる範囲をはるかに超える教科書レベルの取り扱いがある。Block Round の貢献は理論自体にではなく、具体的な合成にある：通常純粋な幾何ツールから省略されるインベントリとシンメトリーコストに関する明示的考慮を含めて、テクスチャ付きボクセル Minecraft 設定に古典的ラスタライズを適用すること。
@@ -815,7 +1039,7 @@ Block Round アプリはキャンバスのコーナーボタンを反映する�
 
 \vspace{0.6em}
 
-Block Round は Vinícius Rodrigues de Souza によって維持されている。姉妹プロジェクト Pixel Round は \emph{github.com/ViniSouza128/pixel-round} で利用可能；現在の Block Round リポジトリは \emph{github.com/ViniSouza128/block-round} にある。
+Block Round は Vinícius Rodrigues de Souza によって維持されている。姉妹プロジェクト Pixel Round は \biblink{https://github.com/ViniSouza128/pixel-round}{github.com/ViniSouza128/pixel-round} で利用可能；現在の Block Round リポジトリは \biblink{https://github.com/ViniSouza128/block-round}{github.com/ViniSouza128/block-round} にある。
 
 コメント、修正、翻訳改善は、プロジェクトリポジトリのイシュートラッカーを通じて歓迎する。8 つの非英語ロケールのネイティブスピーカーによる校正は特に重視される。ローカライズはかなりの検討を経て準備されたが、技術 - 数学用語はネイティブの修正から恩恵を受ける。
 

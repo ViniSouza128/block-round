@@ -46,9 +46,20 @@
             linkcolor=linkc,
             urlcolor=linkc,
             citecolor=linkc,
+            breaklinks=true,
             bookmarks=true,bookmarksopen=true,
             pdftitle={Block Round — La Matemática del Proyecto},
             pdfauthor={Vinícius Rodrigues de Souza}]{hyperref}
+% xurl permite quebrar URLs em qualquer caractere (alternativa a url
+% que so quebra em "." e "/"). Carregado DEPOIS de hyperref.
+\usepackage{xurl}
+
+% emergencystretch da fold ao motor de justificacao quando ele falha em
+% encaixar uma linha mesmo apos quebrar URLs longas. 1.5em (~18pt) basta
+% para absorver os 2-8pt de overhang em paragrafos densos da bibliografia
+% sem deixar TeX desperar e quebrar URLs char-a-char (o que acontecia
+% com 3em + \Urlmuskip stretch positivo).
+\setlength{\emergencystretch}{1.5em}
 
 \color{ink}
 
@@ -82,8 +93,7 @@
   colback=accent!7, colframe=accent!50!rule, boxrule=0.6pt, arc=2pt,
   left=10pt,right=10pt,top=8pt,bottom=8pt,
   before skip=10pt, after skip=10pt,
-  breakable,
-  before={\par\needspace{5\baselineskip}}
+  breakable
 }
 
 \setlength{\parskip}{0.75em}
@@ -93,6 +103,11 @@
 \newcommand{\code}[1]{\texttt{\small #1}}
 \newcommand{\acc}[1]{\textcolor{accent}{\textbf{#1}}}
 \newcommand{\cmd}[1]{\textcolor{earth}{\texttt{\small #1}}}
+% biblink: link clicavel cujo texto de exibicao pode quebrar em qualquer
+% caractere (igual \url, via xurl). Evita URLs vazando alem da margem
+% direita. \nolinkurl formata como URL sem criar link; o \href externo
+% prove a clicabilidade.
+\newcommand{\biblink}[2]{\href{#1}{\nolinkurl{#2}}}
 
 \begin{document}
 
@@ -184,7 +199,23 @@ $\displaystyle d_x = \dfrac{i+\tfrac{1}{2}-c_x}{r_x},\qquad
 \textbf{Mapeo a Minecraft.} Para una torre en supervivencia, el usuario suele querer un \emph{círculo aplanado ancho} en la base y círculos cada vez menores a medida que la torre sube. Cada planta es una aplicación de la ecuación implícita con los mismos semi-ejes y distinto $z$. Block Round computa la capa 2D una vez y el usuario duplica con \cmd{/clone} por planta.
 \end{minec}
 
-
+\begin{figure}[!ht]
+\centering
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d10_eucl.png}
+  \caption{\emph{Euclidiano}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d10_bres.png}
+  \caption{\emph{Bresenham}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d10_thr.png}
+  \caption{\emph{Umbral}}
+\end{subfigure}
+\caption{Misma circunferencia de diámetro $D=10$ bajo los tres criterios. Cada figura muestra el conjunto de celdas marcadas por la versión correspondiente de $d_x^2+d_y^2\leq 1$, renderizada con la textura \emph{cobblestone} de Minecraft. Observa cómo varían las transiciones entre filas, las celdas de esquina y los puntos cardinales: tres respuestas matemáticamente correctas bajo criterios distintos.}
+\label{fig:comp-d10}
+\end{figure}
 
 % =============================================================================
 \section{Algoritmo Euclidiano (test de distancia)}
@@ -314,7 +345,23 @@ h_V &= b(i,j{-}1) \;\vee\; b(i,j{+}1).
 \textbf{Mapeo a Minecraft.} Para una cúpula de Vidrio de $D=20$ (hueca), el modo grueso da una cáscara \emph{estanca} de $608$ bloques frente a $\approx 510$ del modo fino --- los $\sim 100$ extra son costura diagonal que impide que la luz ambiental fugue por las grietas diagonales.
 \end{minec}
 
-
+\begin{figure}[!ht]
+\centering
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d20_filled.png}
+  \caption{\emph{Relleno}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d20_thin.png}
+  \caption{\emph{Fino (\emph{1 vóxel})}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d20_thick.png}
+  \caption{\emph{Grueso}}
+\end{subfigure}
+\caption{Los tres modos de renderizado para la misma circunferencia euclidiana de $D=20$. El modo \emph{Fino} corresponde al borde discreto topológico ($\partial F$); el modo \emph{Grueso} añade celdas diagonales para sellar los huecos a $45^\circ$, esencial para construcciones estancas (cúpulas de Vidrio/Hielo bajo el agua).}
+\label{fig:modes}
+\end{figure}
 
 % =============================================================================
 \section{Cálculo de área discreta}
@@ -350,7 +397,19 @@ a_\xi = \frac{\xi + \tfrac{1}{2} - c_\xi}{r_\xi}\;\;(\xi \in \{x,y,z\}),
 \textbf{Mapeo a Minecraft.} Un elipsoide $W=20$, $H=10$, $D=20$ es una \emph{esfera aplanada} ideal para una cúpula subterránea o un techo de estadio. Volumen $\approx 2\,094$ bloques ($33$ packs). Comando WorldEdit: \cmd{//ellipsoid stone 10 5 10}.
 \end{minec}
 
-
+\begin{figure}[!ht]
+\centering
+\begin{subfigure}[t]{0.46\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_sphere_d10.png}
+  \caption{Esfera $D=10$, $r_x=r_y=r_z=5$.}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.46\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_ellipsoid.png}
+  \caption{Elipsoide $W=20,\,H=10,\,D=12$.}
+\end{subfigure}
+\caption{Voxelización en $\mathbb{R}^3$. Cada cubo es un vóxel; su coordenada del centro $(i,j,k)$ se evalúa en la ecuación implícita $a_x^2+a_y^2+a_z^2\leq 1$. Las escaleras visibles en la superficie son consecuencia matemática de la discretización: precisamente el rasgo que da a Minecraft su identidad visual.}
+\label{fig:3d-shapes}
+\end{figure}
 
 % =============================================================================
 \section{Voxelización y cálculo de volumen}
@@ -407,7 +466,23 @@ de modo que $50\%$ en un eje sigue siendo $50\%$ al cambiar de eje o redimension
 \textbf{Mapeo a Minecraft.} El corte Y al $50\%$ sobre una esfera produce la \emph{cúpula} clásica de la mitad del volumen. Para $D=16$: $V_{\mathrm{full}} = 2\,145$, $V_{\mathrm{cúpula}} \approx 1\,095$ bloques ($\approx 18$ packs). El corte diagonal al $50\%$ produce una sección de \emph{media-fuente} muy usada para interiores de fuentes y graderíos.
 \end{minec}
 
-
+\begin{figure}[!ht]
+\centering
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_cut_y.png}
+  \caption{Corte $Y$ 50\% (cúpula)}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_cut_x.png}
+  \caption{Corte $X$ 50\%}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_cut_diag.png}
+  \caption{Diagonal 50\%}
+\end{subfigure}
+\caption{Tres cortes sobre la misma esfera de $D=16$, cada uno conservando el 50\% del volumen. El corte $Y$ produce la cúpula clásica $V_{\mathrm{cúpula}}=\tfrac{2}{3}\pi r^3$; el diagonal expone la hipotenusa $x+y=k$ característica de ese plano de corte.}
+\label{fig:cuts}
+\end{figure}
 
 % =============================================================================
 \section{Modo Grueso 3D: tridimensionalización por rebanadas}
@@ -471,7 +546,23 @@ I \;=\; \max\bigl(0,\;\mathbf{n}\cdot\mathbf{l}\bigr)\cdot \mathit{textura},
 \]
 donde los tres factores corresponden al coseno del ángulo entre la normal de cada cara y una dirección de luz fija. En \emph{Smooth} los factores son próximos (caras parecidas); en \emph{Classic} difieren más (contraste fuerte, el look del Minecraft vanilla). \emph{Blocks} introduce un hueco geométrico en los voxels --- una traslación constante de cada cara hacia dentro, para revelar las fronteras entre voxels incluso cuando los vecinos comparten textura. Para bloques emisivos el término Lambertiano se sustituye por una constante $I = \mathit{factor\_emisivo} \cdot \mathit{textura}$.
 
-
+\begin{figure}[!ht]
+\centering
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_shading_classic.png}
+  \caption{\emph{Classic} (contraste fuerte)}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_shading_blocks.png}
+  \caption{\emph{Blocks} (por defecto)}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_shading_smooth.png}
+  \caption{\emph{Smooth} (caras parecidas)}
+\end{subfigure}
+\caption{Tres multiplicadores de luz aplicados a las mismas tres caras visibles. \emph{Classic} ofrece el aspecto canónico de Minecraft vanilla; \emph{Smooth} reduce el contraste para superficies suaves; \emph{Blocks} es el intermedio por defecto con un retranqueo geométrico que revela las fronteras entre vóxeles aunque la textura sea la misma.}
+\label{fig:shading}
+\end{figure}
 
 % =============================================================================
 \section{Transición: de la matemática continua a la construcción in-game}
@@ -499,8 +590,10 @@ Para calcular cuántos \emph{cofres dobles} requiere una construcción, divide l
 \]
 Un \emph{cofre simple} guarda $27 \times 64 = 1\,728$ ítems. Una \emph{shulker box} (contenedor portátil) guarda $27 \times 64 = 1\,728$ ítems pero puede a su vez almacenarse \emph{dentro} de un slot de cofre, así que un cofre doble lleno de $54$ shulker boxes guarda hasta $54 \times 1\,728 = 93\,312$ ítems. Para mega-builds la unidad relevante es el \emph{cofre doble cargado de shulkers}.
 
+\needspace{18\baselineskip}
 \subsection{Tabla de referencia: esferas canónicas}
 La tabla convierte los volúmenes canónicos de esfera rellena en planes de recolección. La última columna sugiere un contexto de construcción para cada diámetro:
+\nopagebreak
 
 \vspace{0.4em}
 \begin{center}
@@ -543,7 +636,19 @@ F_{\mathrm{exp}} \;=\; \sum_{\mathbf{v}\in V_{\mathrm{solid}}}\;\sum_{\mathbf{n}
 \]
 Para una esfera $D=16$ (modo relleno), $V = 2\,145$, $V_{\mathrm{borde}} \approx 432$, $F_{\mathrm{exp}} \approx 1\,184$ caras visibles --- la construcción necesita solo unos $432$ bloques \emph{visibles}; los $1\,713$ restantes son interior y pueden rellenarse con el bloque más barato (Tierra, Adoquín). El overlay permite detectar al instante un bloque ausente en la cáscara.
 
-
+\begin{figure}[!ht]
+\centering
+\begin{subfigure}[t]{0.40\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_overlay_off.png}
+  \caption{Superposición \emph{OFF}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.40\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_overlay_on.png}
+  \caption{Superposición \emph{ON} (por defecto)}
+\end{subfigure}
+\caption{Mismo conjunto de vóxeles con y sin el contorno negro en las aristas expuestas. Con el \emph{highlight overlay} ON, un bloque que falte en la cáscara produce una discontinuidad en el patrón que el ojo detecta de un vistazo: una herramienta de validación rápida durante la construcción en supervivencia.}
+\label{fig:overlay}
+\end{figure}
 
 % =============================================================================
 \section{Construcción capa por capa (descomposición horizontal)}
@@ -603,7 +708,12 @@ T_{\mathrm{full}}
 \]
 Para $N = 7\,238$ en supervivencia ($T_{\mathrm{block}} = 2$\,s, $T_{\mathrm{clone}} = 0{,}05$\,s): completo = $14\,476$\,s $\approx 4$\,h $1$\,min; octante + clones = $1\,810$\,s + $0{,}35$\,s $\approx 30$\,min. Un factor-$8$ que casa con el orden del subgrupo de reflexiones. El $O_h$ completo de orden $48$ podría reducir aún más, pero exige una zona rotada $45°$, raramente vale el coste de setup en Minecraft vanilla.
 
-
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=0.45\linewidth]{math_3d_octants.png}
+\caption{Esfera $D=10$ con el octante positivo $(+x,+y,+z)$ resaltado en verde. Bajo la acción del subgrupo $\mathbb{Z}_2^3 \leq O_h$ (orden 8, generado por las tres reflexiones coordenadas), este octante determina toda la esfera: las otras siete regiones se obtienen mediante una secuencia de \cmd{/clone} con \emph{mode:masked} aplicada sobre el octante construido manualmente.}
+\label{fig:octants}
+\end{figure}
 
 % =============================================================================
 \section{Texturas de bloques y composición visual}
@@ -620,7 +730,23 @@ Para cada cara de voxel el renderer consulta el modelo del bloque:
 
 La mayoría de bloques (Piedra, Adoquín, Bloque de Diamante, Tablones de Roble) usan la \emph{misma textura en todas las caras}. Los bloques multi-cara (Bloque de Hierba, Calabaza, Heno, Pilar de Cuarzo, todos los troncos, Mesa de Trabajo, Horno, Estantería, TNT) usan \emph{texturas distintas} en techo, lados y fondo: Hierba tiene techo verde, lado hierba-y-tierra y fondo de tierra; Tronco de Roble tiene el anillo de madera en techo/fondo y corteza en los cuatro lados. Lo importante: la \emph{matemática de qué voxels colocar} no depende de la textura --- la silueta de una esfera de Diamante y una de Adoquín del mismo diámetro es idéntica. La decisión de textura es una capa \emph{puramente estética} aplicada después del algoritmo geométrico.
 
-
+\begin{figure}[!ht]
+\centering
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_tex_cobble.png}
+  \caption{\emph{Cobblestone}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_tex_oak.png}
+  \caption{\emph{Oak Planks}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_tex_quartz.png}
+  \caption{\emph{Quartz Block}}
+\end{subfigure}
+\caption{La misma esfera de diámetro $D=8$ renderizada con tres bloques distintos. La silueta voxelizada (la matemática) es idéntica en las tres: el algoritmo elige los vóxeles; la textura es una capa puramente estética aplicada después que no altera ni el volumen ni la topología.}
+\label{fig:textures}
+\end{figure}
 
 \subsection{Familias de bloques y tonos}
 Para el constructor de supervivencia eligiendo entre las decenas de bloques disponibles, la pregunta relevante no es el índice de textura sino la \emph{familia tonal}: claro/oscuro, cálido/frío, uniforme/estampado. La tabla clasifica los bloques más usados en construcciones Block Round:
@@ -665,6 +791,103 @@ La observación central que el estudio permite formular es: en una malla discret
 Block Round ocupa un nicho pequeño pero matemáticamente rico en el ecosistema de herramientas Minecraft: se sitúa entre las puramente geométricas (WorldEdit, Litematica) y las puramente visuales (resource packs, shaders), ofreciendo un puente explícito, derivable y reproducible de la ecuación continua al plan de colocación discreto. El proyecto hermano Pixel Round ofrece los mismos algoritmos sin la capa Minecraft, indicado para pixel art y voxel art tradicional. Juntos los dos proyectos ejemplifican cómo el mismo canal matemático continuo-a-discreto sostiene flujos artísticos y constructivos radicalmente distintos.
 
 % =============================================================================
+\section*{\color{accent}Bibliografía}
+\addcontentsline{toc}{section}{Bibliografía}
+\label{sec:bib}
+
+\subsection*{Referencias técnicas (rasterización y topología digital)}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=0.3em,topsep=0.3em]
+  \item \textbf{Bresenham, J. E.} \emph{Algorithm for computer control of a digital plotter}.
+        IBM Systems Journal, vol.~4, n.~1, p.~25--30, 1965.
+        Disponible en \biblink{https://doi.org/10.1147/sj.41.0025}{doi:10.1147/sj.41.0025}.
+        --- artículo original del algoritmo del punto medio entero tratado en §5.
+
+  \item \textbf{Pitteway, M.~L.~V.} \emph{Algorithm for drawing ellipses or hyperbolae
+        with a digital plotter}. The Computer Journal, vol.~10, n.~3, p.~282--289, 1967.
+        Disponible en \biblink{https://doi.org/10.1093/comjnl/10.3.282}{doi:10.1093/comjnl/10.3.282}.
+        --- generalización del algoritmo de Bresenham a cónicas arbitrarias, base de la extensión a elipses descrita en §5.
+
+  \item \textbf{Kappel, A.} \emph{An ellipse-drawing algorithm for raster displays}.
+        En \emph{Fundamental Algorithms for Computer Graphics} (R.~A.~Earnshaw, ed.),
+        NATO ASI Series F-17, Springer, 1985, p.~257--280.
+        --- formulación por dos regiones empleada en la implementación de elipses.
+
+  \item \textbf{Klette, R.; Rosenfeld, A.} \emph{Digital Geometry: Geometric Methods
+        for Digital Picture Analysis}. Morgan Kaufmann, 2004. 656 páginas.
+        --- referencia estándar para topología digital, operadores de borde ($\partial F$), 4-/6-/26-conectividad. Usada en §7, §12 y §18.
+
+  \item \textbf{Foley, J.~D.; van Dam, A.; Feiner, S.~K.; Hughes, J.~F.}
+        \emph{Computer Graphics: Principles and Practice}. 3.\textsuperscript{a} ed., Addison-Wesley, 2014.
+        --- tratamiento clásico de rasterización, modelos de iluminación, proyección en perspectiva. Relevante para §13--15.
+\end{itemize}
+
+\subsection*{Especificaciones y herramientas de Minecraft referenciadas}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=0.3em,topsep=0.3em]
+  \item \textbf{Sponge Project.} \emph{Sponge Schematic Specification, version~2}.
+        \biblink{https://github.com/SpongePowered/Schematic-Specification}{github.com/SpongePowered/Schematic-Specification}.
+        --- formato de archivo \code{.schem} (gzip + NBT) que exporta Block Round. Cargable por WorldEdit, Litematica y MCEdit.
+
+  \item \textbf{EngineHub.} \emph{WorldEdit Documentation}.
+        \biblink{https://worldedit.enginehub.org/}{worldedit.enginehub.org}.
+        --- referencia oficial para los comandos \cmd{//sphere}, \cmd{//hsphere}, \cmd{//ellipsoid}, \cmd{//cyl}, \cmd{//schem load} citados a lo largo del documento.
+
+  \item \textbf{Mojang AB.} \emph{Minecraft Wiki --- Inventory}.
+        \biblink{https://minecraft.wiki/w/Inventory}{minecraft.wiki/w/Inventory}.
+        --- referencia sobre ranuras, pilas, cofres simples (27 ranuras) y cofres dobles (54 ranuras) usados en §17.
+
+  \item \textbf{Mojang AB.} \emph{Minecraft Wiki --- Commands/fill, /clone}.
+        \biblink{https://minecraft.wiki/w/Commands/fill}{minecraft.wiki/w/Commands/fill},
+        \biblink{https://minecraft.wiki/w/Commands/clone}{minecraft.wiki/w/Commands/clone}.
+        --- comandos vanilla \cmd{/fill} y \cmd{/clone} citados en §17 y §20.
+
+  \item \textbf{Masady} (\emph{Litematica} mod).
+        \biblink{https://github.com/maruohon/litematica}{github.com/maruohon/litematica}.
+        --- mod de Minecraft Java Edition que importa schematics y muestra un fantasma translúcido de la construcción a ejecutar.
+\end{itemize}
+
+\subsection*{Geometría, álgebra lineal y teoría de grupos}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=0.3em,topsep=0.3em]
+  \item \textbf{Vinuesa, J.} \emph{Geometría Analítica}. Pirámide, 2009.
+        --- ecuación implícita de la elipse, álgebra de planos en $\mathbb{R}^3$,
+        coordenadas esféricas. Base del contenido de §3, §9 y §13.
+
+  \item \textbf{Armstrong, M.~A.} \emph{Groups and Symmetry}. Undergraduate Texts in
+        Mathematics, Springer, 1988.
+        --- exposición introductoria al grupo octaédrico $O_h$ y sus subgrupos, usada en §20.
+
+  \item \textbf{Coxeter, H.~S.~M.} \emph{Regular Polytopes}. 3.\textsuperscript{a} ed., Dover, 1973.
+        --- referencia canónica para los grupos de simetría de los sólidos regulares, incluyendo el tratamiento detallado de $O_h$ de orden 48 mencionado en §20.
+
+  \item \textbf{Hilbert, D.; Cohn-Vossen, S.} \emph{Geometry and the Imagination}.
+        AMS Chelsea, 1990 [orig.~1932].
+        --- tratamiento clásico de cuádricas y visualización geométrica, base intuitiva de §9.
+\end{itemize}
+
+\subsection*{Algoritmos, estructuras de datos, complejidad}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=0.3em,topsep=0.3em]
+  \item \textbf{Cormen, T.~H.; Leiserson, C.~E.; Rivest, R.~L.; Stein, C.}
+        \emph{Introduction to Algorithms}. 4.\textsuperscript{a} ed., MIT Press, 2022.
+        --- análisis de complejidad de los tres algoritmos de §4--6, división con techo de §17.
+
+  \item \textbf{Wirth, N.} \emph{Algorithms + Data Structures = Programs}.
+        Prentice-Hall, 1976.
+        --- exposición clásica del algoritmo de Bresenham para rectas y su extensión a circunferencias.
+\end{itemize}
+
+\subsection*{Recursos en línea complementarios}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=0.3em,topsep=0.3em]
+  \item Block Round --- aplicación: \biblink{https://vinisouza128.github.io/block-round/}{vinisouza128.github.io/block-round/}.
+  \item Block Round --- repositorio: \biblink{https://github.com/ViniSouza128/block-round}{github.com/ViniSouza128/block-round}.
+  \item Proyecto hermano Pixel Round (variante sin texturas de Minecraft):
+        \biblink{https://github.com/ViniSouza128/pixel-round}{github.com/ViniSouza128/pixel-round}.
+  \item Plan de clase en pt-BR (3.\textsuperscript{er} año de bachillerato):
+        \biblink{https://vinisouza128.github.io/block-round/docs_aula/Plano_de_Aula_pt-BR.pdf}{docs\_aula/Plano\_de\_Aula\_pt-BR.pdf}.
+\end{itemize}
 
 
 \clearpage
@@ -705,7 +928,8 @@ La tabla resume los comandos WorldEdit y de Minecraft vanilla más relevantes pa
 
 \vspace{0.4em}
 \begin{center}
-\begin{tabular}{@{}lll@{}}
+\small
+\begin{tabularx}{\textwidth}{@{}llX@{}}
 \toprule
 \textbf{Comando} & \textbf{Mod / origen} & \textbf{Resultado} \\
 \midrule
@@ -716,7 +940,7 @@ La tabla resume los comandos WorldEdit y de Minecraft vanilla más relevantes pa
 \cmd{/fill ... stone}      & vanilla & rellenar caja con un tipo de bloque  \\
 \cmd{/clone ... mode:masked} & vanilla & copiar región a nueva ubicación  \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{center}
 
 Para usuarios de Litematica el flujo es distinto: en lugar de ejecutar comandos, el archivo schematic (Block Round exporta \code{.schem}, formato Sponge v2) se carga en el mod Litematica, que muestra un fantasma translúcido de la figura que el jugador coloca bloque a bloque. Es el equivalente supervivencia más cercano a la experiencia creativa de WorldEdit.
@@ -799,8 +1023,8 @@ Los conceptos matemáticos desarrollados en este documento tienen literaturas bi
   \item M.~L.~V.~Pitteway, \emph{Algorithm for drawing ellipses or hyperbolae with a digital plotter}, Computer Journal, vol.~10, 1967 --- generaliza Bresenham a cónicas arbitrarias.
   \item A.~Kappel, \emph{An ellipse-drawing algorithm for raster displays}, ACM Comm.\ vol.~28, 1985 --- la formulación elíptica de dos regiones usada en la Sección~5.
   \item R.~Klette y A.~Rosenfeld, \emph{Digital Geometry: Geometric Methods for Digital Picture Analysis}, Morgan Kaufmann, 2004 --- referencia estándar para topología digital y los operadores de borde de las Secciones~7 y~18.
-  \item Documentación de WorldEdit, \emph{enginehub.org/worldedit/} --- referencia oficial de los comandos \cmd{//sphere}, \cmd{//hsphere}, \cmd{//ellipsoid}, \cmd{//copy} usados a lo largo de este documento.
-  \item Especificación Sponge Schematic v2, \emph{github.com/SpongePowered/Schematic-Specification} --- el formato de archivo que Block Round exporta como \code{.schem}.
+  \item Documentación de WorldEdit, \biblink{https://enginehub.org/worldedit/}{enginehub.org/worldedit/} --- referencia oficial de los comandos \cmd{//sphere}, \cmd{//hsphere}, \cmd{//ellipsoid}, \cmd{//copy} usados a lo largo de este documento.
+  \item Especificación Sponge Schematic v2, \biblink{https://github.com/SpongePowered/Schematic-Specification}{github.com/SpongePowered/Schematic-Specification} --- el formato de archivo que Block Round exporta como \code{.schem}.
 \end{itemize}
 
 Las ocho áreas teóricas listadas en la Sección~22 tienen tratamientos a nivel de libro de texto que van mucho más allá de lo que un solo documento técnico puede resumir. La contribución de Block Round no está en la teoría misma sino en la síntesis específica: aplicar rasterización clásica al escenario de Minecraft de voxels texturizados, con las consideraciones explícitas de inventario y coste de simetría que usualmente se omiten en herramientas puramente geométricas.
@@ -815,7 +1039,7 @@ Un comentario final sobre reproducibilidad: todo el pipeline de este documento -
 
 \vspace{0.6em}
 
-Block Round es mantenido por Vinícius Rodrigues de Souza. El proyecto hermano Pixel Round está disponible en \emph{github.com/ViniSouza128/pixel-round}; el repositorio actual de Block Round está en \emph{github.com/ViniSouza128/block-round}.
+Block Round es mantenido por Vinícius Rodrigues de Souza. El proyecto hermano Pixel Round está disponible en \biblink{https://github.com/ViniSouza128/pixel-round}{github.com/ViniSouza128/pixel-round}; el repositorio actual de Block Round está en \biblink{https://github.com/ViniSouza128/block-round}{github.com/ViniSouza128/block-round}.
 
 Comentarios, correcciones y mejoras de traducción son bienvenidos vía el issue tracker del repositorio del proyecto. La revisión por hablantes nativos de las ocho locales no inglesas es particularmente valiosa, ya que las localizaciones se prepararon con revisión sustancial pero la terminología técnico-matemática se beneficia de corrección nativa.
 

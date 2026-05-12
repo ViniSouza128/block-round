@@ -91,7 +91,7 @@ EXTRA["ko-KR"] = dict(
     S7_SUB3="두꺼움",
     S7_P5=r"두꺼운 모드는 경계 픽셀에 \acc{대각 다리}를 추가한다: 수평 경계 이웃과 수직 경계 이웃을 동시에 갖는 내부 셀. 이것은 얇은 모드가 남기는 1픽셀 대각선을 닫아, 윤곽이 장면에서 안정적으로 보여야 할 때(즉 $45°$ 구멍이 없어야 할 때) 유용하다 — 특히 유리와 얼음 돔에 중요하다.",
     S7_MC_LABEL="Minecraft 매핑.",
-    S7_MC_EXAMPLE=r"$D=20$의 유리 돔(비어있음)에 대해, 두꺼운 모드는 $608$ 블록의 \emph{기밀} 셸을 만들고 얇은 모드는 약 $510$ 블록이다 — 추가 $\sim 100$ 블록은 환경광이 대각선 균열을 통해 새어 들어가는 것을 방지하는 대각선 봉제이다.",
+    S7_MC_EXAMPLE=r"$D=20$의 유리 돔(비어있음)에 대해, 두꺼운 모드는 $608$ 블록의 \emph{기밀} 셸을 만들고 얇은 모드는 약 $510$ 블록이다 — 추가 $\sim 100$ 블록은 얇은 모드가 남기는 비어 있는 대각 셀(공기 블록)을 채워, 그 공기 셀들로 환경광이 새어 들어가는 것을 막는 대각선 다리이다.",
 
     S8_TITLE="이산 면적 계산",
     S8_P1=r"\code{area2D} 함수는 단순히 $f$에 표시된 셀을 \acc{센다}. 이것이 \emph{계수 측도}로, 타원의 지시 함수의 리만 적분을 근사한다:",
@@ -143,7 +143,7 @@ EXTRA["ko-KR"] = dict(
     S12_P1=r"3D에서 \emph{thick} 모드의 경우, 프로젝트는 세 축을 따라 \acc{모든 슬라이스}에 2D 두꺼운 알고리즘을 적용한다: 각 $z$에 대한 $XY$, 각 $y$에 대한 $XZ$, 각 $x$에 대한 $YZ$. 그런 다음 결과의 \emph{합}을 취한다. 기하학적 동기는 기밀성이다: 셸 두께를 두 배로 하지 않고 모든 대각선을 막는 최소 복셀 집합. 형식적으로, $S_z(z)$를 높이 $z$의 $XY$ 슬라이스로, $T$를 2D 두꺼운 연산자로 하면:",
     S12_P2=r"결과는 그 다음 절단에 의해 보존된 집합과 교차된다. 배경 이론은 \acc{디지털 위상}이다: 두꺼운 연산자는 셸의 \emph{26-연결성}(대각선을 포함한 이웃)을 보장한다. 이는 대각으로 인접한 복셀이 면으로 닿지 않는 Minecraft 건설에 유용하다 — 빛, 물, 생명체가 벽이 없는 것처럼 대각 간격을 통과한다.",
     S12_MC_LABEL="Minecraft 매핑.",
-    S12_MC_EXAMPLE=r"생존 모드의 바다 사원 위 수중 유리 돔에는 두꺼운 모드가 필수이다: 대각 다리는 얇은 모드가 남기는 대각 균열을 통해 물이 새어 들어오는 것을 방지한다. 비용: $D=20$ 돔은 두꺼운 모드에서 $\approx 380$개의 유리 블록을, 얇은 모드에서 $\approx 320$개를 필요로 한다 — 완전 밀폐를 위한 $19\%$ 더 많은 재료.",
+    S12_MC_EXAMPLE=r"생존 모드의 바다 사원 위 수중 유리 돔에는 두꺼운 모드가 필수이다: 대각 다리는 얇은 모드가 남기는 비어 있는 대각 셀(공기 블록)을 채워, 이 공기 셀들을 통해 물이 새어 들어오는 것을 막는다. 비용: $D=20$ 돔은 두꺼운 모드에서 $\approx 380$개의 유리 블록을, 얇은 모드에서 $\approx 320$개를 필요로 한다 — 완전 밀폐를 위한 $19\%$ 더 많은 재료.",
 
     S13_TITLE="3D 카메라: 구면 좌표",
     S13_P1=r"3D 카메라는 두 각도와 함께 거리 $r$로 객체 주위를 공전한다 — $\theta$(방위각, 수평면)와 $\varphi$(극각, 수직축에서). 이것은 구면 좌표의 \acc{물리적 관례}이며, 직교 좌표(\emph{three.js}가 기대하는 형식)로의 변환은:",
@@ -378,11 +378,11 @@ EXTRA["ko-KR"] = dict(
     APX_A_REF2='M.~L.~V.~Pitteway, \\emph{Algorithm for drawing ellipses or hyperbolae with a digital plotter}, Computer Journal, vol.~10, 1967 ── Bresenham을 임의의 원뿔 곡선으로 일반화.',
     APX_A_REF3='A.~Kappel, \\emph{An ellipse-drawing algorithm for raster displays}, ACM Comm.\\ vol.~28, 1985 ── 5절에서 사용된 두 영역 타원 공식.',
     APX_A_REF4='R.~Klette과 A.~Rosenfeld, \\emph{Digital Geometry: Geometric Methods for Digital Picture Analysis}, Morgan Kaufmann, 2004 ── 7절과 18절의 디지털 위상 및 경계 연산자에 대한 표준 참고.',
-    APX_A_REF5='WorldEdit 문서, \\emph{enginehub.org/worldedit/} ── 본 문서 전체에서 사용된 \\cmd{//sphere}, \\cmd{//hsphere}, \\cmd{//ellipsoid}, \\cmd{//copy} 명령군의 공식 참조.',
-    APX_A_REF6='Sponge Schematic 사양 v2, \\emph{github.com/SpongePowered/Schematic-Specification} ── Block Round가 \\code{.schem}으로 내보내는 파일 형식.',
+    APX_A_REF5='WorldEdit 문서, \\biblink{https://enginehub.org/worldedit/}{enginehub.org/worldedit/} ── 본 문서 전체에서 사용된 \\cmd{//sphere}, \\cmd{//hsphere}, \\cmd{//ellipsoid}, \\cmd{//copy} 명령군의 공식 참조.',
+    APX_A_REF6='Sponge Schematic 사양 v2, \\biblink{https://github.com/SpongePowered/Schematic-Specification}{github.com/SpongePowered/Schematic-Specification} ── Block Round가 \\code{.schem}으로 내보내는 파일 형식.',
     APX_A_P17='22절에 나열된 여덟 개의 이론 영역은 각각 단일 기술 문서가 요약할 수 있는 범위를 훨씬 넘는 교과서 수준의 처리를 가지고 있다. Block Round의 기여는 이론 자체에 있지 않고 특정한 종합에 있다: 일반적으로 순수 기하 도구에서 생략되는 명시적 인벤토리 및 대칭 비용 고려와 함께 텍스처화된 복셀 Minecraft 환경에 고전적 래스터화를 적용하는 것.',
     APX_A_P18='재현성에 대한 마지막 발언: 본 문서의 전체 파이프라인 ── 빌드 스크립트, 번역, LaTeX 템플릿, 로케일별 테이블 ── 은 프로젝트 저장소의 \\code{docs\_math/} 디렉토리에 포함되어 있다. XeLaTeX/MiKTeX이 있는 시스템에서 \\code{python build.py}를 다시 실행하면, 지원되는 아홉 개 로케일 중 어느 것에서나 이 PDF를 정확히 생성한다. 자매 프로젝트 Pixel Round는 동일한 구조를 따라 텍스처화 및 비텍스처화 변형의 직접적인 나란히 비교를 허용한다.',
     APX_A_END_LABEL='문서 끝',
-    APX_A_P19='Block Round는 Vinícius Rodrigues de Souza가 유지 관리한다. 자매 프로젝트 Pixel Round는 \\emph{github.com/ViniSouza128/pixel-round}에서 이용 가능하며; 현재 Block Round 저장소는 \\emph{github.com/ViniSouza128/block-round}에 있다.',
+    APX_A_P19='Block Round는 Vinícius Rodrigues de Souza가 유지 관리한다. 자매 프로젝트 Pixel Round는 \\biblink{https://github.com/ViniSouza128/pixel-round}{github.com/ViniSouza128/pixel-round}에서 이용 가능하며; 현재 Block Round 저장소는 \\biblink{https://github.com/ViniSouza128/block-round}{github.com/ViniSouza128/block-round}에 있다.',
     APX_A_P20='의견, 수정 및 번역 개선은 프로젝트 저장소의 이슈 트래커를 통해 환영한다. 영어가 아닌 여덟 개 로케일의 원어민 교정은 특히 중요하게 평가된다. 현지화는 상당한 검토를 거쳐 준비되었지만 기술적 - 수학적 용어는 원어민의 교정으로부터 혜택을 받는다.',
 )

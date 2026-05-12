@@ -49,9 +49,20 @@
             linkcolor=linkc,
             urlcolor=linkc,
             citecolor=linkc,
+            breaklinks=true,
             bookmarks=true,bookmarksopen=true,
             pdftitle={Block Round — 프로젝트의 수학},
             pdfauthor={Vinícius Rodrigues de Souza}]{hyperref}
+% xurl permite quebrar URLs em qualquer caractere (alternativa a url
+% que so quebra em "." e "/"). Carregado DEPOIS de hyperref.
+\usepackage{xurl}
+
+% emergencystretch da fold ao motor de justificacao quando ele falha em
+% encaixar uma linha mesmo apos quebrar URLs longas. 1.5em (~18pt) basta
+% para absorver os 2-8pt de overhang em paragrafos densos da bibliografia
+% sem deixar TeX desperar e quebrar URLs char-a-char (o que acontecia
+% com 3em + \Urlmuskip stretch positivo).
+\setlength{\emergencystretch}{1.5em}
 
 \color{ink}
 
@@ -85,8 +96,7 @@
   colback=accent!7, colframe=accent!50!rule, boxrule=0.6pt, arc=2pt,
   left=10pt,right=10pt,top=8pt,bottom=8pt,
   before skip=10pt, after skip=10pt,
-  breakable,
-  before={\par\needspace{5\baselineskip}}
+  breakable
 }
 
 \setlength{\parskip}{0.75em}
@@ -96,6 +106,11 @@
 \newcommand{\code}[1]{\texttt{\small #1}}
 \newcommand{\acc}[1]{\textcolor{accent}{\textbf{#1}}}
 \newcommand{\cmd}[1]{\textcolor{earth}{\texttt{\small #1}}}
+% biblink: link clicavel cujo texto de exibicao pode quebrar em qualquer
+% caractere (igual \url, via xurl). Evita URLs vazando alem da margem
+% direita. \nolinkurl formata como URL sem criar link; o \href externo
+% prove a clicabilidade.
+\newcommand{\biblink}[2]{\href{#1}{\nolinkurl{#2}}}
 
 \begin{document}
 
@@ -187,7 +202,23 @@ $\displaystyle d_x = \dfrac{i+\tfrac{1}{2}-c_x}{r_x},\qquad
 \textbf{Minecraft 매핑.} 생존 모드에서 탑을 짓는 경우, 사용자는 일반적으로 \emph{넓고 평평한 원}을 기초로 하고 탑이 올라갈수록 점차 작은 원을 원한다. 각 층은 같은 반축과 다른 $z$에서 음함수 방정식의 적용이다. Block Round는 2D 층을 한 번만 계산하고 사용자는 \cmd{/clone}으로 층마다 복제한다.
 \end{minec}
 
-
+\begin{figure}[!ht]
+\centering
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d10_eucl.png}
+  \caption{\emph{유클리드}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d10_bres.png}
+  \caption{\emph{Bresenham}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d10_thr.png}
+  \caption{\emph{임계}}
+\end{subfigure}
+\caption{세 가지 기준에서의 직경 $D=10$ 인 동일한 원주. 각 그림은 대응되는 부등식 $d_x^2+d_y^2\leq 1$ 에 의해 표시되는 셀 집합을 보여주며, Minecraft 의 \emph{cobblestone} 텍스처로 렌더링되어 있다. 행 사이의 전이, 모서리 셀, 기본 방위가 어떻게 달라지는지 주목하라 --- 서로 다른 기준 아래에서 수학적으로 모두 옳은 세 가지 답이다.}
+\label{fig:comp-d10}
+\end{figure}
 
 % =============================================================================
 \section{유클리드 알고리즘 (거리 검사)}
@@ -314,10 +345,26 @@ h_V &= b(i,j{-}1) \;\vee\; b(i,j{+}1).
 \end{align*}
 
 \begin{minec}
-\textbf{Minecraft 매핑.} $D=20$의 유리 돔(비어있음)에 대해, 두꺼운 모드는 $608$ 블록의 \emph{기밀} 셸을 만들고 얇은 모드는 약 $510$ 블록이다 — 추가 $\sim 100$ 블록은 환경광이 대각선 균열을 통해 새어 들어가는 것을 방지하는 대각선 봉제이다.
+\textbf{Minecraft 매핑.} $D=20$의 유리 돔(비어있음)에 대해, 두꺼운 모드는 $608$ 블록의 \emph{기밀} 셸을 만들고 얇은 모드는 약 $510$ 블록이다 — 추가 $\sim 100$ 블록은 얇은 모드가 남기는 비어 있는 대각 셀(공기 블록)을 채워, 그 공기 셀들로 환경광이 새어 들어가는 것을 막는 대각선 다리이다.
 \end{minec}
 
-
+\begin{figure}[!ht]
+\centering
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d20_filled.png}
+  \caption{\emph{채움}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d20_thin.png}
+  \caption{\emph{가는 (\emph{1 복셀})}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d20_thick.png}
+  \caption{\emph{굵은}}
+\end{subfigure}
+\caption{동일한 $D=20$ 유클리드 원주에 대한 세 가지 렌더링 모드. \emph{가는} 모드는 이산 위상 경계 ($\partial F$) 에 대응하고, \emph{굵은} 모드는 $45^\circ$ 의 구멍을 막기 위해 대각 블록을 추가하는데, 이는 밀폐 구조(수중 유리/얼음 돔)에 필수적이다.}
+\label{fig:modes}
+\end{figure}
 
 % =============================================================================
 \section{이산 면적 계산}
@@ -353,7 +400,19 @@ a_\xi = \frac{\xi + \tfrac{1}{2} - c_\xi}{r_\xi}\;\;(\xi \in \{x,y,z\}),
 \textbf{Minecraft 매핑.} $W=20$, $H=10$, $D=20$의 타원체는 지하 돔이나 경기장 지붕에 이상적인 \emph{납작한 구}를 만든다. 부피 약 $2\,094$ 블록($33$ 스택). 동등한 WorldEdit 명령: \cmd{//ellipsoid stone 10 5 10}.
 \end{minec}
 
-
+\begin{figure}[!ht]
+\centering
+\begin{subfigure}[t]{0.46\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_sphere_d10.png}
+  \caption{구 $D=10$, $r_x=r_y=r_z=5$.}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.46\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_ellipsoid.png}
+  \caption{타원체 $W=20,\,H=10,\,D=12$.}
+\end{subfigure}
+\caption{$\mathbb{R}^3$ 에서의 복셀화. 각 정육면체가 하나의 복셀이며, 그 중심 좌표 $(i,j,k)$ 를 음함수 방정식 $a_x^2+a_y^2+a_z^2\leq 1$ 에 대입해 판정한다. 표면에 보이는 계단 모양은 이산화의 수학적 귀결이며 --- 바로 Minecraft 에 시각적 정체성을 부여하는 그 특성이다.}
+\label{fig:3d-shapes}
+\end{figure}
 
 % =============================================================================
 \section{복셀화와 부피 계산}
@@ -410,7 +469,23 @@ X와 Y 평면은 좌표축에 수직이며, 법선 벡터는 $(1,0,0)$과 $(0,1,
 \textbf{Minecraft 매핑.} 구에 대한 Y축 $50\%$ 절단은 부피의 절반인 표준적인 \emph{돔}을 만든다. $D=16$의 경우: $V_{\mathrm{full}} = 2\,145$ 블록, $V_{\mathrm{돔}} \approx 1\,095$ 블록(약 $18$ 팩). $50\%$의 대각 절단은 분수 내부와 원형 극장 좌석에 자주 사용되는 \emph{반접시} 단면을 만든다.
 \end{minec}
 
-
+\begin{figure}[!ht]
+\centering
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_cut_y.png}
+  \caption{$Y$ 절단 50\%(돔)}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_cut_x.png}
+  \caption{$X$ 절단 50\%}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_cut_diag.png}
+  \caption{대각 50\%}
+\end{subfigure}
+\caption{동일한 $D=16$ 구에 대한 세 가지 절단으로, 모두 부피의 50\% 를 보존한다. $Y$ 절단은 고전적인 돔 $V_{\mathrm{dome}}=\tfrac{2}{3}\pi r^3$ 을 만들고, 대각 절단은 그 절단면 특유의 빗변 $x+y=k$ 를 드러낸다.}
+\label{fig:cuts}
+\end{figure}
 
 % =============================================================================
 \section{두꺼운 3D 모드: 슬라이스를 통한 3차원화}
@@ -425,7 +500,7 @@ X와 Y 평면은 좌표축에 수직이며, 법선 벡터는 $(1,0,0)$과 $(0,1,
 결과는 그 다음 절단에 의해 보존된 집합과 교차된다. 배경 이론은 \acc{디지털 위상}이다: 두꺼운 연산자는 셸의 \emph{26-연결성}(대각선을 포함한 이웃)을 보장한다. 이는 대각으로 인접한 복셀이 면으로 닿지 않는 Minecraft 건설에 유용하다 — 빛, 물, 생명체가 벽이 없는 것처럼 대각 간격을 통과한다.
 
 \begin{minec}
-\textbf{Minecraft 매핑.} 생존 모드의 바다 사원 위 수중 유리 돔에는 두꺼운 모드가 필수이다: 대각 다리는 얇은 모드가 남기는 대각 균열을 통해 물이 새어 들어오는 것을 방지한다. 비용: $D=20$ 돔은 두꺼운 모드에서 $\approx 380$개의 유리 블록을, 얇은 모드에서 $\approx 320$개를 필요로 한다 — 완전 밀폐를 위한 $19\%$ 더 많은 재료.
+\textbf{Minecraft 매핑.} 생존 모드의 바다 사원 위 수중 유리 돔에는 두꺼운 모드가 필수이다: 대각 다리는 얇은 모드가 남기는 비어 있는 대각 셀(공기 블록)을 채워, 이 공기 셀들을 통해 물이 새어 들어오는 것을 막는다. 비용: $D=20$ 돔은 두꺼운 모드에서 $\approx 380$개의 유리 블록을, 얇은 모드에서 $\approx 320$개를 필요로 한다 — 완전 밀폐를 위한 $19\%$ 더 많은 재료.
 \end{minec}
 
 % =============================================================================
@@ -474,7 +549,23 @@ I \;=\; \max\bigl(0,\;\mathbf{n}\cdot\mathbf{l}\bigr)\cdot \mathit{텍스처},
 \]
 세 인자는 각 면의 법선과 고정된 광원 방향 사이 각도의 코사인에 해당한다. \emph{Smooth}에서는 인자가 비슷하고(유사한 면), \emph{Classic}에서는 인자가 더 다르다(강한 대비, 바닐라 Minecraft의 외관). \emph{Blocks}는 추가로 복셀에 기하학적 들여쓰기를 도입한다 — 인접 복셀이 동일한 텍스처를 가져도 복셀 간 경계가 드러나도록 각 면을 안쪽으로 일정 평행이동한다. 발광 블록(글로우스톤, 바다 랜턴, 슈룸라이트, 마그마, 우는 흑요석)의 경우 람베르트 항은 상수 $I = \mathit{emissive\_factor} \cdot \mathit{texture}$로 대체되며, 이는 블록의 MC 광 레벨에 맞게 조정된다.
 
-
+\begin{figure}[!ht]
+\centering
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_shading_classic.png}
+  \caption{\emph{Classic} (강한 대비)}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_shading_blocks.png}
+  \caption{\emph{Blocks} (기본)}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_shading_smooth.png}
+  \caption{\emph{Smooth} (면이 유사)}
+\end{subfigure}
+\caption{같은 세 개의 가시면에 적용된 세 가지 빛 배율. \emph{Classic} 은 표준적인 Minecraft 바닐라 외관을 주며, \emph{Smooth} 는 매끈한 표면을 위해 대비를 낮추고, \emph{Blocks} 는 텍스처가 같아도 복셀 경계를 드러내는 기하학적 인셋이 있는 중간 기본값이다.}
+\label{fig:shading}
+\end{figure}
 
 % =============================================================================
 \section{이행: 연속 수학에서 게임 내 건설로}
@@ -502,8 +593,10 @@ Minecraft 플레이어는 $9 \times 4$ 격자로 구성된 36칸 \emph{인벤토
 \]
 \emph{단일 상자}는 $27 \times 64 = 1\,728$개의 아이템을 보관한다. \emph{셜커 상자}(휴대용 컨테이너)는 $27 \times 64 = 1\,728$개의 아이템을 보관하지만 그 자체를 상자 칸 \emph{안에} 저장할 수 있으므로 $54$개의 셜커 상자로 채워진 더블 상자는 최대 $54 \times 1\,728 = 93\,312$개의 아이템을 보관할 수 있다. 메가 빌드의 경우 관련 용량 단위는 \emph{셜커로 적재된 더블 상자}이다.
 
+\needspace{18\baselineskip}
 \subsection{참조 표: 표준적인 구}
 아래 표는 표준적인 채워진 구 부피를 채집 계획으로 변환한다. 마지막 열은 각 지름에 대한 빌드 맥락을 제안한다:
+\nopagebreak
 
 \vspace{0.4em}
 \begin{center}
@@ -546,7 +639,19 @@ F_{\mathrm{exp}} \;=\; \sum_{\mathbf{v}\in V_{\mathrm{solid}}}\;\sum_{\mathbf{n}
 \]
 $D=16$의 구(채움 모드)의 경우, $V = 2\,145$, $V_{\mathrm{경계}} \approx 432$(셸), $F_{\mathrm{exp}} \approx 1\,184$ 가시 면 — 건설은 약 $432$개의 \emph{가시} 블록만 필요하고, 나머지 $1\,713$ 블록은 내부이며 가장 저렴한 블록(흙, 조약돌)으로 채울 수 있다. 오버레이는 빌더가 셸의 누락된 블록을 즉시 발견할 수 있게 한다.
 
-
+\begin{figure}[!ht]
+\centering
+\begin{subfigure}[t]{0.40\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_overlay_off.png}
+  \caption{오버레이 \emph{OFF}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.40\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_overlay_on.png}
+  \caption{오버레이 \emph{ON}(기본)}
+\end{subfigure}
+\caption{노출된 모서리의 검은 윤곽선 유무에 따른 동일한 복셀 집합의 비교. \emph{highlight overlay} 가 ON 이면 껍데기에 빠진 블록이 한눈에 알아챌 수 있는 패턴 불연속을 만든다 --- 서바이벌 건축 중의 빠른 검증 도구.}
+\label{fig:overlay}
+\end{figure}
 
 % =============================================================================
 \section{층별 건설 (수평 분해)}
@@ -606,7 +711,12 @@ T_{\mathrm{full}}
 \]
 생존에서 $N = 7\,238$의 경우($T_{\mathrm{block}} = 2$\,s, $T_{\mathrm{clone}} = 0{,}05$\,s): 전체 = $14\,476$\,s $\approx 4$\,h $1$\,min; 팔분원 + 클론 = $1\,810$\,s + $0{,}35$\,s $\approx 30$\,min. 반사 부분군의 차수와 정확히 일치하는 $8$배 속도 향상. 차수 $48$의 완전한 팔면체군 $O_h$는 원칙적으로 더 줄일 수 있지만(차수 $48$만큼), 대각선 회전을 활용하려면 $45°$ 회전된 빌드 영역이 필요하며, 바닐라 Minecraft에서 설정 비용을 들일 가치가 거의 없다.
 
-
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=0.45\linewidth]{math_3d_octants.png}
+\caption{$D=10$ 구에서 양의 팔분공간 $(+x,+y,+z)$ 을 초록으로 강조 표시. 부분군 $\mathbb{Z}_2^3 \leq O_h$(위수 8, 세 좌표 반사로 생성됨)의 작용 아래 이 팔분공간이 구 전체를 결정한다 --- 나머지 일곱 영역은 수작업으로 만든 팔분공간에 \emph{mode:masked} 옵션을 준 \cmd{/clone} 호출을 차례로 적용해 얻는다.}
+\label{fig:octants}
+\end{figure}
 
 % =============================================================================
 \section{블록 텍스처와 시각적 구성}
@@ -623,7 +733,23 @@ Minecraft 블록은 평평하게 색칠된 셀이 아니라 \emph{6개의 텍스
 
 대부분의 블록(돌, 조약돌, 다이아몬드 블록, 참나무 판자)은 \emph{여섯 면에 같은 텍스처}를 사용한다. 다면 블록(잔디 블록, 호박, 건초 더미, 석영 기둥, 모든 나무 통나무, 작업대, 화로, 책장, TNT)은 위, 옆, 아래에 \emph{다른 텍스처}를 사용한다: 잔디 블록은 녹색 위, 잔디-흙 옆, 순수 흙 아래; 참나무 통나무는 위와 아래에 나뭇결 고리, 네 옆에 껍질이 있다. 결정적으로, \emph{어떤 복셀을 배치할지의 수학}은 사용되는 텍스처에 의존하지 않는다 — 같은 지름의 다이아몬드 구와 조약돌 구의 실루엣은 동일하다. 텍스처 결정은 기하학적 알고리즘이 끝난 후 적용되는 \emph{순수하게 미학적인} 층이다.
 
-
+\begin{figure}[!ht]
+\centering
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_tex_cobble.png}
+  \caption{\emph{Cobblestone}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_tex_oak.png}
+  \caption{\emph{Oak Planks}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_tex_quartz.png}
+  \caption{\emph{Quartz Block}}
+\end{subfigure}
+\caption{동일한 $D=8$ 구를 세 가지 다른 블록으로 렌더링한 결과. 복셀화된 실루엣(수학)은 세 경우에 모두 동일하다: 알고리즘이 복셀을 선택하고, 텍스처는 이후에 적용되는 순전히 미적인 층으로서 부피도 위상도 바꾸지 않는다.}
+\label{fig:textures}
+\end{figure}
 
 \subsection{블록 가족과 톤}
 수십 개의 사용 가능한 블록 중에서 선택하는 생존 빌더에게 관련 질문은 텍스처 인덱스가 아니라 \emph{톤 가족}이다: 밝음/어두움, 따뜻함/차가움, 균일/패턴화. 아래 표는 Block Round 빌드에서 가장 흔히 사용되는 블록을 분류한다:
@@ -668,6 +794,103 @@ deepslate          & 돌  & 어두움  & 지하, 강조 \\
 Block Round는 Minecraft 도구 생태계에서 작지만 수학적으로 풍부한 틈새를 차지한다: 순수 기하 도구(WorldEdit, Litematica)와 순수 시각 도구(리소스 팩, 셰이더) 사이에 위치하여, 연속 방정식에서 이산 배치 계획에 이르는 명시적이고, 도출 가능하며, 재현 가능한 다리를 제공한다. 자매 프로젝트 Pixel Round는 Minecraft 층 없이 동일한 알고리즘을 제공하여 전통적인 픽셀 아트와 복셀 아트 응용에 적합하다. 두 프로젝트는 함께 동일한 연속에서 이산으로의 수학적 파이프라인이 어떻게 근본적으로 다른 예술적 및 건설적 워크플로를 지원하는지 예시한다.
 
 % =============================================================================
+\section*{\color{accent}참고문헌}
+\addcontentsline{toc}{section}{참고문헌}
+\label{sec:bib}
+
+\subsection*{기술 참고문헌(래스터화 및 디지털 위상수학)}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=0.3em,topsep=0.3em]
+  \item \textbf{Bresenham, J. E.} \emph{Algorithm for computer control of a digital plotter}.
+        IBM Systems Journal, vol.~4, n.~1, p.~25--30, 1965.
+        이용 가능한 곳 \biblink{https://doi.org/10.1147/sj.41.0025}{doi:10.1147/sj.41.0025}.
+        --- 본 문서의 §5 에서 다루는 정수 중점 알고리즘의 원논문.
+
+  \item \textbf{Pitteway, M.~L.~V.} \emph{Algorithm for drawing ellipses or hyperbolae
+        with a digital plotter}. The Computer Journal, vol.~10, n.~3, p.~282--289, 1967.
+        이용 가능한 곳 \biblink{https://doi.org/10.1093/comjnl/10.3.282}{doi:10.1093/comjnl/10.3.282}.
+        --- Bresenham 알고리즘을 임의의 원뿔곡선으로 일반화한 것으로, §5 에서 설명한 타원 확장의 기초.
+
+  \item \textbf{Kappel, A.} \emph{An ellipse-drawing algorithm for raster displays}.
+        수록 \emph{Fundamental Algorithms for Computer Graphics} (R.~A.~Earnshaw, ed.),
+        NATO ASI Series F-17, Springer, 1985, p.~257--280.
+        --- 타원 구현에서 사용한 두 영역 정식화.
+
+  \item \textbf{Klette, R.; Rosenfeld, A.} \emph{Digital Geometry: Geometric Methods
+        for Digital Picture Analysis}. Morgan Kaufmann, 2004. 656 쪽.
+        --- 디지털 위상수학, 경계 작용소 ($\partial F$), 4-/6-/26-연결성의 표준 참고문헌. §7, §12, §18 에서 사용.
+
+  \item \textbf{Foley, J.~D.; van Dam, A.; Feiner, S.~K.; Hughes, J.~F.}
+        \emph{Computer Graphics: Principles and Practice}. 제3판, Addison-Wesley, 2014.
+        --- 래스터화, 조명 모델, 원근 투영의 고전적 논의. §13--15 와 관련.
+\end{itemize}
+
+\subsection*{참조한 Minecraft 사양 및 도구}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=0.3em,topsep=0.3em]
+  \item \textbf{Sponge Project.} \emph{Sponge Schematic Specification, version~2}.
+        \biblink{https://github.com/SpongePowered/Schematic-Specification}{github.com/SpongePowered/Schematic-Specification}.
+        --- Block Round 가 내보내는 \code{.schem} 파일 형식(gzip + NBT). WorldEdit, Litematica, MCEdit 으로 불러올 수 있다.
+
+  \item \textbf{EngineHub.} \emph{WorldEdit Documentation}.
+        \biblink{https://worldedit.enginehub.org/}{worldedit.enginehub.org}.
+        --- 본 문서 전반에서 인용되는 \cmd{//sphere}, \cmd{//hsphere}, \cmd{//ellipsoid}, \cmd{//cyl}, \cmd{//schem load} 명령에 대한 공식 참고문헌.
+
+  \item \textbf{Mojang AB.} \emph{Minecraft Wiki --- Inventory}.
+        \biblink{https://minecraft.wiki/w/Inventory}{minecraft.wiki/w/Inventory}.
+        --- §17 에서 사용되는 슬롯, 스택, 단일 상자(27 슬롯) 및 더블 상자(54 슬롯)에 대한 참고자료.
+
+  \item \textbf{Mojang AB.} \emph{Minecraft Wiki --- Commands/fill, /clone}.
+        \biblink{https://minecraft.wiki/w/Commands/fill}{minecraft.wiki/w/Commands/fill},
+        \biblink{https://minecraft.wiki/w/Commands/clone}{minecraft.wiki/w/Commands/clone}.
+        --- §17 과 §20 에서 인용되는 바닐라 명령 \cmd{/fill} 과 \cmd{/clone}.
+
+  \item \textbf{Masady} (\emph{Litematica} mod).
+        \biblink{https://github.com/maruohon/litematica}{github.com/maruohon/litematica}.
+        --- 스키매틱을 불러와 시공할 건축물의 반투명 고스트를 표시하는 Minecraft Java Edition 모드.
+\end{itemize}
+
+\subsection*{기하학, 선형대수, 군론}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=0.3em,topsep=0.3em]
+  \item \textbf{김홍중} \emph{선형대수와 그 응용}. 경문사, 2012.
+        --- 타원의 음함수 방정식, $\mathbb{R}^3$ 에서의 평면 대수,
+        구면 좌표. §3, §9, §13 내용의 기초.
+
+  \item \textbf{Armstrong, M.~A.} \emph{Groups and Symmetry}. Undergraduate Texts in
+        Mathematics, Springer, 1988.
+        --- 팔면체군 $O_h$ 와 그 부분군에 대한 입문적 서술, §20 에서 사용.
+
+  \item \textbf{Coxeter, H.~S.~M.} \emph{Regular Polytopes}. 제3판, Dover, 1973.
+        --- 정다면체 대칭군의 표준 참고문헌으로, §20 에서 언급된 위수 48 의 $O_h$ 에 대한 자세한 처리를 포함.
+
+  \item \textbf{Hilbert, D.; Cohn-Vossen, S.} \emph{Geometry and the Imagination}.
+        AMS Chelsea, 1990 [orig.~1932].
+        --- 이차곡면과 기하학적 시각화의 고전적 논의, §9 의 직관적 기초.
+\end{itemize}
+
+\subsection*{알고리즘, 자료구조, 복잡도}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=0.3em,topsep=0.3em]
+  \item \textbf{Cormen, T.~H.; Leiserson, C.~E.; Rivest, R.~L.; Stein, C.}
+        \emph{Introduction to Algorithms}. 제4판, MIT Press, 2022.
+        --- §4--6 의 세 알고리즘에 대한 복잡도 분석, §17 의 천장 나눗셈.
+
+  \item \textbf{Wirth, N.} \emph{Algorithms + Data Structures = Programs}.
+        Prentice-Hall, 1976.
+        --- Bresenham 의 직선 알고리즘 및 그 원주로의 확장에 관한 고전적 서술.
+\end{itemize}
+
+\subsection*{보조 온라인 자료}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=0.3em,topsep=0.3em]
+  \item Block Round --- 앱: \biblink{https://vinisouza128.github.io/block-round/}{vinisouza128.github.io/block-round/}.
+  \item Block Round --- 저장소: \biblink{https://github.com/ViniSouza128/block-round}{github.com/ViniSouza128/block-round}.
+  \item 자매 프로젝트 Pixel Round(Minecraft 텍스처 없는 버전):
+        \biblink{https://github.com/ViniSouza128/pixel-round}{github.com/ViniSouza128/pixel-round}.
+  \item pt-BR 수업 계획서(고등학교 3학년):
+        \biblink{https://vinisouza128.github.io/block-round/docs_aula/Plano_de_Aula_pt-BR.pdf}{docs\_aula/Plano\_de\_Aula\_pt-BR.pdf}.
+\end{itemize}
 
 
 \clearpage
@@ -708,7 +931,8 @@ Block Round는 Minecraft 도구 생태계에서 작지만 수학적으로 풍부
 
 \vspace{0.4em}
 \begin{center}
-\begin{tabular}{@{}lll@{}}
+\small
+\begin{tabularx}{\textwidth}{@{}llX@{}}
 \toprule
 \textbf{명령} & \textbf{모드 / 출처} & \textbf{결과} \\
 \midrule
@@ -719,7 +943,7 @@ Block Round는 Minecraft 도구 생태계에서 작지만 수학적으로 풍부
 \cmd{/fill ... stone}      & 바닐라 & 한 블록 종류로 박스 채우기  \\
 \cmd{/clone ... mode:masked} & 바닐라 & 영역을 새 위치로 복사  \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{center}
 
 Litematica 사용자의 경우 워크플로가 다르다: 명령을 실행하는 대신, schematic 파일(Block Round은 \code{.schem}, Sponge 형식 v2를 내보낸다)을 Litematica 모드에 로드하면, 모드는 플레이어가 블록 단위로 배치하는 도형의 반투명 유령을 표시한다. 이것은 WorldEdit의 크리에이티브 경험에 가장 가까운 생존 모드 등가물이다.
@@ -802,8 +1026,8 @@ Block Round 앱은 캔버스의 모서리 버튼을 반영하는 작은 키보�
   \item M.~L.~V.~Pitteway, \emph{Algorithm for drawing ellipses or hyperbolae with a digital plotter}, Computer Journal, vol.~10, 1967 ── Bresenham을 임의의 원뿔 곡선으로 일반화.
   \item A.~Kappel, \emph{An ellipse-drawing algorithm for raster displays}, ACM Comm.\ vol.~28, 1985 ── 5절에서 사용된 두 영역 타원 공식.
   \item R.~Klette과 A.~Rosenfeld, \emph{Digital Geometry: Geometric Methods for Digital Picture Analysis}, Morgan Kaufmann, 2004 ── 7절과 18절의 디지털 위상 및 경계 연산자에 대한 표준 참고.
-  \item WorldEdit 문서, \emph{enginehub.org/worldedit/} ── 본 문서 전체에서 사용된 \cmd{//sphere}, \cmd{//hsphere}, \cmd{//ellipsoid}, \cmd{//copy} 명령군의 공식 참조.
-  \item Sponge Schematic 사양 v2, \emph{github.com/SpongePowered/Schematic-Specification} ── Block Round가 \code{.schem}으로 내보내는 파일 형식.
+  \item WorldEdit 문서, \biblink{https://enginehub.org/worldedit/}{enginehub.org/worldedit/} ── 본 문서 전체에서 사용된 \cmd{//sphere}, \cmd{//hsphere}, \cmd{//ellipsoid}, \cmd{//copy} 명령군의 공식 참조.
+  \item Sponge Schematic 사양 v2, \biblink{https://github.com/SpongePowered/Schematic-Specification}{github.com/SpongePowered/Schematic-Specification} ── Block Round가 \code{.schem}으로 내보내는 파일 형식.
 \end{itemize}
 
 22절에 나열된 여덟 개의 이론 영역은 각각 단일 기술 문서가 요약할 수 있는 범위를 훨씬 넘는 교과서 수준의 처리를 가지고 있다. Block Round의 기여는 이론 자체에 있지 않고 특정한 종합에 있다: 일반적으로 순수 기하 도구에서 생략되는 명시적 인벤토리 및 대칭 비용 고려와 함께 텍스처화된 복셀 Minecraft 환경에 고전적 래스터화를 적용하는 것.
@@ -818,7 +1042,7 @@ Block Round 앱은 캔버스의 모서리 버튼을 반영하는 작은 키보�
 
 \vspace{0.6em}
 
-Block Round는 Vinícius Rodrigues de Souza가 유지 관리한다. 자매 프로젝트 Pixel Round는 \emph{github.com/ViniSouza128/pixel-round}에서 이용 가능하며; 현재 Block Round 저장소는 \emph{github.com/ViniSouza128/block-round}에 있다.
+Block Round는 Vinícius Rodrigues de Souza가 유지 관리한다. 자매 프로젝트 Pixel Round는 \biblink{https://github.com/ViniSouza128/pixel-round}{github.com/ViniSouza128/pixel-round}에서 이용 가능하며; 현재 Block Round 저장소는 \biblink{https://github.com/ViniSouza128/block-round}{github.com/ViniSouza128/block-round}에 있다.
 
 의견, 수정 및 번역 개선은 프로젝트 저장소의 이슈 트래커를 통해 환영한다. 영어가 아닌 여덟 개 로케일의 원어민 교정은 특히 중요하게 평가된다. 현지화는 상당한 검토를 거쳐 준비되었지만 기술적 - 수학적 용어는 원어민의 교정으로부터 혜택을 받는다.
 

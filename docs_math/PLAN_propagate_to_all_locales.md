@@ -319,3 +319,68 @@ Mensagem do commit deve listar:
 - Alterar conteúdo matemático (apenas correção factual)
 - Criar mais locales além dos 9 existentes
 - Modificar `docs_aula/` (escopo é apenas `docs_math/`)
+
+---
+
+## 10 · Adendo (2026-05-12) · Fix definitivo de URL vazando
+
+A revisão de layout em `24f9720` adicionou `breaklinks=true` ao hyperref + `\usepackage{xurl}`, mas inspeção fina do `pt-BR.pdf` (extração de bbox via PyMuPDF) revelou que ainda há micro-vazamentos:
+
+- **2-2.5 pt** (sub-mm) em ~12 linhas espalhadas pelas p.27-35 — TeX não consegue justificar perfeitamente após quebrar URLs longas em locais como "github.com/S | pongePowered/Schematic-Specification". É fill-de-parágrafo natural; o fix é dar mais corda ao motor com `\emergencystretch`.
+- **8.2 pt** na tabela A.2 (p.30) — `\begin{tabular}{lll}` com `//ellipsoid st. 10 5 10` na primeira coluna + descrição longa na terceira; colunas fixas não cabem no `\textwidth`. Fix: trocar `tabular` por `tabularx` com `X` na última coluna.
+- **5.6 pt** na p.34 (APX_A_REF6, lista de refs do apêndice) — `\emph{github.com/SpongePowered/Schematic-Specification}` em itálico não quebra URLs como `\nolinkurl` do xurl. Fix: converter cada `\emph{URL}` dos `APX_A_REF{1..6}` e `APX_A_P19` para `\biblink{https://URL}{URL}` em todos os 9 locales.
+
+### Mudanças template (build.py) — a aplicar antes da propagação
+
+```latex
+% No preambulo, apos hyperref/xurl:
+\setlength{\emergencystretch}{3em}   % ~36pt de slack para justificacao
+\setlength{\Urlmuskip}{0mu plus 1mu}  % URLs ganham flex em quebras de linha
+```
+
+### Mudanças tabela A.2 (no template TEX) — antes:
+
+```latex
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Comando} & \textbf{Mod / origem} & \textbf{Resultado} \\
+\midrule
+\cmd{//sphere stone 8}     & WorldEdit & «APX_A_CMD_RESULT_1»  \\
+...
+```
+
+Depois:
+
+```latex
+\begin{tabularx}{\textwidth}{@{}llX@{}}
+\toprule
+\textbf{Comando} & \textbf{Mod / origem} & \textbf{Resultado} \\
+\midrule
+\cmd{//sphere stone 8}     & WorldEdit & «APX_A_CMD_RESULT_1»  \\
+...
+\end{tabularx}
+```
+
+### Mudanças por locale (translations*.py)
+
+Para CADA locale (9 no total), converter:
+
+| Antes | Depois |
+|-------|--------|
+| `\emph{enginehub.org/worldedit/}` | `\biblink{https://enginehub.org/worldedit/}{enginehub.org/worldedit/}` |
+| `\emph{github.com/SpongePowered/Schematic-Specification}` | `\biblink{https://github.com/SpongePowered/Schematic-Specification}{github.com/SpongePowered/Schematic-Specification}` |
+| `\emph{github.com/ViniSouza128/block-round}` | `\biblink{https://github.com/ViniSouza128/block-round}{github.com/ViniSouza128/block-round}` |
+| `\emph{github.com/ViniSouza128/pixel-round}` | `\biblink{https://github.com/ViniSouza128/pixel-round}{github.com/ViniSouza128/pixel-round}` |
+
+Aplica-se a `APX_A_REF5`, `APX_A_REF6`, `APX_A_P19`. (Os demais REFs são puramente bibliográficos sem URL, ficam como `\emph{título de obra}` — correto.)
+
+### Ordem de execução desta sessão
+
+1. Editar `build.py`: preâmbulo (`\emergencystretch`, `\Urlmuskip`) + tabela A.2 (`tabularx`).
+2. Editar `translations.py` + `translations_es_fr.py` + `translations_de_zh.py` + `translations_ja_ru.py` + `translations_ko.py`: substituir 3-4 `\emph{URL}` por `\biblink` em cada locale (≈30 substituições no total).
+3. Refatorar `FIG_BLOCKS_PT_BR` → `FIG_BLOCKS[loc]` em `build.py`.
+4. Adicionar 8 dicts `FIG_BLOCKS["en-US"|"es-ES"|...]` (~9 chaves cada com legendas traduzidas + bibliografia local).
+5. Revisão factual frestas→células diagonais nos 7 locales restantes (de, es, fr, ja, ko, ru, zh).
+6. `python build.py` → verificar 9 PDFs gerados, sem `WARN`, paginação OK.
+7. Re-extrair bbox dos PDFs com PyMuPDF, garantir nenhum vazamento > 1pt.
+8. Commit único + push.

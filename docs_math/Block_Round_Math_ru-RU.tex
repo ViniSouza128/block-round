@@ -47,9 +47,20 @@
             linkcolor=linkc,
             urlcolor=linkc,
             citecolor=linkc,
+            breaklinks=true,
             bookmarks=true,bookmarksopen=true,
             pdftitle={Block Round — Математика проекта},
             pdfauthor={Vinícius Rodrigues de Souza}]{hyperref}
+% xurl permite quebrar URLs em qualquer caractere (alternativa a url
+% que so quebra em "." e "/"). Carregado DEPOIS de hyperref.
+\usepackage{xurl}
+
+% emergencystretch da fold ao motor de justificacao quando ele falha em
+% encaixar uma linha mesmo apos quebrar URLs longas. 1.5em (~18pt) basta
+% para absorver os 2-8pt de overhang em paragrafos densos da bibliografia
+% sem deixar TeX desperar e quebrar URLs char-a-char (o que acontecia
+% com 3em + \Urlmuskip stretch positivo).
+\setlength{\emergencystretch}{1.5em}
 
 \color{ink}
 
@@ -83,8 +94,7 @@
   colback=accent!7, colframe=accent!50!rule, boxrule=0.6pt, arc=2pt,
   left=10pt,right=10pt,top=8pt,bottom=8pt,
   before skip=10pt, after skip=10pt,
-  breakable,
-  before={\par\needspace{5\baselineskip}}
+  breakable
 }
 
 \setlength{\parskip}{0.75em}
@@ -94,6 +104,11 @@
 \newcommand{\code}[1]{\texttt{\small #1}}
 \newcommand{\acc}[1]{\textcolor{accent}{\textbf{#1}}}
 \newcommand{\cmd}[1]{\textcolor{earth}{\texttt{\small #1}}}
+% biblink: link clicavel cujo texto de exibicao pode quebrar em qualquer
+% caractere (igual \url, via xurl). Evita URLs vazando alem da margem
+% direita. \nolinkurl formata como URL sem criar link; o \href externo
+% prove a clicabilidade.
+\newcommand{\biblink}[2]{\href{#1}{\nolinkurl{#2}}}
 
 \begin{document}
 
@@ -185,7 +200,23 @@ $\displaystyle d_x = \dfrac{i+\tfrac{1}{2}-c_x}{r_x},\qquad
 \textbf{Перенос в Minecraft.} При постройке башни в выживании пользователь обычно хочет \emph{широкий плоский круг} в основании и постепенно уменьшающиеся круги при подъёме башни. Каждый этаж — это применение неявного уравнения эллипса с теми же полуосями, но с другим $z$. Block Round вычисляет 2D-слой один раз, а пользователь дублирует его командой \cmd{/clone} на каждый этаж.
 \end{minec}
 
-
+\begin{figure}[!ht]
+\centering
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d10_eucl.png}
+  \caption{\emph{Евклидово}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d10_bres.png}
+  \caption{\emph{Брезенхэм}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d10_thr.png}
+  \caption{\emph{Пороговое}}
+\end{subfigure}
+\caption{Одна и та же окружность диаметра $D=10$ при трёх различных критериях. Каждая фигура --- это множество клеток, помеченных соответствующей версией неравенства $d_x^2+d_y^2\leq 1$, отрендеренное текстурой \emph{cobblestone} из Minecraft. Обратите внимание на различия в переходах между рядами, угловых клетках и кардинальных точках --- три математически верных ответа при разных критериях.}
+\label{fig:comp-d10}
+\end{figure}
 
 % =============================================================================
 \section{Евклидов алгоритм (тест расстояния)}
@@ -312,10 +343,26 @@ h_V &= b(i,j{-}1) \;\vee\; b(i,j{+}1).
 \end{align*}
 
 \begin{minec}
-\textbf{Перенос в Minecraft.} Для стеклянного купола $D=20$ (полого) толстый режим даёт \emph{водонепроницаемую} оболочку из $608$ блоков против $\approx 510$ в тонком режиме — дополнительные $\sim 100$ блоков — это диагональные стежки, предотвращающие протечку окружающего света через диагональные щели.
+\textbf{Перенос в Minecraft.} Для стеклянного купола $D=20$ (полого) толстый режим даёт \emph{водонепроницаемую} оболочку из $608$ блоков против $\approx 510$ в тонком режиме — дополнительные $\sim 100$ блоков — это диагональные стежки, заполняющие пустые диагональные ячейки (воздушные блоки), через которые иначе проникал бы окружающий свет.
 \end{minec}
 
-
+\begin{figure}[!ht]
+\centering
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d20_filled.png}
+  \caption{\emph{Заполненный}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d20_thin.png}
+  \caption{\emph{Тонкий (\emph{1 воксель})}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d20_thick.png}
+  \caption{\emph{Толстый}}
+\end{subfigure}
+\caption{Три режима рендеринга для одной и той же евклидовой окружности $D=20$. Режим \emph{Тонкий} соответствует дискретной топологической границе ($\partial F$); режим \emph{Толстый} добавляет диагональные блоки для закрытия отверстий под $45^\circ$, что необходимо для герметичных построек (подводные купола из Стекла/Льда).}
+\label{fig:modes}
+\end{figure}
 
 % =============================================================================
 \section{Вычисление дискретной площади}
@@ -351,7 +398,19 @@ a_\xi = \frac{\xi + \tfrac{1}{2} - c_\xi}{r_\xi}\;\;(\xi \in \{x,y,z\}),
 \textbf{Перенос в Minecraft.} Эллипсоид с $W=20$, $H=10$, $D=20$ даёт \emph{приплюснутую сферу}, идеальную для подземного купола или крыши стадиона. Объём $V \approx 2\,094$ блоков ($33$ стака). Эквивалентная команда WorldEdit: \cmd{//ellipsoid stone 10 5 10}.
 \end{minec}
 
-
+\begin{figure}[!ht]
+\centering
+\begin{subfigure}[t]{0.46\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_sphere_d10.png}
+  \caption{Сфера $D=10$, $r_x=r_y=r_z=5$.}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.46\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_ellipsoid.png}
+  \caption{Эллипсоид $W=20,\,H=10,\,D=12$.}
+\end{subfigure}
+\caption{Воксельизация в $\mathbb{R}^3$. Каждый куб --- это воксель; координаты его центра $(i,j,k)$ проверяются по неявному уравнению $a_x^2+a_y^2+a_z^2\leq 1$. Видимые ступеньки на поверхности --- математическое следствие дискретизации, именно та особенность, которая придаёт Minecraft его визуальную идентичность.}
+\label{fig:3d-shapes}
+\end{figure}
 
 % =============================================================================
 \section{Воксельзация и вычисление объёма}
@@ -408,7 +467,23 @@ Block Round позволяет резать тело \acc{тремя плоск�
 \textbf{Перенос в Minecraft.} Срез по оси Y на $50\%$ для сферы даёт классический \emph{купол} половинного объёма. Для $D=16$: $V_{\mathrm{full}} = 2\,145$ блоков, $V_{\mathrm{dome}} \approx 1\,095$ блоков ($\approx 18$ паков). Диагональный срез на $50\%$ даёт сечение \emph{полу-чаша}, часто используемое для интерьеров фонтанов и сидений амфитеатров.
 \end{minec}
 
-
+\begin{figure}[!ht]
+\centering
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_cut_y.png}
+  \caption{Сечение $Y$ 50\% (купол)}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_cut_x.png}
+  \caption{Сечение $X$ 50\%}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_cut_diag.png}
+  \caption{Диагональ 50\%}
+\end{subfigure}
+\caption{Три сечения одной и той же сферы $D=16$, каждое сохраняет 50\% объёма. Сечение $Y$ даёт классический купол $V_{\mathrm{купол}}=\tfrac{2}{3}\pi r^3$; диагональ обнажает гипотенузу $x+y=k$, характерную для этой секущей плоскости.}
+\label{fig:cuts}
+\end{figure}
 
 % =============================================================================
 \section{Толстый режим 3D: трёхмерализация через слои}
@@ -420,7 +495,7 @@ Block Round позволяет резать тело \acc{тремя плоск�
 \bigcup_{y} T\bigl(S_y(y)\bigr) \;\cup\;
 \bigcup_{x} T\bigl(S_x(x)\bigr)
 \]
-Результат затем пересекается с множеством, сохранённым срезом. Лежащая в основе теория — \acc{цифровая топология}: толстый оператор гарантирует \emph{26-связность} оболочки (соседи, включая диагонали), полезную для строительства в Minecraft, где диагональные воксели не соприкасаются гранями — свет, вода и существа проходят через диагональные щели, как если бы стены не было.
+Результат затем пересекается с множеством, сохранённым срезом. Лежащая в основе теория — \acc{цифровая топология}: толстый оператор гарантирует \emph{26-связность} оболочки (соседи, включая диагонали), полезную для строительства в Minecraft, где диагональные воксели не соприкасаются гранями — свет, вода и существа проходят через эти пустые диагональные ячейки (воздушные блоки), как если бы стены не было.
 
 \begin{minec}
 \textbf{Перенос в Minecraft.} Для подводного стеклянного купола над океаническим монументом в выживании толстый режим обязателен: диагональные мосты предотвращают просачивание воды через диагональные трещины, оставленные тонким режимом. Стоимость: купол $D=20$ в толстом режиме требует $\approx 380$ блоков стекла против $\approx 320$ в тонком — на $19\%$ больше материала в обмен на полную герметичность.
@@ -472,7 +547,23 @@ I \;=\; \max\bigl(0,\;\mathbf{n}\cdot\mathbf{l}\bigr)\cdot \mathit{тексту�
 \]
 где три фактора соответствуют косинусу угла между нормалью каждой грани и фиксированным направлением света. В \emph{Smooth} факторы близки (схожие грани); в \emph{Classic} факторы различаются больше (сильный контраст, вид ванильного Minecraft). \emph{Blocks} дополнительно вводит геометрический отступ в воксели — постоянный перенос каждой грани внутрь, чтобы выявлять межвоксельные границы даже когда соседние воксели несут одну и ту же текстуру. Для излучающих блоков (светокамень, морской фонарь, грибной светильник, магма, плачущий обсидиан) ламбертов член заменяется константой $I = \mathit{emissive\_factor} \cdot \mathit{texture}$, масштабированной до уровня света блока в MC.
 
-
+\begin{figure}[!ht]
+\centering
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_shading_classic.png}
+  \caption{\emph{Classic} (сильный контраст)}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_shading_blocks.png}
+  \caption{\emph{Blocks} (по умолчанию)}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_shading_smooth.png}
+  \caption{\emph{Smooth} (схожие грани)}
+\end{subfigure}
+\caption{Три множителя освещения, применяемые к одним и тем же трём видимым граням. \emph{Classic} даёт канонический ванильный вид Minecraft; \emph{Smooth} снижает контраст для гладких поверхностей; \emph{Blocks} --- промежуточный вариант по умолчанию с геометрическим отступом, выявляющим границы вокселей даже при одинаковой текстуре.}
+\label{fig:shading}
+\end{figure}
 
 % =============================================================================
 \section{Переход: от непрерывной математики к строительству в игре}
@@ -500,8 +591,10 @@ I \;=\; \max\bigl(0,\;\mathbf{n}\cdot\mathbf{l}\bigr)\cdot \mathit{тексту�
 \]
 \emph{Одиночный сундук} вмещает $27 \times 64 = 1\,728$ предметов. \emph{Шалкер} (переносной контейнер) вмещает $27 \times 64 = 1\,728$ предметов, но сам может храниться \emph{внутри} ячейки сундука, поэтому двойной сундук, наполненный $54$ шалкерами, может вместить до $54 \times 1\,728 = 93\,312$ предметов. Для мега-построек релевантная единица ёмкости — \emph{двойной сундук, нагруженный шалкерами}.
 
+\needspace{18\baselineskip}
 \subsection{Справочная таблица: канонические сферы}
 Таблица ниже преобразует канонические объёмы заполненных сфер в планы сбора. Последний столбец предлагает контекст постройки для каждого диаметра:
+\nopagebreak
 
 \vspace{0.4em}
 \begin{center}
@@ -544,7 +637,19 @@ F_{\mathrm{exp}} \;=\; \sum_{\mathbf{v}\in V_{\mathrm{solid}}}\;\sum_{\mathbf{n}
 \]
 Для сферы $D=16$ (заполненный режим), $V = 2\,145$, $V_{\mathrm{граница}} \approx 432$ (оболочка), $F_{\mathrm{exp}} \approx 1\,184$ видимых граней — постройка нуждается лишь в около $432$ \emph{видимых} блоках; остальные $1\,713$ блоков — внутренность, которую можно заполнить самым дешёвым доступным блоком (земля, булыжник). Overlay позволяет строителю мгновенно заметить пропущенный блок в оболочке.
 
-
+\begin{figure}[!ht]
+\centering
+\begin{subfigure}[t]{0.40\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_overlay_off.png}
+  \caption{Overlay \emph{OFF}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.40\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_overlay_on.png}
+  \caption{Overlay \emph{ON} (по умолчанию)}
+\end{subfigure}
+\caption{То же множество вокселей с чёрной обводкой открытых рёбер и без неё. С включённым \emph{highlight overlay} отсутствующий блок в оболочке создаёт разрыв узора, который глаз замечает мгновенно --- инструмент быстрой проверки во время строительства в режиме выживания.}
+\label{fig:overlay}
+\end{figure}
 
 % =============================================================================
 \section{Послойное строительство (горизонтальное разложение)}
@@ -604,7 +709,12 @@ T_{\mathrm{full}}
 \]
 Для $N = 7\,238$ в выживании ($T_{\mathrm{block}} = 2$\,с, $T_{\mathrm{clone}} = 0{,}05$\,с): полностью $= 14\,476$\,с $\approx 4$\,ч $1$\,мин; октант + клоны $= 1\,810$\,с + $0{,}35$\,с $\approx 30$\,мин. Ускорение в $8$ раз точно соответствует порядку подгруппы отражений. Полная октаэдрическая группа $O_h$ порядка $48$ в принципе может сократить дальше (в $48$ раз), но использование диагональных вращений требует области строительства, повёрнутой на $45°$, что редко оправдывает стоимость настройки в ванильном Minecraft.
 
-
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=0.45\linewidth]{math_3d_octants.png}
+\caption{Сфера $D=10$ с положительным октантом $(+x,+y,+z)$, выделенным зелёным. При действии подгруппы $\mathbb{Z}_2^3 \leq O_h$ (порядка 8, порождённой тремя координатными отражениями) этот октант определяет всю сферу --- остальные семь областей получаются последовательностью \cmd{/clone} с \emph{mode:masked}, применённой к октанту, построенному вручную.}
+\label{fig:octants}
+\end{figure}
 
 % =============================================================================
 \section{Текстуры блоков и визуальная композиция}
@@ -621,7 +731,23 @@ T_{\mathrm{full}}
 
 Большинство блоков (камень, булыжник, алмазный блок, дубовые доски) используют \emph{одну и ту же текстуру на всех шести гранях}. Многогранные блоки (блок травы, тыква, тюк сена, кварцевая колонна, все древесные брёвна, верстак, печь, книжный шкаф, TNT) используют \emph{разные текстуры} наверху, по бокам и внизу: блок травы имеет зелёный верх, бок с травой-землёй и чисто земляной низ; дубовое бревно имеет древесные кольца на верху и низу и кору на четырёх боках. Принципиально, что \emph{математика того, какие воксели размещать}, не зависит от используемой текстуры — силуэт алмазной сферы и булыжной сферы одного диаметра идентичен. Решение о текстуре — это \emph{чисто эстетический} слой, применяемый после завершения геометрического алгоритма.
 
-
+\begin{figure}[!ht]
+\centering
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_tex_cobble.png}
+  \caption{\emph{Cobblestone}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_tex_oak.png}
+  \caption{\emph{Oak Planks}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_tex_quartz.png}
+  \caption{\emph{Quartz Block}}
+\end{subfigure}
+\caption{Одна и та же сфера диаметра $D=8$, отрендеренная с тремя различными блоками. Воксельный силуэт (математика) идентичен во всех трёх случаях: алгоритм выбирает воксели, а текстура --- это чисто эстетический слой, наносимый позже и не меняющий ни объём, ни топологию.}
+\label{fig:textures}
+\end{figure}
 
 \subsection{Семейства блоков и тона}
 Для строителя выживания, выбирающего среди десятков доступных блоков, релевантный вопрос — не индекс текстуры, а \emph{тональное семейство}: светлый/тёмный, тёплый/холодный, однородный/узорчатый. В таблице ниже классифицированы наиболее распространённые блоки в постройках Block Round:
@@ -666,6 +792,104 @@ deepslate          & камень  & тёмный  & подземелья, ак�
 Block Round занимает небольшую, но математически богатую нишу в экосистеме инструментов Minecraft: он находится между чисто геометрическими инструментами (WorldEdit, Litematica) и чисто визуальными (наборы ресурсов, шейдеры), предлагая явный, выводимый и воспроизводимый мост от непрерывного уравнения к дискретному плану размещения. Родственный проект Pixel Round предоставляет те же алгоритмы без слоя Minecraft, подходящий для традиционных приложений пиксельной и воксельной графики. Вместе оба проекта иллюстрируют, как один и тот же непрерывный-к-дискретному математический конвейер поддерживает радикально разные художественные и конструктивные рабочие процессы.
 
 % =============================================================================
+\section*{\color{accent}Библиография}
+\addcontentsline{toc}{section}{Библиография}
+\label{sec:bib}
+
+\subsection*{Технические работы (растеризация и цифровая топология)}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=0.3em,topsep=0.3em]
+  \item \textbf{Bresenham, J. E.} \emph{Algorithm for computer control of a digital plotter}.
+        IBM Systems Journal, vol.~4, n.~1, p.~25--30, 1965.
+        Доступно по адресу \biblink{https://doi.org/10.1147/sj.41.0025}{doi:10.1147/sj.41.0025}.
+        --- оригинальная статья о целочисленном алгоритме средней точки, рассматриваемом в §5 данного документа.
+
+  \item \textbf{Pitteway, M.~L.~V.} \emph{Algorithm for drawing ellipses or hyperbolae
+        with a digital plotter}. The Computer Journal, vol.~10, n.~3, p.~282--289, 1967.
+        Доступно по адресу \biblink{https://doi.org/10.1093/comjnl/10.3.282}{doi:10.1093/comjnl/10.3.282}.
+        --- обобщение алгоритма Брезенхэма на произвольные конические сечения, основа расширения для эллипсов, описанного в §5.
+
+  \item \textbf{Kappel, A.} \emph{An ellipse-drawing algorithm for raster displays}.
+        В сб. \emph{Fundamental Algorithms for Computer Graphics} (R.~A.~Earnshaw, ed.),
+        NATO ASI Series F-17, Springer, 1985, p.~257--280.
+        --- двухобластная формулировка, используемая в реализации эллипсов.
+
+  \item \textbf{Klette, R.; Rosenfeld, A.} \emph{Digital Geometry: Geometric Methods
+        for Digital Picture Analysis}. Morgan Kaufmann, 2004. 656 с..
+        --- стандартная работа по цифровой топологии, операторам границы ($\partial F$), 4-/6-/26-связности. Используется в §7, §12 и §18.
+
+  \item \textbf{Foley, J.~D.; van Dam, A.; Feiner, S.~K.; Hughes, J.~F.}
+        \emph{Computer Graphics: Principles and Practice}. 3-е изд., Addison-Wesley, 2014.
+        --- классическое изложение растеризации, моделей освещения, перспективной проекции. Актуально для §13--15.
+\end{itemize}
+
+\subsection*{Спецификации и инструменты Minecraft}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=0.3em,topsep=0.3em]
+  \item \textbf{Sponge Project.} \emph{Sponge Schematic Specification, version~2}.
+        \biblink{https://github.com/SpongePowered/Schematic-Specification}{github.com/SpongePowered/Schematic-Specification}.
+        --- формат файла \code{.schem} (gzip + NBT), который экспортирует Block Round. Загружается через WorldEdit, Litematica и MCEdit.
+
+  \item \textbf{EngineHub.} \emph{WorldEdit Documentation}.
+        \biblink{https://worldedit.enginehub.org/}{worldedit.enginehub.org}.
+        --- официальная документация по командам \cmd{//sphere}, \cmd{//hsphere}, \cmd{//ellipsoid}, \cmd{//cyl}, \cmd{//schem load}, упоминаемым в документе.
+
+  \item \textbf{Mojang AB.} \emph{Minecraft Wiki --- Inventory}.
+        \biblink{https://minecraft.wiki/w/Inventory}{minecraft.wiki/w/Inventory}.
+        --- справка по слотам, стакам, обычным сундукам (27 слотов) и двойным сундукам (54 слота), используется в §17.
+
+  \item \textbf{Mojang AB.} \emph{Minecraft Wiki --- Commands/fill, /clone}.
+        \biblink{https://minecraft.wiki/w/Commands/fill}{minecraft.wiki/w/Commands/fill},
+        \biblink{https://minecraft.wiki/w/Commands/clone}{minecraft.wiki/w/Commands/clone}.
+        --- ванильные команды \cmd{/fill} и \cmd{/clone}, упоминаемые в §17 и §20.
+
+  \item \textbf{Masady} (\emph{Litematica} mod).
+        \biblink{https://github.com/maruohon/litematica}{github.com/maruohon/litematica}.
+        --- мод для Minecraft Java Edition, импортирующий схемы и показывающий полупрозрачный призрак постройки.
+\end{itemize}
+
+\subsection*{Геометрия, линейная алгебра и теория групп}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=0.3em,topsep=0.3em]
+  \item \textbf{Кострикин А.~И., Манин Ю.~И.} \emph{Линейная алгебра и геометрия}.
+        Наука, 1986.
+        --- неявное уравнение эллипса, алгебра плоскостей в $\mathbb{R}^3$,
+        сферические координаты. Основа содержания §3, §9 и §13.
+
+  \item \textbf{Armstrong, M.~A.} \emph{Groups and Symmetry}. Undergraduate Texts in
+        Mathematics, Springer, 1988.
+        --- вводное изложение октаэдрической группы $O_h$ и её подгрупп, используется в §20.
+
+  \item \textbf{Coxeter, H.~S.~M.} \emph{Regular Polytopes}. 3-е изд., Dover, 1973.
+        --- каноническая работа по группам симметрии правильных многогранников, включая детальное рассмотрение $O_h$ порядка 48, упомянутого в §20.
+
+  \item \textbf{Hilbert, D.; Cohn-Vossen, S.} \emph{Geometry and the Imagination}.
+        AMS Chelsea, 1990 [orig.~1932].
+        --- классическое изложение квадрик и геометрической визуализации, интуитивная основа §9.
+\end{itemize}
+
+\subsection*{Алгоритмы, структуры данных, сложность}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=0.3em,topsep=0.3em]
+  \item \textbf{Cormen, T.~H.; Leiserson, C.~E.; Rivest, R.~L.; Stein, C.}
+        \emph{Introduction to Algorithms}. 4-е изд., MIT Press, 2022.
+        --- анализ сложности трёх алгоритмов §4--6, деление с округлением вверх в §17.
+
+  \item \textbf{Wirth, N.} \emph{Algorithms + Data Structures = Programs}.
+        Prentice-Hall, 1976.
+        --- классическое изложение алгоритма Брезенхэма для прямых и его расширения на окружности.
+\end{itemize}
+
+\subsection*{Дополнительные онлайн-ресурсы}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=0.3em,topsep=0.3em]
+  \item Block Round --- приложение: \biblink{https://vinisouza128.github.io/block-round/}{vinisouza128.github.io/block-round/}.
+  \item Block Round --- репозиторий: \biblink{https://github.com/ViniSouza128/block-round}{github.com/ViniSouza128/block-round}.
+  \item Родственный проект Pixel Round (вариант без текстур Minecraft):
+        \biblink{https://github.com/ViniSouza128/pixel-round}{github.com/ViniSouza128/pixel-round}.
+  \item План урока на pt-BR (3-й год средней школы):
+        \biblink{https://vinisouza128.github.io/block-round/docs_aula/Plano_de_Aula_pt-BR.pdf}{docs\_aula/Plano\_de\_Aula\_pt-BR.pdf}.
+\end{itemize}
 
 
 \clearpage
@@ -677,7 +901,7 @@ Block Round занимает небольшую, но математически
 Это приложение собирает наиболее часто используемые числовые и командные справочники для пользователей Block Round. Данные ниже консолидируют таблицы из отдельных разделов и пошаговые примеры, разбросанные по документу, организованные так, чтобы приложение функционировало как одностраничный справочник для планирования постройки, синтаксиса команд и сквозного пошагового примера.
 
 \subsection*{A.1 Полная справка по сферам (заполненная, полая, паки)}
-Таблица ниже расширяет канонические таблицы сфер из разделов~10 и~17, добавляя вариант полой оболочки (\emph{тонкий} режим) рядом с заполненным объёмом. Подсчёт полой оболочки предполагает один воксель толщины и вычисляется по Евклидовому алгоритму; толстый режим добавляет примерно $10{-}15\%$ дополнительных блоков для герметизации диагональных щелей, как описано в разделе~12.
+Таблица ниже расширяет канонические таблицы сфер из разделов~10 и~17, добавляя вариант полой оболочки (\emph{тонкий} режим) рядом с заполненным объёмом. Подсчёт полой оболочки предполагает один воксель толщины и вычисляется по Евклидовому алгоритму; толстый режим добавляет примерно $10{-}15\%$ дополнительных блоков для заполнения пустых диагональных ячеек, как описано в разделе~12.
 
 \vspace{0.4em}
 \begin{center}
@@ -706,7 +930,8 @@ Block Round занимает небольшую, но математически
 
 \vspace{0.4em}
 \begin{center}
-\begin{tabular}{@{}lll@{}}
+\small
+\begin{tabularx}{\textwidth}{@{}llX@{}}
 \toprule
 \textbf{Команда} & \textbf{Мод / происхождение} & \textbf{Результат} \\
 \midrule
@@ -717,7 +942,7 @@ Block Round занимает небольшую, но математически
 \cmd{/fill ... stone}      & vanilla & заполнить коробку одним блоком  \\
 \cmd{/clone ... mode:masked} & vanilla & копировать область в новое место  \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{center}
 
 Для пользователей Litematica рабочий процесс другой: вместо выполнения команд файл схематики (Block Round экспортирует \code{.schem}, формат Sponge v2) загружается в мод Litematica, который затем отображает полупрозрачный призрак фигуры, который игрок размещает блок за блоком. Это ближайший эквивалент режима выживания к креативному опыту WorldEdit.
@@ -800,8 +1025,8 @@ Block Round занимает небольшую, но математически
   \item M.~L.~V.~Pitteway, \emph{Algorithm for drawing ellipses or hyperbolae with a digital plotter}, Computer Journal, vol.~10, 1967 --- обобщает Брезенхэма на произвольные конические сечения.
   \item A.~Kappel, \emph{An ellipse-drawing algorithm for raster displays}, ACM Comm.\ vol.~28, 1985 --- эллиптическая формулировка с двумя областями, использованная в разделе~5.
   \item R.~Klette и A.~Rosenfeld, \emph{Digital Geometry: Geometric Methods for Digital Picture Analysis}, Morgan Kaufmann, 2004 --- стандартная справка по цифровой топологии и операторам границы из разделов~7 и~18.
-  \item Документация WorldEdit, \emph{enginehub.org/worldedit/} --- официальный справочник по командам \cmd{//sphere}, \cmd{//hsphere}, \cmd{//ellipsoid}, \cmd{//copy}, используемым в данном документе.
-  \item Спецификация Sponge Schematic v2, \emph{github.com/SpongePowered/Schematic-Specification} --- формат файла, который Block Round экспортирует как \code{.schem}.
+  \item Документация WorldEdit, \biblink{https://enginehub.org/worldedit/}{enginehub.org/worldedit/} --- официальный справочник по командам \cmd{//sphere}, \cmd{//hsphere}, \cmd{//ellipsoid}, \cmd{//copy}, используемым в данном документе.
+  \item Спецификация Sponge Schematic v2, \biblink{https://github.com/SpongePowered/Schematic-Specification}{github.com/SpongePowered/Schematic-Specification} --- формат файла, который Block Round экспортирует как \code{.schem}.
 \end{itemize}
 
 Восемь теоретических областей, перечисленных в разделе~22, имеют каждая по отдельности учебниковые трактовки, далеко выходящие за пределы того, что один технический документ может суммировать. Вклад Block Round не в самой теории, а в конкретном синтезе: применение классической растеризации к текстурированной воксельной обстановке Minecraft с явными соображениями инвентаря и стоимости симметрии, которые обычно опускают чисто геометрические инструменты.
@@ -816,7 +1041,7 @@ Block Round занимает небольшую, но математически
 
 \vspace{0.6em}
 
-Block Round поддерживается Vinícius Rodrigues de Souza. Родственный проект Pixel Round доступен по адресу \emph{github.com/ViniSouza128/pixel-round}; текущий репозиторий Block Round находится по адресу \emph{github.com/ViniSouza128/block-round}.
+Block Round поддерживается Vinícius Rodrigues de Souza. Родственный проект Pixel Round доступен по адресу \biblink{https://github.com/ViniSouza128/pixel-round}{github.com/ViniSouza128/pixel-round}; текущий репозиторий Block Round находится по адресу \biblink{https://github.com/ViniSouza128/block-round}{github.com/ViniSouza128/block-round}.
 
 Комментарии, исправления и улучшения переводов приветствуются через issue tracker репозитория проекта. Особенно ценится вычитка носителями языка для восьми неанглийских локалей, так как локализации были подготовлены со значительным пересмотром, но техническо-математическая терминология выигрывает от исправлений носителей языка.
 
