@@ -25,14 +25,14 @@
 \usepackage{titlesec}
 \usepackage{fancyhdr}
 \usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{caption}
+\usepackage{float}
+\graphicspath{{img/}}
 \usepackage{csquotes}
 \usepackage{needspace}
 \usepackage{tcolorbox}
 \tcbuselibrary{skins,breakable}
-\usepackage[hidelinks,bookmarks=true,bookmarksopen=true,
-            pdftitle={Block Round — 项目的数学原理},
-            pdfauthor={Vinícius Rodrigues de Souza}]{hyperref}
-
 \definecolor{accent}{HTML}{5B8E3F}
 \definecolor{accentdark}{HTML}{406A2A}
 \definecolor{earth}{HTML}{825432}
@@ -40,6 +40,15 @@
 \definecolor{muted}{HTML}{4E4E58}
 \definecolor{bg}{HTML}{FBF6E9}
 \definecolor{rule}{HTML}{D8D1BC}
+\definecolor{linkc}{HTML}{2D5A1F}
+
+\usepackage[colorlinks=true,
+            linkcolor=linkc,
+            urlcolor=linkc,
+            citecolor=linkc,
+            bookmarks=true,bookmarksopen=true,
+            pdftitle={Block Round — 项目的数学原理},
+            pdfauthor={Vinícius Rodrigues de Souza}]{hyperref}
 
 \color{ink}
 
@@ -175,6 +184,8 @@ $\displaystyle d_x = \dfrac{i+\tfrac{1}{2}-c_x}{r_x},\qquad
 \textbf{Minecraft 映射。} 在生存模式中建塔时，用户通常希望基础是\emph{宽而扁的圆}，向上逐渐变小。每层楼都是同一隐式椭圆方程的应用，半轴相同但 $z$ 不同。Block Round 一次计算 2D 层，用户通过每层 \cmd{/clone} 命令复制该层。
 \end{minec}
 
+
+
 % =============================================================================
 \section{欧氏算法（距离测试）}
 
@@ -303,6 +314,8 @@ h_V &= b(i,j{-}1) \;\vee\; b(i,j{+}1).
 \textbf{Minecraft 映射。} 对于 $D=20$ 的玻璃圆顶（中空），粗模式产生 $608$ 块的\emph{密封}外壳，细模式约 $510$ 块 —— 多出的约 $100$ 块是对角缝合，防止环境光从对角缝隙漏进。
 \end{minec}
 
+
+
 % =============================================================================
 \section{离散面积计算}
 
@@ -336,6 +349,8 @@ a_\xi = \frac{\xi + \tfrac{1}{2} - c_\xi}{r_\xi}\;\;(\xi \in \{x,y,z\}),
 \begin{minec}
 \textbf{Minecraft 映射。} $W=20$、$H=10$、$D=20$ 的椭球产生\emph{扁平球}，适合地下圆顶或体育馆顶。体积约 $2\,094$ 块（$33$ 堆）。等效 WorldEdit 命令：\cmd{//ellipsoid stone 10 5 10}。
 \end{minec}
+
+
 
 % =============================================================================
 \section{体素化与体积计算}
@@ -391,6 +406,8 @@ X 和 Y 平面垂直于坐标轴，法向量分别为 $(1,0,0)$ 和 $(0,1,0)$。
 \begin{minec}
 \textbf{Minecraft 映射。} 球上 Y 轴 $50\%$ 切割产生标准的\emph{圆顶}，体积减半。对 $D=16$：$V_{\mathrm{full}} = 2\,145$ 块，$V_{\mathrm{圆顶}} \approx 1\,095$ 块（约 $18$ 堆）。$50\%$ 的对角切割产生\emph{半碗}截面，常用于喷泉内部和圆形剧场座位。
 \end{minec}
+
+
 
 % =============================================================================
 \section{粗 3D 模式：通过切片的三维化}
@@ -453,6 +470,8 @@ B' = \mathrm{clamp}(B \cdot f)
 I \;=\; \max\bigl(0,\;\mathbf{n}\cdot\mathbf{l}\bigr)\cdot \mathit{纹理},
 \]
 三个因子对应每个面法线与固定光照方向夹角的余弦。在 \emph{Smooth} 中因子相近（面相似）；在 \emph{Classic} 中因子差异更大（强对比，原版 Minecraft 的外观）。\emph{Blocks} 额外引入几何内缩 —— 每个面向内的常数平移，以揭示体素间的边界，即使相邻体素带相同纹理。对发光方块（萤石、海晶灯、菌光体、岩浆、哭泣的黑曜石）Lambert 项被常数 $I = \mathit{发光因子} \cdot \mathit{纹理}$ 替换。
+
+
 
 % =============================================================================
 \section{过渡：从连续数学到游戏内建造}
@@ -523,6 +542,8 @@ F_{\mathrm{exp}} \;=\; \sum_{\mathbf{v}\in V_{\mathrm{solid}}}\;\sum_{\mathbf{n}
 \]
 对 $D=16$ 球（实心模式），$V = 2\,145$，$V_{\mathrm{边界}} \approx 432$，$F_{\mathrm{exp}} \approx 1\,184$ 个可见面 —— 建造只需约 $432$ 个\emph{可见}方块；其余 $1\,713$ 块是内部，可用最便宜的方块（泥土、圆石）填充。覆盖层让玩家立即发现外壳中遗漏的方块。
 
+
+
 % =============================================================================
 \section{逐层建造（水平分解）}
 
@@ -581,6 +602,8 @@ T_{\mathrm{full}}
 \]
 对生存中 $N = 7\,238$（$T_{\mathrm{block}} = 2$\,s，$T_{\mathrm{clone}} = 0{,}05$\,s）：完整 = $14\,476$\,s $\approx 4$\,h $1$\,min；八分体 + 克隆 = $1\,810$\,s + $0{,}35$\,s $\approx 30$\,min。$8$ 倍加速恰好对应反射子群的阶。完整阶 $48$ 的 $O_h$ 原则上可进一步减少（$48$ 倍），但利用对角旋转需 $45°$ 旋转的建造区域，在原版 Minecraft 中很少值得设置成本。
 
+
+
 % =============================================================================
 \section{方块纹理与视觉构图}
 
@@ -617,6 +640,8 @@ deepslate          & 石  & 暗  & 地下，点缀 \\
 
 \subsection{通过方块混合的渐变}
 尽管单一方块类型给出一个色调，\emph{渐变}可通过每层混合两到三种方块得到。一种经典 Minecraft 技术是圆顶上的\emph{石-石英}渐变：下层是平滑石头，赤道层是平滑石头与闪长岩的噪声混合，上层是石英。每层仍由相同的 Block Round 算法计算；变化的是每体素纹理查找。Block Round 的\emph{Random}方块选项默认实现这种程序化混合（草顶，下面泥土，中间稀疏矿石，靠近基岩有深板岩）。数学与第 19 节的逐层分解相同；只是每体素的\enquote{方块标签}变化。
+
+
 
 % =============================================================================
 \section{结论}
@@ -776,7 +801,7 @@ Block Round 应用提供一组与画布角按钮对应的键盘快捷键。列�
 
 第 22 节列出的八个理论领域各自有教科书级处理，远超单一技术文档所能总结的范围。Block Round 的贡献不在于理论本身，而在于具体综合：将经典光栅化应用于带纹理体素的 Minecraft 设置，并明确处理通常在纯几何工具中省略的物品栏和对称成本考虑。
 
-关于可重现性的最后一句话：本文档的整个流水线 ── 构建脚本、翻译、LaTeX 模板、按区域的表格 ── 都包含在项目仓库的 \code{docs_math/} 目录中。在具有 XeLaTeX/MiKTeX 的系统上重新运行 \code{python build.py}，可以在所支持的九种区域中的任何一种中完全相同地产生此 PDF。姊妹项目 Pixel Round 遵循相同结构，允许直接对比纹理化和非纹理化变体。
+关于可重现性的最后一句话：本文档的整个流水线 ── 构建脚本、翻译、LaTeX 模板、按区域的表格 ── 都包含在项目仓库的 \code{docs\_math/} 目录中。在具有 XeLaTeX/MiKTeX 的系统上重新运行 \code{python build.py}，可以在所支持的九种区域中的任何一种中完全相同地产生此 PDF。姊妹项目 Pixel Round 遵循相同结构，允许直接对比纹理化和非纹理化变体。
 
 \vspace{1.2em}
 

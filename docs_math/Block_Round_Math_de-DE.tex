@@ -25,14 +25,14 @@
 \usepackage{titlesec}
 \usepackage{fancyhdr}
 \usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{caption}
+\usepackage{float}
+\graphicspath{{img/}}
 \usepackage{csquotes}
 \usepackage{needspace}
 \usepackage{tcolorbox}
 \tcbuselibrary{skins,breakable}
-\usepackage[hidelinks,bookmarks=true,bookmarksopen=true,
-            pdftitle={Block Round — Die Mathematik des Projekts},
-            pdfauthor={Vinícius Rodrigues de Souza}]{hyperref}
-
 \definecolor{accent}{HTML}{5B8E3F}
 \definecolor{accentdark}{HTML}{406A2A}
 \definecolor{earth}{HTML}{825432}
@@ -40,6 +40,15 @@
 \definecolor{muted}{HTML}{4E4E58}
 \definecolor{bg}{HTML}{FBF6E9}
 \definecolor{rule}{HTML}{D8D1BC}
+\definecolor{linkc}{HTML}{2D5A1F}
+
+\usepackage[colorlinks=true,
+            linkcolor=linkc,
+            urlcolor=linkc,
+            citecolor=linkc,
+            bookmarks=true,bookmarksopen=true,
+            pdftitle={Block Round — Die Mathematik des Projekts},
+            pdfauthor={Vinícius Rodrigues de Souza}]{hyperref}
 
 \color{ink}
 
@@ -175,6 +184,8 @@ $\displaystyle d_x = \dfrac{i+\tfrac{1}{2}-c_x}{r_x},\qquad
 \textbf{Minecraft-Mapping.} Für einen Survival-Turm möchte der Nutzer typischerweise einen \emph{breiten, flachen Kreis} als Fundament und schrittweise kleinere Kreise nach oben. Jedes Stockwerk ist eine Anwendung der impliziten Ellipsengleichung mit denselben Halbachsen und unterschiedlichem $z$. Block Round berechnet die 2D-Schicht einmal, der Nutzer dupliziert per \cmd{/clone} pro Stockwerk.
 \end{minec}
 
+
+
 % =============================================================================
 \section{Euklidischer Algorithmus (Distanztest)}
 
@@ -303,6 +314,8 @@ h_V &= b(i,j{-}1) \;\vee\; b(i,j{+}1).
 \textbf{Minecraft-Mapping.} Für eine Glas-Kuppel $D=20$ (hohl) liefert der Dick-Modus eine \emph{wasserdichte} Schale von $608$ Blöcken gegen $\approx 510$ im dünnen Modus --- die $\sim 100$ zusätzlichen Blöcke sind Diagonal-Nähte, die das Lecken von Umgebungslicht verhindern.
 \end{minec}
 
+
+
 % =============================================================================
 \section{Diskrete Flächenberechnung}
 
@@ -336,6 +349,8 @@ a_\xi = \frac{\xi + \tfrac{1}{2} - c_\xi}{r_\xi}\;\;(\xi \in \{x,y,z\}),
 \begin{minec}
 \textbf{Minecraft-Mapping.} Ein Ellipsoid mit $W=20$, $H=10$, $D=20$ erzeugt eine \emph{abgeflachte Kugel}, ideal für eine unterirdische Kuppel oder ein Stadiondach. Volumen $\approx 2\,094$ Blöcke ($33$ Stacks). WorldEdit-Befehl: \cmd{//ellipsoid stone 10 5 10}.
 \end{minec}
+
+
 
 % =============================================================================
 \section{Voxelisierung und Volumenberechnung}
@@ -391,6 +406,8 @@ sodass $50\%$ auf einer Achse $50\%$ bleibt, wenn der Nutzer die Achse wechselt 
 \begin{minec}
 \textbf{Minecraft-Mapping.} Der Y-Achsen-Schnitt bei $50\%$ auf einer Kugel erzeugt die klassische \emph{Kuppel} der halben Volumen. Für $D=16$: $V_{\mathrm{voll}} = 2\,145$, $V_{\mathrm{Kuppel}} \approx 1\,095$ Blöcke ($\approx 18$ Packs). Der Diagonalschnitt bei $50\%$ erzeugt eine \emph{Halbschüssel}-Sektion, häufig für Brunnen-Interieurs und Amphitheater-Sitzreihen.
 \end{minec}
+
+
 
 % =============================================================================
 \section{Dick-Modus 3D: Dreidimensionalisierung durch Scheiben}
@@ -453,6 +470,8 @@ Das ist eine \emph{lineare Approximation} der idealen Lambertschen Beleuchtungsf
 I \;=\; \max\bigl(0,\;\mathbf{n}\cdot\mathbf{l}\bigr)\cdot \mathit{Textur},
 \]
 wobei die drei Faktoren dem Kosinus des Winkels zwischen der Flächennormale und einer festen Lichtrichtung entsprechen. In \emph{Smooth} sind die Faktoren ähnlich (ähnliche Flächen); in \emph{Classic} unterscheiden sie sich mehr (starker Kontrast, der Look von Vanilla-Minecraft). \emph{Blocks} führt zusätzlich eine geometrische Einrückung ein --- konstante Translation jeder Fläche nach innen, um die Grenzen zwischen Voxeln auch dann sichtbar zu machen, wenn benachbarte Voxel dieselbe Textur teilen. Für emissive Blöcke wird der Lambert-Term durch eine Konstante $I = \mathit{emissive\_factor} \cdot \mathit{Textur}$ ersetzt.
+
+
 
 % =============================================================================
 \section{Übergang: von der stetigen Mathematik zum In-Game-Bau}
@@ -523,6 +542,8 @@ F_{\mathrm{exp}} \;=\; \sum_{\mathbf{v}\in V_{\mathrm{solid}}}\;\sum_{\mathbf{n}
 \]
 Für eine Kugel $D=16$ (gefüllter Modus), $V = 2\,145$, $V_{\mathrm{Rand}} \approx 432$, $F_{\mathrm{exp}} \approx 1\,184$ sichtbare Flächen --- der Bau braucht nur etwa $432$ \emph{sichtbare} Blöcke; die restlichen $1\,713$ sind Inneres und können mit dem billigsten verfügbaren Block (Erde, Bruchstein) gefüllt werden. Das Overlay erlaubt es dem Bauer, einen fehlenden Block in der Schale sofort zu erkennen.
 
+
+
 % =============================================================================
 \section{Schichtweiser Bau (horizontale Zerlegung)}
 
@@ -581,6 +602,8 @@ T_{\mathrm{full}}
 \]
 Für $N = 7\,238$ im Survival ($T_{\mathrm{block}} = 2$\,s, $T_{\mathrm{clone}} = 0{,}05$\,s): voll = $14\,476$\,s $\approx 4$\,h $1$\,min; Oktant + Clones = $1\,810$\,s + $0{,}35$\,s $\approx 30$\,min. Ein Faktor-$8$-Speedup, der genau zur Ordnung der Reflexions-Untergruppe passt. Die volle oktaedrische Gruppe $O_h$ der Ordnung $48$ könnte prinzipiell weiter reduzieren, erfordert aber eine $45°$-rotierte Baufläche, selten den Setup-Aufwand wert.
 
+
+
 % =============================================================================
 \section{Blocktexturen und visuelle Komposition}
 
@@ -617,6 +640,8 @@ deepslate          & Stein  & dunkel  & Unterirdisch, Akzente \\
 
 \subsection{Gradienten durch Block-Mischung}
 Obwohl ein einzelner Blocktyp einen Ton liefert, können \emph{Gradienten} durch Wechsel zwischen zwei oder drei Blocktypen pro Schicht erzielt werden. Eine klassische Technik ist der \emph{Stein-zu-Quarz}-Gradient auf einer Kuppel: untere Schichten Glatter Stein, äquatoriale Schichten eine verrauschte Mischung aus Glattem Stein und Diorit, obere Schichten Quarz. Jede Schicht bleibt vom selben Block-Round-Algorithmus berechnet; was sich ändert, ist das Per-Voxel-Textur-Lookup. Die \emph{Random}-Block-Option von Block Round implementiert eine solche prozedurale Mischung standardmäßig (Grasoberteil, Erde darunter, vereinzelte Erze in der Mitte, Tiefenschiefer nahe Grundgestein). Die Mathematik ist dieselbe wie die Schichtzerlegung von Abschnitt~19; nur das \enquote{Block-Tag} pro Voxel ändert sich.
+
+
 
 % =============================================================================
 \section{Fazit}
@@ -776,7 +801,7 @@ Die in diesem Dokument entwickelten mathematischen Konzepte haben jeweils gut et
 
 Die in Abschnitt~22 aufgelisteten acht theoretischen Gebiete haben jeweils Lehrbuch-Niveau-Behandlungen, die weit über das hinausgehen, was ein einzelnes technisches Dokument zusammenfassen kann. Der Beitrag von Block Round liegt nicht in der Theorie selbst, sondern in der spezifischen Synthese: Anwendung der klassischen Rasterung auf die texturierte Voxel-Minecraft-Umgebung mit den expliziten Inventar- und Symmetriekostenüberlegungen, die in rein geometrischen Tools üblicherweise weggelassen werden.
 
-Eine abschließende Bemerkung zur Reproduzierbarkeit: die gesamte Pipeline dieses Dokuments --- Build-Skript, Übersetzungen, LaTeX-Vorlage, Pro-Locale-Tabellen --- ist im \code{docs_math/}-Verzeichnis des Projekt-Repositorys enthalten. Erneutes Ausführen von \code{python build.py} auf einem System mit XeLaTeX/MiKTeX erzeugt dieses PDF exakt, in jeder der neun unterstützten Sprachen. Das Schwesterprojekt Pixel Round folgt der gleichen Struktur und ermöglicht den direkten Side-by-Side-Vergleich der texturierten und nicht-texturierten Varianten.
+Eine abschließende Bemerkung zur Reproduzierbarkeit: die gesamte Pipeline dieses Dokuments --- Build-Skript, Übersetzungen, LaTeX-Vorlage, Pro-Locale-Tabellen --- ist im \code{docs\_math/}-Verzeichnis des Projekt-Repositorys enthalten. Erneutes Ausführen von \code{python build.py} auf einem System mit XeLaTeX/MiKTeX erzeugt dieses PDF exakt, in jeder der neun unterstützten Sprachen. Das Schwesterprojekt Pixel Round folgt der gleichen Struktur und ermöglicht den direkten Side-by-Side-Vergleich der texturierten und nicht-texturierten Varianten.
 
 \vspace{1.2em}
 

@@ -25,14 +25,14 @@
 \usepackage{titlesec}
 \usepackage{fancyhdr}
 \usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{caption}
+\usepackage{float}
+\graphicspath{{img/}}
 \usepackage{csquotes}
 \usepackage{needspace}
 \usepackage{tcolorbox}
 \tcbuselibrary{skins,breakable}
-\usepackage[hidelinks,bookmarks=true,bookmarksopen=true,
-            pdftitle={Block Round — プロジェクトの数学},
-            pdfauthor={Vinícius Rodrigues de Souza}]{hyperref}
-
 \definecolor{accent}{HTML}{5B8E3F}
 \definecolor{accentdark}{HTML}{406A2A}
 \definecolor{earth}{HTML}{825432}
@@ -40,6 +40,15 @@
 \definecolor{muted}{HTML}{4E4E58}
 \definecolor{bg}{HTML}{FBF6E9}
 \definecolor{rule}{HTML}{D8D1BC}
+\definecolor{linkc}{HTML}{2D5A1F}
+
+\usepackage[colorlinks=true,
+            linkcolor=linkc,
+            urlcolor=linkc,
+            citecolor=linkc,
+            bookmarks=true,bookmarksopen=true,
+            pdftitle={Block Round — プロジェクトの数学},
+            pdfauthor={Vinícius Rodrigues de Souza}]{hyperref}
 
 \color{ink}
 
@@ -175,6 +184,8 @@ $\displaystyle d_x = \dfrac{i+\tfrac{1}{2}-c_x}{r_x},\qquad
 \textbf{Minecraft へのマッピング。} サバイバルで塔を建てる場合、ユーザーは基礎には \emph{幅広く平らな円} を、塔が上がるにつれて徐々に小さい円を望むのが普通である。各階は同じ半軸で異なる $z$ を持つ陰関数方程式の適用である。Block Round は 2D 層を一度計算し、ユーザーは \cmd{/clone} で各階を複製する。
 \end{minec}
 
+
+
 % =============================================================================
 \section{ユークリッドアルゴリズム（距離テスト）}
 
@@ -303,6 +314,8 @@ h_V &= b(i,j{-}1) \;\vee\; b(i,j{+}1).
 \textbf{Minecraft へのマッピング。} $D=20$ のガラスドーム（中空）について、太モードは $608$ ブロックの \emph{気密な} 外殻を生むのに対し、細モードでは約 $510$ ブロック ─── 余分な $\sim 100$ ブロックは対角縫合で、環境光が対角の隙間から漏れるのを防ぐ。
 \end{minec}
 
+
+
 % =============================================================================
 \section{離散面積の計算}
 
@@ -336,6 +349,8 @@ a_\xi = \frac{\xi + \tfrac{1}{2} - c_\xi}{r_\xi}\;\;(\xi \in \{x,y,z\}),
 \begin{minec}
 \textbf{Minecraft へのマッピング。} $W=20$、$H=10$、$D=20$ の楕円体は \emph{扁平な球} を生み、地下ドームや球技場の屋根に最適。体積は約 $2\,094$ ブロック（$33$ スタック）。等価な WorldEdit コマンド：\cmd{//ellipsoid stone 10 5 10}。
 \end{minec}
+
+
 
 % =============================================================================
 \section{ボクセル化と体積計算}
@@ -391,6 +406,8 @@ X と Y 平面は座標軸に垂直で、法線ベクトルは $(1,0,0)$ と $(0
 \begin{minec}
 \textbf{Minecraft へのマッピング。} 球に対する Y 軸 $50\%$ 切断は体積の半分の標準的な \emph{ドーム} を生む。$D=16$ で：$V_{\mathrm{full}} = 2\,145$ ブロック、$V_{\mathrm{dome}} \approx 1\,095$ ブロック（約 $18$ スタック）。$50\%$ の対角切断は \emph{半ボウル} 断面を生み、噴水内部や円形劇場の座席によく使われる。
 \end{minec}
+
+
 
 % =============================================================================
 \section{太 3D モード：スライスによる三次元化}
@@ -453,6 +470,8 @@ B' = \mathrm{clamp}(B \cdot f)
 I \;=\; \max\bigl(0,\;\mathbf{n}\cdot\mathbf{l}\bigr)\cdot \mathit{テクスチャ},
 \]
 ここで 3 つの因子は各面の法線と固定光方向との角度の余弦に対応する。\emph{Smooth} では因子が近い（似た面）；\emph{Classic} では因子がより異なる（強コントラスト、Minecraft バニラの見た目）。\emph{Blocks} はさらに幾何的なくぼみをボクセルに導入する ─── 各面を内側に一定平行移動して、隣接するボクセルが同じテクスチャを持っていてもボクセル間境界を明らかにする。発光ブロック（グロウストーン、シーランタン、シュルームライト、マグマ、エンチャント obsidian）ではランバート項が定数 $I = \mathit{emissive\_factor} \cdot \mathit{texture}$ に置き換えられる。
+
+
 
 % =============================================================================
 \section{移行：連続数学からゲーム内構築へ}
@@ -523,6 +542,8 @@ F_{\mathrm{exp}} \;=\; \sum_{\mathbf{v}\in V_{\mathrm{solid}}}\;\sum_{\mathbf{n}
 \]
 $D=16$ の球（充填モード）の場合、$V = 2\,145$、$V_{\mathrm{境界}} \approx 432$（外殻）、$F_{\mathrm{exp}} \approx 1\,184$ 可視面 ─── 建造は約 $432$ の \emph{見える} ブロックだけ必要で、残りの $1\,713$ ブロックは内部で最も安価なブロック（土、丸石）で埋められる。オーバーレイは外殻のブロック欠落を即座に発見できるようにする。
 
+
+
 % =============================================================================
 \section{層ごとの建造（水平分解）}
 
@@ -581,6 +602,8 @@ T_{\mathrm{full}}
 \]
 サバイバルで $N = 7\,238$ の場合（$T_{\mathrm{block}} = 2$\,s、$T_{\mathrm{clone}} = 0{,}05$\,s）：完全 = $14\,476$\,s $\approx 4$ 時間 $1$ 分；八分体 + クローン = $1\,810$\,s + $0{,}35$\,s $\approx 30$ 分。$8$ 倍の加速で、反射部分群の位数と正確に一致する。位数 $48$ の完全八面体群 $O_h$ は原理的にさらに削減できる（$48$ 倍）が、対角回転を活用するには $45°$ 回転した建造領域が必要で、バニラ Minecraft ではセットアップコストを払う価値が稀。
 
+
+
 % =============================================================================
 \section{ブロックテクスチャと視覚的構成}
 
@@ -617,6 +640,8 @@ deepslate          & 石  & 暗  & 地下、アクセント \\
 
 \subsection{ブロック混合によるグラデーション}
 単一のブロックタイプは 1 つの色調を提供するが、\emph{グラデーション} は層ごとに 2 つまたは 3 つのブロックタイプを交互配置することで得られる。古典的な Minecraft 技法はドームの \emph{石からクォーツへの} グラデーション：下層は滑らかな石、赤道層は滑らかな石と閃緑岩のノイズの混合、上層はクォーツ。各層は同じ Block Round アルゴリズムで計算されたままで、変わるのはボクセルごとのテクスチャ参照。Block Round の \emph{Random} ブロックオプションはデフォルトでそのような手続き的混合を実装する（草の蓋、その下に土、中央に散らばる鉱石、岩盤近くに深層岩）。数学は第 19 節の層分解と同じで、ボクセルごとの \enquote{ブロックタグ} だけが変わる。
+
+
 
 % =============================================================================
 \section{結論}
@@ -776,7 +801,7 @@ Block Round アプリはキャンバスのコーナーボタンを反映する�
 
 第 22 節にリストされた 8 つの理論領域には、それぞれ単一の技術文書が要約できる範囲をはるかに超える教科書レベルの取り扱いがある。Block Round の貢献は理論自体にではなく、具体的な合成にある：通常純粋な幾何ツールから省略されるインベントリとシンメトリーコストに関する明示的考慮を含めて、テクスチャ付きボクセル Minecraft 設定に古典的ラスタライズを適用すること。
 
-再現性に関する最終的な注釈：本文書のパイプライン全体 ── ビルドスクリプト、翻訳、LaTeX テンプレート、ロケール別表 ── はプロジェクトリポジトリの \code{docs_math/} ディレクトリに含まれる。XeLaTeX/MiKTeX を備えたシステム上で \code{python build.py} を再実行すると、サポートされている 9 つのロケールのいずれでも、この PDF を正確に生成する。姉妹プロジェクト Pixel Round は同じ構造に従い、テクスチャ付きとテクスチャなしバリアントの直接の側並びの比較を可能にする。
+再現性に関する最終的な注釈：本文書のパイプライン全体 ── ビルドスクリプト、翻訳、LaTeX テンプレート、ロケール別表 ── はプロジェクトリポジトリの \code{docs\_math/} ディレクトリに含まれる。XeLaTeX/MiKTeX を備えたシステム上で \code{python build.py} を再実行すると、サポートされている 9 つのロケールのいずれでも、この PDF を正確に生成する。姉妹プロジェクト Pixel Round は同じ構造に従い、テクスチャ付きとテクスチャなしバリアントの直接の側並びの比較を可能にする。
 
 \vspace{1.2em}
 

@@ -10,7 +10,18 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFilter
 
 HERE = Path(__file__).resolve().parent
-TEX_DIR = HERE.parent.parent.parent.parent / "textures"
+# Walk up the directory tree until we find a "textures" sibling. Works both
+# from the main checkout (HERE.parent / "textures") and from inside a
+# Claude Code worktree (HERE.parent.parent.parent.parent / "textures").
+def _find_textures(start):
+    p = start
+    for _ in range(6):
+        cand = p / "textures"
+        if cand.is_dir():
+            return cand
+        p = p.parent
+    return start.parent / "textures"  # fallback (will fail loudly)
+TEX_DIR = _find_textures(HERE)
 IMG_DIR = HERE / "img"
 IMG_DIR.mkdir(parents=True, exist_ok=True)
 

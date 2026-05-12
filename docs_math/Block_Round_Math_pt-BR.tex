@@ -25,14 +25,14 @@
 \usepackage{titlesec}
 \usepackage{fancyhdr}
 \usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{caption}
+\usepackage{float}
+\graphicspath{{img/}}
 \usepackage{csquotes}
 \usepackage{needspace}
 \usepackage{tcolorbox}
 \tcbuselibrary{skins,breakable}
-\usepackage[hidelinks,bookmarks=true,bookmarksopen=true,
-            pdftitle={Block Round — A Matemática do Projeto},
-            pdfauthor={Vinícius Rodrigues de Souza}]{hyperref}
-
 \definecolor{accent}{HTML}{5B8E3F}
 \definecolor{accentdark}{HTML}{406A2A}
 \definecolor{earth}{HTML}{825432}
@@ -40,6 +40,15 @@
 \definecolor{muted}{HTML}{4E4E58}
 \definecolor{bg}{HTML}{FBF6E9}
 \definecolor{rule}{HTML}{D8D1BC}
+\definecolor{linkc}{HTML}{2D5A1F}
+
+\usepackage[colorlinks=true,
+            linkcolor=linkc,
+            urlcolor=linkc,
+            citecolor=linkc,
+            bookmarks=true,bookmarksopen=true,
+            pdftitle={Block Round — A Matemática do Projeto},
+            pdfauthor={Vinícius Rodrigues de Souza}]{hyperref}
 
 \color{ink}
 
@@ -175,6 +184,24 @@ $\displaystyle d_x = \dfrac{i+\tfrac{1}{2}-c_x}{r_x},\qquad
 \textbf{Mapeamento Minecraft.} Para uma torre em survival, o usuário tipicamente quer um \emph{círculo achatado e largo} para a fundação e círculos progressivamente menores conforme a torre sobe. Cada andar é uma aplicação da equação implícita da elipse com os mesmos semi-eixos mas um $z$ diferente. O Block Round calcula a camada 2D uma vez e o usuário simplesmente duplica essa camada com \cmd{/clone $x_1$ $y_1$ $z_1$ $x_2$ $y_2$ $z_2$ $x_3$ $y_2{+}1$ $z_3$} por andar.
 \end{minec}
 
+\begin{figure}[H]
+\centering
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d10_eucl.png}
+  \caption{\emph{Euclidiano}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d10_bres.png}
+  \caption{\emph{Bresenham}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d10_thr.png}
+  \caption{\emph{Limiar}}
+\end{subfigure}
+\caption{Mesma circunferência de diâmetro $D=10$ sob os três critérios. Cada figura é o conjunto de células marcadas pela respectiva versão da desigualdade $d_x^2+d_y^2\leq 1$, renderizada com a textura \emph{cobblestone} do Minecraft. Note como a transição entre filas, as células de quina e os pontos cardeais variam --- três respostas matematicamente corretas sob critérios distintos.}
+\label{fig:comp-d10}
+\end{figure}
+
 % =============================================================================
 \section{Algoritmo Euclidiano (teste de distância)}
 
@@ -303,6 +330,24 @@ h_V &= b(i,j{-}1) \;\vee\; b(i,j{+}1).
 \textbf{Mapeamento Minecraft.} Para uma cúpula de Vidro de $D=20$ (oca), o modo grosso produz uma casca \emph{vedada} de $608$ blocos contra $\approx 510$ blocos do modo fino --- os $\sim 100$ blocos extras são costura diagonal que impede o ciclo dia-noite de vazar luz ambiente pelas frestas diagonais.
 \end{minec}
 
+\begin{figure}[H]
+\centering
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d20_filled.png}
+  \caption{\emph{Preenchido}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d20_thin.png}
+  \caption{\emph{Fino} (\emph{1 voxel})}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d20_thick.png}
+  \caption{\emph{Grosso}}
+\end{subfigure}
+\caption{Os três modos de renderização para a mesma circunferência euclidiana de $D=20$. O modo \emph{Fino} corresponde ao bordo discreto topológico ($\partial F$); o modo \emph{Grosso} adiciona blocos diagonais para fechar buracos a $45^\circ$, essencial para construções estanques (cúpulas de Vidro/Gelo subaquáticas).}
+\label{fig:modes}
+\end{figure}
+
 % =============================================================================
 \section{Cálculo de área discreta}
 
@@ -336,6 +381,20 @@ a_\xi = \frac{\xi + \tfrac{1}{2} - c_\xi}{r_\xi}\;\;(\xi \in \{x,y,z\}),
 \begin{minec}
 \textbf{Mapeamento Minecraft.} Um elipsóide com $W=20$, $H=10$, $D=20$ produz uma \emph{esfera achatada} ideal para uma cúpula subterrânea ou um teto de estádio. O volume é $V = \tfrac{4}{3}\pi \cdot 10 \cdot 5 \cdot 10 \approx 2\,094$ blocos, equivalente a $33$ stacks de qualquer tipo de bloco. Comando WorldEdit equivalente: \cmd{//ellipsoid stone 10 5 10}.
 \end{minec}
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}[t]{0.46\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_sphere_d10.png}
+  \caption{Esfera $D=10$, $r_x=r_y=r_z=5$.}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.46\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_ellipsoid.png}
+  \caption{Elipsóide $W=20,\,H=10,\,D=12$.}
+\end{subfigure}
+\caption{Voxelização em $\mathbb{R}^3$. Cada cubo é um voxel; sua coordenada $(i,j,k)$ no centro é testada na equação implícita $a_x^2+a_y^2+a_z^2\leq 1$. As escadarias visíveis na superfície são consequência matemática da discretização --- exatamente o aspecto que dá ao Minecraft sua identidade visual.}
+\label{fig:3d-shapes}
+\end{figure}
 
 % =============================================================================
 \section{Voxelização e cálculo de volume}
@@ -391,6 +450,24 @@ de modo que $50\%$ num eixo continua sendo $50\%$ quando o usuário troca de eix
 \begin{minec}
 \textbf{Mapeamento Minecraft.} O corte no eixo Y a $50\%$ sobre uma esfera produz a clássica \emph{cúpula} de metade do volume. Para $D=16$: $V_{\mathrm{full}} = 2\,145$ blocos, $V_{\mathrm{cupula}} \approx 1\,095$ blocos ($\approx 18$ packs de $64$). O corte diagonal a $50\%$ produz uma seção \emph{meia-bacia} muito usada para interiores de fontes e arquibancadas de anfiteatro.
 \end{minec}
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_cut_y.png}
+  \caption{Corte $Y$ 50\% (cúpula)}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_cut_x.png}
+  \caption{Corte $X$ 50\%}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_cut_diag.png}
+  \caption{Diagonal 50\%}
+\end{subfigure}
+\caption{Três cortes na mesma esfera $D=16$, todos preservando 50\% do volume. O corte $Y$ produz a cúpula clássica $V_{\mathrm{cúpula}}=\tfrac{2}{3}\pi r^3$; o diagonal expõe a hipotenusa $x+y=k$ característica desse plano de corte.}
+\label{fig:cuts}
+\end{figure}
 
 % =============================================================================
 \section{Modo Grosso 3D: tridimensionalização por fatias}
@@ -453,6 +530,24 @@ Isso é uma \emph{aproximação linear} da função de iluminação Lambertiana 
 I \;=\; \max\bigl(0,\;\mathbf{n}\cdot\mathbf{l}\bigr)\cdot \mathit{textura},
 \]
 quando os três fatores correspondem ao cosseno do ângulo entre a normal de cada face e a direção de luz fixa. Em \emph{Smooth} os fatores são próximos (faces parecidas); em \emph{Classic} os fatores diferem mais (contraste forte, o visual do Minecraft vanilla). \emph{Blocks} ainda introduz uma reentrância geométrica nos voxels --- uma translação constante de cada face para dentro, para revelar as fronteiras entre voxels mesmo quando vizinhos têm a mesma textura. Para blocos emissivos (Glowstone, Sea Lantern, Shroomlight, Magma, Crying Obsidian) o termo Lambertiano é substituído por uma constante $I = \mathit{fator\_emissivo} \cdot \mathit{textura}$ escalada pelo nível de luz do bloco no MC.
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_shading_classic.png}
+  \caption{\emph{Classic} (contraste forte)}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_shading_blocks.png}
+  \caption{\emph{Blocks} (default)}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_shading_smooth.png}
+  \caption{\emph{Smooth} (faces parecidas)}
+\end{subfigure}
+\caption{Três multiplicadores de luz aplicados às mesmas três faces visíveis. \emph{Classic} dá o aspecto canônico Minecraft vanilla; \emph{Smooth} reduz o contraste para superfícies suaves; \emph{Blocks} é o intermediário com inset geométrico que revela fronteiras entre voxels mesmo quando a textura é a mesma.}
+\label{fig:shading}
+\end{figure}
 
 % =============================================================================
 \section{Transição: da matemática contínua para a construção no jogo}
@@ -523,6 +618,20 @@ F_{\mathrm{exp}} \;=\; \sum_{\mathbf{v}\in V_{\mathrm{solid}}}\;\sum_{\mathbf{n}
 \]
 Para uma esfera de $D=16$ (modo preenchido), $V = 2\,145$, $V_{\mathrm{bordo}} \approx 432$ (a casca), e $F_{\mathrm{exp}} \approx 1\,184$ faces visíveis --- ou seja, a construção precisa de apenas cerca de $432$ blocos \emph{visíveis}; os $1\,713$ restantes são interior e podem ser preenchidos com o bloco mais barato disponível (Terra, Pedra Lisa). O highlight overlay permite ao construtor identificar imediatamente um bloco faltante na casca, porque um voxel ausente produz uma descontinuidade no padrão do overlay que o olho capta de relance.
 
+\begin{figure}[H]
+\centering
+\begin{subfigure}[t]{0.40\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_overlay_off.png}
+  \caption{Overlay \emph{OFF}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.40\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_overlay_on.png}
+  \caption{Overlay \emph{ON} (default)}
+\end{subfigure}
+\caption{Mesmo conjunto de voxels com e sem o contorno preto nas arestas expostas. Com o \emph{highlight overlay} ON, um bloco faltante na casca produz uma descontinuidade no padrão que o olho detecta de relance --- ferramenta de validação rápida durante a construção em survival.}
+\label{fig:overlay}
+\end{figure}
+
 % =============================================================================
 \section{Construção camada-por-camada (decomposição horizontal)}
 
@@ -581,6 +690,13 @@ T_{\mathrm{full}}
 \]
 Para $N = 7\,238$ em survival ($T_{\mathrm{block}} = 2$\,s, $T_{\mathrm{clone}} = 0{,}05$\,s): cheio = $14\,476$\,s $\approx 4$\,h $1$\,min; octante + clones = $1\,810$\,s + $0{,}35$\,s $\approx 30$\,min. Um fator-$8$ de aceleração que casa exatamente com a ordem do subgrupo de reflexões. O grupo octaédrico completo $O_h$ de ordem $48$ poderia em princípio reduzir mais ainda (por um fator de $48$), mas explorar as rotações diagonais exige uma área rotada a $45°$, o que raramente vale o custo de setup no Minecraft vanilla.
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.55\linewidth]{math_3d_octants.png}
+\caption{Esfera $D=10$ com o octante positivo $(+x,+y,+z)$ destacado em verde. Sob a ação do subgrupo $\mathbb{Z}_2^3 \leq O_h$ (ordem 8, gerado pelas três reflexões coordenadas), esse octante determina toda a esfera --- as outras sete regiões são obtidas por uma sequência de \cmd{/clone} com \emph{mode:masked} aplicadas sobre o octante construído manualmente.}
+\label{fig:octants}
+\end{figure}
+
 % =============================================================================
 \section{Texturas de bloco e composição visual}
 
@@ -617,6 +733,24 @@ deepslate          & pedra  & escuro  & subterrâneos, acentos \\
 
 \subsection{Gradientes via mistura de blocos}
 Embora um único tipo de bloco entregue um tom, \emph{gradientes} podem ser obtidos intercalando dois ou três tipos por camada. Uma técnica clássica é o gradiente \emph{pedra-para-quartzo} numa cúpula: as camadas de baixo são Pedra Lisa, as camadas equatoriais são uma mistura ruidosa de Pedra Lisa e Diorito, e as camadas de cima são Quartzo. Cada camada continua calculada pelo mesmo algoritmo do Block Round; o que muda é o lookup de textura por voxel. A opção de bloco \emph{Random} do Block Round implementa uma mistura procedural desse tipo por padrão (tampa de grama, terra logo abaixo, minérios esparsos no meio, deepslate perto da bedrock). A matemática é a mesma da decomposição por camada da Seção~19; só a \enquote{tag de bloco} por voxel muda.
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_tex_cobble.png}
+  \caption{\emph{Cobblestone}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_tex_oak.png}
+  \caption{\emph{Oak Planks}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_tex_quartz.png}
+  \caption{\emph{Quartz Block}}
+\end{subfigure}
+\caption{A mesma esfera de diâmetro $D=8$ renderizada com três blocos diferentes. A silhueta voxelizada (matemática) é idêntica nas três: o algoritmo escolhe os voxels, a textura é uma camada estética posterior que não altera nem o volume nem a topologia.}
+\label{fig:textures}
+\end{figure}
 
 % =============================================================================
 \section{Conclusão}
@@ -776,7 +910,7 @@ Os conceitos matemáticos desenvolvidos neste documento têm literaturas bem est
 
 As oito áreas teóricas listadas na Seção~22 têm tratamentos em nível de livro-texto que vão muito além do que um único documento técnico pode resumir. A contribuição do Block Round não está na teoria em si mas na síntese específica: aplicar rasterização clássica ao cenário do Minecraft de voxels com textura, com as considerações explícitas de inventário e custo de simetria que normalmente são omitidas das ferramentas puramente geométricas.
 
-Um comentário final sobre reprodutibilidade: todo o pipeline deste documento --- script de build, traduções, template LaTeX, tabelas por locale --- está contido no diretório \code{docs_math/} do repositório do projeto. Re-executar \code{python build.py} num sistema com XeLaTeX/MiKTeX produz este PDF exatamente, em qualquer um dos nove locais suportados. O projeto irmão Pixel Round segue a mesma estrutura, permitindo comparação direta lado a lado das variantes texturizada e não-texturizada.
+Um comentário final sobre reprodutibilidade: todo o pipeline deste documento --- script de build, traduções, template LaTeX, tabelas por locale --- está contido no diretório \code{docs\_math/} do repositório do projeto. Re-executar \code{python build.py} num sistema com XeLaTeX/MiKTeX produz este PDF exatamente, em qualquer um dos nove locais suportados. O projeto irmão Pixel Round segue a mesma estrutura, permitindo comparação direta lado a lado das variantes texturizada e não-texturizada.
 
 \vspace{1.2em}
 

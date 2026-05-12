@@ -25,14 +25,14 @@
 \usepackage{titlesec}
 \usepackage{fancyhdr}
 \usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{caption}
+\usepackage{float}
+\graphicspath{{img/}}
 \usepackage{csquotes}
 \usepackage{needspace}
 \usepackage{tcolorbox}
 \tcbuselibrary{skins,breakable}
-\usepackage[hidelinks,bookmarks=true,bookmarksopen=true,
-            pdftitle={Block Round — Les Mathématiques du Projet},
-            pdfauthor={Vinícius Rodrigues de Souza}]{hyperref}
-
 \definecolor{accent}{HTML}{5B8E3F}
 \definecolor{accentdark}{HTML}{406A2A}
 \definecolor{earth}{HTML}{825432}
@@ -40,6 +40,15 @@
 \definecolor{muted}{HTML}{4E4E58}
 \definecolor{bg}{HTML}{FBF6E9}
 \definecolor{rule}{HTML}{D8D1BC}
+\definecolor{linkc}{HTML}{2D5A1F}
+
+\usepackage[colorlinks=true,
+            linkcolor=linkc,
+            urlcolor=linkc,
+            citecolor=linkc,
+            bookmarks=true,bookmarksopen=true,
+            pdftitle={Block Round — Les Mathématiques du Projet},
+            pdfauthor={Vinícius Rodrigues de Souza}]{hyperref}
 
 \color{ink}
 
@@ -175,6 +184,8 @@ $\displaystyle d_x = \dfrac{i+\tfrac{1}{2}-c_x}{r_x},\qquad
 \textbf{Mapping Minecraft.} Pour une tour en survie, on veut typiquement un \emph{cercle aplati large} pour les fondations et des cercles plus petits à mesure que la tour monte. Chaque étage est une application de l'équation implicite de l'ellipse avec les mêmes demi-axes et un $z$ différent. Block Round calcule la couche 2D une fois, l'utilisateur duplique avec \cmd{/clone} par étage.
 \end{minec}
 
+
+
 % =============================================================================
 \section{Algorithme Euclidien (test de distance)}
 
@@ -303,6 +314,8 @@ h_V &= b(i,j{-}1) \;\vee\; b(i,j{+}1).
 \textbf{Mapping Minecraft.} Pour un dôme de Verre $D=20$ (creux), le mode épais donne une coque \emph{étanche} de $608$ blocs contre $\approx 510$ en mince --- les $\sim 100$ blocs supplémentaires sont la couture diagonale qui empêche la lumière ambiante de fuir.
 \end{minec}
 
+
+
 % =============================================================================
 \section{Calcul d'aire discrète}
 
@@ -336,6 +349,8 @@ a_\xi = \frac{\xi + \tfrac{1}{2} - c_\xi}{r_\xi}\;\;(\xi \in \{x,y,z\}),
 \begin{minec}
 \textbf{Mapping Minecraft.} Un ellipsoïde $W=20$, $H=10$, $D=20$ produit une \emph{sphère aplatie} idéale pour un dôme souterrain ou un toit de stade. Volume $\approx 2\,094$ blocs ($33$ piles). Commande WorldEdit : \cmd{//ellipsoid stone 10 5 10}.
 \end{minec}
+
+
 
 % =============================================================================
 \section{Voxelisation et calcul de volume}
@@ -391,6 +406,8 @@ de sorte que $50\%$ sur un axe reste $50\%$ quand on change d'axe ou redimension
 \begin{minec}
 \textbf{Mapping Minecraft.} La coupe Y à $50\%$ sur une sphère produit le \emph{dôme} classique de la moitié du volume. Pour $D=16$ : $V_{\mathrm{full}} = 2\,145$, $V_{\mathrm{dome}} \approx 1\,095$ blocs ($\approx 18$ packs). La coupe diagonale à $50\%$ produit une section \emph{demi-cuvette} très utilisée pour les intérieurs de fontaines et les gradins.
 \end{minec}
+
+
 
 % =============================================================================
 \section{Mode Épais 3D : tridimensionnalisation par tranches}
@@ -453,6 +470,8 @@ C'est une \emph{approximation linéaire} de la fonction d'illumination Lambertie
 I \;=\; \max\bigl(0,\;\mathbf{n}\cdot\mathbf{l}\bigr)\cdot \mathit{texture},
 \]
 où les trois facteurs correspondent au cosinus de l'angle entre la normale de chaque face et une direction de lumière fixe. En \emph{Smooth} les facteurs sont proches ; en \emph{Classic} ils diffèrent davantage (contraste fort, le look du Minecraft vanilla). \emph{Blocks} introduit en plus un retrait géométrique --- translation constante de chaque face vers l'intérieur, pour révéler les frontières entre voxels même quand les voisins partagent la même texture. Pour les blocs émissifs, le terme Lambertien est remplacé par une constante $I = \mathit{facteur\_émissif} \cdot \mathit{texture}$.
+
+
 
 % =============================================================================
 \section{Transition : des mathématiques continues à la construction in-game}
@@ -523,6 +542,8 @@ F_{\mathrm{exp}} \;=\; \sum_{\mathbf{v}\in V_{\mathrm{solid}}}\;\sum_{\mathbf{n}
 \]
 Pour une sphère $D=16$ (mode plein), $V = 2\,145$, $V_{\mathrm{frontière}} \approx 432$, $F_{\mathrm{exp}} \approx 1\,184$ faces visibles --- la construction n'a besoin que d'environ $432$ blocs \emph{visibles} ; les $1\,713$ restants peuvent être remplis du bloc le moins cher (Terre, Pierres Moussues). L'overlay permet de repérer un bloc manquant dans la coque immédiatement.
 
+
+
 % =============================================================================
 \section{Construction couche-par-couche (décomposition horizontale)}
 
@@ -581,6 +602,8 @@ T_{\mathrm{full}}
 \]
 Pour $N = 7\,238$ en survie ($T_{\mathrm{block}} = 2$\,s, $T_{\mathrm{clone}} = 0{,}05$\,s) : complet = $14\,476$\,s $\approx 4$\,h $1$\,min ; octant + clones = $1\,810$\,s + $0{,}35$\,s $\approx 30$\,min. Un facteur $8$ qui correspond exactement à l'ordre du sous-groupe de réflexions. Le $O_h$ complet d'ordre $48$ pourrait théoriquement réduire encore (facteur $48$), mais exploite des rotations diagonales nécessitant une zone tournée de $45°$, rarement utile en Minecraft vanilla.
 
+
+
 % =============================================================================
 \section{Textures de blocs et composition visuelle}
 
@@ -617,6 +640,8 @@ deepslate          & pierre  & sombre  & souterrains, accents \\
 
 \subsection{Dégradés par mélange de blocs}
 Bien qu'un seul type de bloc fournisse un ton, des \emph{dégradés} s'obtiennent en alternant deux ou trois types par couche. Une technique classique est le dégradé \emph{pierre-vers-quartz} sur un dôme : couches inférieures Pierre Lisse, couches équatoriales un mélange bruité de Pierre Lisse et Diorite, couches supérieures Quartz. Chaque couche reste calculée par le même algorithme Block Round ; ce qui change est la consultation de texture par voxel. L'option de bloc \emph{Random} de Block Round implémente un tel mélange procédural par défaut (sommet d'herbe, terre dessous, minerais épars, deepslate près du bedrock). La mathématique est celle de la décomposition par couche de la Section~19 ; seule l'\enquote{étiquette de bloc} par voxel change.
+
+
 
 % =============================================================================
 \section{Conclusion}
@@ -776,7 +801,7 @@ Les concepts mathématiques développés dans ce document ont des littératures 
 
 Les huit domaines théoriques listés à la section~22 ont chacun des traitements au niveau du manuel qui vont bien au-delà de ce qu'un seul document technique peut résumer. La contribution de Block Round n'est pas dans la théorie elle-même mais dans la synthèse spécifique : appliquer la rastérisation classique au cadre Minecraft de voxels texturés, avec les considérations explicites d'inventaire et de coût de symétrie habituellement omises des outils purement géométriques.
 
-Une dernière remarque sur la reproductibilité : tout le pipeline de ce document --- script de build, traductions, modèle LaTeX, tableaux par locale --- est contenu dans le répertoire \code{docs_math/} du dépôt du projet. Réexécuter \code{python build.py} sur un système avec XeLaTeX/MiKTeX produit ce PDF exactement, dans n'importe lequel des neuf locaux pris en charge. Le projet frère Pixel Round suit la même structure, permettant une comparaison directe côte à côte des variantes texturée et non texturée.
+Une dernière remarque sur la reproductibilité : tout le pipeline de ce document --- script de build, traductions, modèle LaTeX, tableaux par locale --- est contenu dans le répertoire \code{docs\_math/} du dépôt du projet. Réexécuter \code{python build.py} sur un système avec XeLaTeX/MiKTeX produit ce PDF exactement, dans n'importe lequel des neuf locaux pris en charge. Le projet frère Pixel Round suit la même structure, permettant une comparaison directe côte à côte des variantes texturée et non texturée.
 
 \vspace{1.2em}
 

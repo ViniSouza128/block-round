@@ -28,14 +28,14 @@
 \usepackage{titlesec}
 \usepackage{fancyhdr}
 \usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{caption}
+\usepackage{float}
+\graphicspath{{img/}}
 \usepackage{csquotes}
 \usepackage{needspace}
 \usepackage{tcolorbox}
 \tcbuselibrary{skins,breakable}
-\usepackage[hidelinks,bookmarks=true,bookmarksopen=true,
-            pdftitle={Block Round — 프로젝트의 수학},
-            pdfauthor={Vinícius Rodrigues de Souza}]{hyperref}
-
 \definecolor{accent}{HTML}{5B8E3F}
 \definecolor{accentdark}{HTML}{406A2A}
 \definecolor{earth}{HTML}{825432}
@@ -43,6 +43,15 @@
 \definecolor{muted}{HTML}{4E4E58}
 \definecolor{bg}{HTML}{FBF6E9}
 \definecolor{rule}{HTML}{D8D1BC}
+\definecolor{linkc}{HTML}{2D5A1F}
+
+\usepackage[colorlinks=true,
+            linkcolor=linkc,
+            urlcolor=linkc,
+            citecolor=linkc,
+            bookmarks=true,bookmarksopen=true,
+            pdftitle={Block Round — 프로젝트의 수학},
+            pdfauthor={Vinícius Rodrigues de Souza}]{hyperref}
 
 \color{ink}
 
@@ -178,6 +187,8 @@ $\displaystyle d_x = \dfrac{i+\tfrac{1}{2}-c_x}{r_x},\qquad
 \textbf{Minecraft 매핑.} 생존 모드에서 탑을 짓는 경우, 사용자는 일반적으로 \emph{넓고 평평한 원}을 기초로 하고 탑이 올라갈수록 점차 작은 원을 원한다. 각 층은 같은 반축과 다른 $z$에서 음함수 방정식의 적용이다. Block Round는 2D 층을 한 번만 계산하고 사용자는 \cmd{/clone}으로 층마다 복제한다.
 \end{minec}
 
+
+
 % =============================================================================
 \section{유클리드 알고리즘 (거리 검사)}
 
@@ -306,6 +317,8 @@ h_V &= b(i,j{-}1) \;\vee\; b(i,j{+}1).
 \textbf{Minecraft 매핑.} $D=20$의 유리 돔(비어있음)에 대해, 두꺼운 모드는 $608$ 블록의 \emph{기밀} 셸을 만들고 얇은 모드는 약 $510$ 블록이다 — 추가 $\sim 100$ 블록은 환경광이 대각선 균열을 통해 새어 들어가는 것을 방지하는 대각선 봉제이다.
 \end{minec}
 
+
+
 % =============================================================================
 \section{이산 면적 계산}
 
@@ -339,6 +352,8 @@ a_\xi = \frac{\xi + \tfrac{1}{2} - c_\xi}{r_\xi}\;\;(\xi \in \{x,y,z\}),
 \begin{minec}
 \textbf{Minecraft 매핑.} $W=20$, $H=10$, $D=20$의 타원체는 지하 돔이나 경기장 지붕에 이상적인 \emph{납작한 구}를 만든다. 부피 약 $2\,094$ 블록($33$ 스택). 동등한 WorldEdit 명령: \cmd{//ellipsoid stone 10 5 10}.
 \end{minec}
+
+
 
 % =============================================================================
 \section{복셀화와 부피 계산}
@@ -394,6 +409,8 @@ X와 Y 평면은 좌표축에 수직이며, 법선 벡터는 $(1,0,0)$과 $(0,1,
 \begin{minec}
 \textbf{Minecraft 매핑.} 구에 대한 Y축 $50\%$ 절단은 부피의 절반인 표준적인 \emph{돔}을 만든다. $D=16$의 경우: $V_{\mathrm{full}} = 2\,145$ 블록, $V_{\mathrm{돔}} \approx 1\,095$ 블록(약 $18$ 팩). $50\%$의 대각 절단은 분수 내부와 원형 극장 좌석에 자주 사용되는 \emph{반접시} 단면을 만든다.
 \end{minec}
+
+
 
 % =============================================================================
 \section{두꺼운 3D 모드: 슬라이스를 통한 3차원화}
@@ -456,6 +473,8 @@ B' = \mathrm{clamp}(B \cdot f)
 I \;=\; \max\bigl(0,\;\mathbf{n}\cdot\mathbf{l}\bigr)\cdot \mathit{텍스처},
 \]
 세 인자는 각 면의 법선과 고정된 광원 방향 사이 각도의 코사인에 해당한다. \emph{Smooth}에서는 인자가 비슷하고(유사한 면), \emph{Classic}에서는 인자가 더 다르다(강한 대비, 바닐라 Minecraft의 외관). \emph{Blocks}는 추가로 복셀에 기하학적 들여쓰기를 도입한다 — 인접 복셀이 동일한 텍스처를 가져도 복셀 간 경계가 드러나도록 각 면을 안쪽으로 일정 평행이동한다. 발광 블록(글로우스톤, 바다 랜턴, 슈룸라이트, 마그마, 우는 흑요석)의 경우 람베르트 항은 상수 $I = \mathit{emissive\_factor} \cdot \mathit{texture}$로 대체되며, 이는 블록의 MC 광 레벨에 맞게 조정된다.
+
+
 
 % =============================================================================
 \section{이행: 연속 수학에서 게임 내 건설로}
@@ -526,6 +545,8 @@ F_{\mathrm{exp}} \;=\; \sum_{\mathbf{v}\in V_{\mathrm{solid}}}\;\sum_{\mathbf{n}
 \]
 $D=16$의 구(채움 모드)의 경우, $V = 2\,145$, $V_{\mathrm{경계}} \approx 432$(셸), $F_{\mathrm{exp}} \approx 1\,184$ 가시 면 — 건설은 약 $432$개의 \emph{가시} 블록만 필요하고, 나머지 $1\,713$ 블록은 내부이며 가장 저렴한 블록(흙, 조약돌)으로 채울 수 있다. 오버레이는 빌더가 셸의 누락된 블록을 즉시 발견할 수 있게 한다.
 
+
+
 % =============================================================================
 \section{층별 건설 (수평 분해)}
 
@@ -584,6 +605,8 @@ T_{\mathrm{full}}
 \]
 생존에서 $N = 7\,238$의 경우($T_{\mathrm{block}} = 2$\,s, $T_{\mathrm{clone}} = 0{,}05$\,s): 전체 = $14\,476$\,s $\approx 4$\,h $1$\,min; 팔분원 + 클론 = $1\,810$\,s + $0{,}35$\,s $\approx 30$\,min. 반사 부분군의 차수와 정확히 일치하는 $8$배 속도 향상. 차수 $48$의 완전한 팔면체군 $O_h$는 원칙적으로 더 줄일 수 있지만(차수 $48$만큼), 대각선 회전을 활용하려면 $45°$ 회전된 빌드 영역이 필요하며, 바닐라 Minecraft에서 설정 비용을 들일 가치가 거의 없다.
 
+
+
 % =============================================================================
 \section{블록 텍스처와 시각적 구성}
 
@@ -620,6 +643,8 @@ deepslate          & 돌  & 어두움  & 지하, 강조 \\
 
 \subsection{블록 혼합을 통한 그라데이션}
 단일 블록 유형은 하나의 톤을 제공하지만, \emph{그라데이션}은 층마다 두 개 또는 세 개의 블록 유형을 교차시켜 얻을 수 있다. 고전적인 Minecraft 기법은 돔의 \emph{돌에서 석영으로} 그라데이션이다: 하단 층은 매끄러운 돌, 적도 층은 매끄러운 돌과 섬록암의 잡음 혼합, 상단 층은 석영. 각 층은 여전히 동일한 Block Round 알고리즘으로 계산된다; 변하는 것은 복셀당 텍스처 조회이다. Block Round의 \emph{Random} 블록 옵션은 기본적으로 이러한 절차적 혼합을 구현한다(잔디 캡, 그 아래 흙, 중간에 산재한 광석, 기반암 근처에 심층암). 수학은 19절의 층 분해와 같다; 복셀당 \enquote{블록 태그}만 다르다.
+
+
 
 % =============================================================================
 \section{결론}
@@ -779,7 +804,7 @@ Block Round 앱은 캔버스의 모서리 버튼을 반영하는 작은 키보�
 
 22절에 나열된 여덟 개의 이론 영역은 각각 단일 기술 문서가 요약할 수 있는 범위를 훨씬 넘는 교과서 수준의 처리를 가지고 있다. Block Round의 기여는 이론 자체에 있지 않고 특정한 종합에 있다: 일반적으로 순수 기하 도구에서 생략되는 명시적 인벤토리 및 대칭 비용 고려와 함께 텍스처화된 복셀 Minecraft 환경에 고전적 래스터화를 적용하는 것.
 
-재현성에 대한 마지막 발언: 본 문서의 전체 파이프라인 ── 빌드 스크립트, 번역, LaTeX 템플릿, 로케일별 테이블 ── 은 프로젝트 저장소의 \code{docs_math/} 디렉토리에 포함되어 있다. XeLaTeX/MiKTeX이 있는 시스템에서 \code{python build.py}를 다시 실행하면, 지원되는 아홉 개 로케일 중 어느 것에서나 이 PDF를 정확히 생성한다. 자매 프로젝트 Pixel Round는 동일한 구조를 따라 텍스처화 및 비텍스처화 변형의 직접적인 나란히 비교를 허용한다.
+재현성에 대한 마지막 발언: 본 문서의 전체 파이프라인 ── 빌드 스크립트, 번역, LaTeX 템플릿, 로케일별 테이블 ── 은 프로젝트 저장소의 \code{docs\_math/} 디렉토리에 포함되어 있다. XeLaTeX/MiKTeX이 있는 시스템에서 \code{python build.py}를 다시 실행하면, 지원되는 아홉 개 로케일 중 어느 것에서나 이 PDF를 정확히 생성한다. 자매 프로젝트 Pixel Round는 동일한 구조를 따라 텍스처화 및 비텍스처화 변형의 직접적인 나란히 비교를 허용한다.
 
 \vspace{1.2em}
 

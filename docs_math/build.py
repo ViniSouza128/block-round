@@ -38,14 +38,14 @@ TEX = r"""% !TEX program = xelatex
 \usepackage{titlesec}
 \usepackage{fancyhdr}
 \usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{caption}
+\usepackage{float}
+\graphicspath{{img/}}
 \usepackage{csquotes}
 \usepackage{needspace}
 \usepackage{tcolorbox}
 \tcbuselibrary{skins,breakable}
-\usepackage[hidelinks,bookmarks=true,bookmarksopen=true,
-            pdftitle={Block Round — «PDF_TITLE»},
-            pdfauthor={Vinícius Rodrigues de Souza}]{hyperref}
-
 \definecolor{accent}{HTML}{5B8E3F}
 \definecolor{accentdark}{HTML}{406A2A}
 \definecolor{earth}{HTML}{825432}
@@ -53,6 +53,15 @@ TEX = r"""% !TEX program = xelatex
 \definecolor{muted}{HTML}{4E4E58}
 \definecolor{bg}{HTML}{FBF6E9}
 \definecolor{rule}{HTML}{D8D1BC}
+\definecolor{linkc}{HTML}{2D5A1F}
+
+\usepackage[colorlinks=true,
+            linkcolor=linkc,
+            urlcolor=linkc,
+            citecolor=linkc,
+            bookmarks=true,bookmarksopen=true,
+            pdftitle={Block Round — «PDF_TITLE»},
+            pdfauthor={Vinícius Rodrigues de Souza}]{hyperref}
 
 \color{ink}
 
@@ -188,6 +197,8 @@ $\displaystyle d_x = \dfrac{i+\tfrac{1}{2}-c_x}{r_x},\qquad
 \textbf{«S3_MC_LABEL»} «S3_MC_EXAMPLE»
 \end{minec}
 
+«FIG_3ALG»
+
 % =============================================================================
 \section{«S4_TITLE»}
 
@@ -316,6 +327,8 @@ h_V &= b(i,j{-}1) \;\vee\; b(i,j{+}1).
 \textbf{«S7_MC_LABEL»} «S7_MC_EXAMPLE»
 \end{minec}
 
+«FIG_MODES»
+
 % =============================================================================
 \section{«S8_TITLE»}
 
@@ -349,6 +362,8 @@ a_\xi = \frac{\xi + \tfrac{1}{2} - c_\xi}{r_\xi}\;\;(\xi \in \{x,y,z\}),
 \begin{minec}
 \textbf{«S9_MC_LABEL»} «S9_MC_EXAMPLE»
 \end{minec}
+
+«FIG_3D»
 
 % =============================================================================
 \section{«S10_TITLE»}
@@ -404,6 +419,8 @@ D=32  & 17156 & 269 & 5 & «S10_TBL_NOTE_32» \\
 \begin{minec}
 \textbf{«S11_MC_LABEL»} «S11_MC_EXAMPLE»
 \end{minec}
+
+«FIG_CUTS»
 
 % =============================================================================
 \section{«S12_TITLE»}
@@ -466,6 +483,8 @@ B' = \mathrm{clamp}(B \cdot f)
 I \;=\; \max\bigl(0,\;\mathbf{n}\cdot\mathbf{l}\bigr)\cdot \mathit{«S15_BASECOLOR»},
 \]
 «S15_P3»
+
+«FIG_SHADING»
 
 % =============================================================================
 \section{«S16_TITLE»}
@@ -536,6 +555,8 @@ F_{\mathrm{exp}} \;=\; \sum_{\mathbf{v}\in V_{\mathrm{solid}}}\;\sum_{\mathbf{n}
 \]
 «S18_P6»
 
+«FIG_OVERLAY»
+
 % =============================================================================
 \section{«S19_TITLE»}
 
@@ -587,6 +608,8 @@ T_{\mathrm{full}}
 \]
 «S20_P6»
 
+«FIG_OCTANTS»
+
 % =============================================================================
 \section{«S21_TITLE»}
 
@@ -623,6 +646,8 @@ deepslate          & «S21_BLK_FAMILY_STONE»  & «S21_BLK_TONE_DARK»  & «S21_
 
 \subsection{«S21_SUB3»}
 «S21_P5»
+
+«FIG_TEXTURES»
 
 % =============================================================================
 \section{«S22_TITLE»}
@@ -882,6 +907,14 @@ from translations import T
 def build(loc):
     cfg = dict(T[loc])
     cfg["FONT_SETUP"] = fonts_for(loc)
+    # Figure blocks: only the pt-BR build embeds them in this revision.
+    # Other locales get an empty string for each FIG_* key.
+    fig_keys = ("FIG_3ALG", "FIG_MODES", "FIG_3D", "FIG_CUTS",
+                "FIG_SHADING", "FIG_OVERLAY", "FIG_OCTANTS", "FIG_TEXTURES")
+    for k in fig_keys:
+        cfg.setdefault(k, "")
+    if loc == "pt-BR":
+        cfg.update(FIG_BLOCKS_PT_BR)
     out = TEX
     # ordem de substituição não importa porque chaves são únicas
     for k, v in cfg.items():
@@ -905,6 +938,136 @@ def build(loc):
         if p.exists(): p.unlink()
     return tex_path.with_suffix(".pdf")
 
+
+# ============================================================================
+# BLOCOS DE FIGURA — somente pt-BR nesta revisão
+# ============================================================================
+FIG_BLOCKS_PT_BR = {
+    "FIG_3ALG": r"""\begin{figure}[H]
+\centering
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d10_eucl.png}
+  \caption{\emph{Euclidiano}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d10_bres.png}
+  \caption{\emph{Bresenham}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d10_thr.png}
+  \caption{\emph{Limiar}}
+\end{subfigure}
+\caption{Mesma circunferência de diâmetro $D=10$ sob os três critérios. Cada figura é o conjunto de células marcadas pela respectiva versão da desigualdade $d_x^2+d_y^2\leq 1$, renderizada com a textura \emph{cobblestone} do Minecraft. Note como a transição entre filas, as células de quina e os pontos cardeais variam --- três respostas matematicamente corretas sob critérios distintos.}
+\label{fig:comp-d10}
+\end{figure}""",
+
+    "FIG_MODES": r"""\begin{figure}[H]
+\centering
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d20_filled.png}
+  \caption{\emph{Preenchido}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d20_thin.png}
+  \caption{\emph{Fino} (\emph{1 voxel})}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_2d_d20_thick.png}
+  \caption{\emph{Grosso}}
+\end{subfigure}
+\caption{Os três modos de renderização para a mesma circunferência euclidiana de $D=20$. O modo \emph{Fino} corresponde ao bordo discreto topológico ($\partial F$); o modo \emph{Grosso} adiciona blocos diagonais para fechar buracos a $45^\circ$, essencial para construções estanques (cúpulas de Vidro/Gelo subaquáticas).}
+\label{fig:modes}
+\end{figure}""",
+
+    "FIG_3D": r"""\begin{figure}[H]
+\centering
+\begin{subfigure}[t]{0.46\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_sphere_d10.png}
+  \caption{Esfera $D=10$, $r_x=r_y=r_z=5$.}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.46\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_ellipsoid.png}
+  \caption{Elipsóide $W=20,\,H=10,\,D=12$.}
+\end{subfigure}
+\caption{Voxelização em $\mathbb{R}^3$. Cada cubo é um voxel; sua coordenada $(i,j,k)$ no centro é testada na equação implícita $a_x^2+a_y^2+a_z^2\leq 1$. As escadarias visíveis na superfície são consequência matemática da discretização --- exatamente o aspecto que dá ao Minecraft sua identidade visual.}
+\label{fig:3d-shapes}
+\end{figure}""",
+
+    "FIG_CUTS": r"""\begin{figure}[H]
+\centering
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_cut_y.png}
+  \caption{Corte $Y$ 50\% (cúpula)}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_cut_x.png}
+  \caption{Corte $X$ 50\%}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_cut_diag.png}
+  \caption{Diagonal 50\%}
+\end{subfigure}
+\caption{Três cortes na mesma esfera $D=16$, todos preservando 50\% do volume. O corte $Y$ produz a cúpula clássica $V_{\mathrm{cúpula}}=\tfrac{2}{3}\pi r^3$; o diagonal expõe a hipotenusa $x+y=k$ característica desse plano de corte.}
+\label{fig:cuts}
+\end{figure}""",
+
+    "FIG_SHADING": r"""\begin{figure}[H]
+\centering
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_shading_classic.png}
+  \caption{\emph{Classic} (contraste forte)}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_shading_blocks.png}
+  \caption{\emph{Blocks} (default)}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_shading_smooth.png}
+  \caption{\emph{Smooth} (faces parecidas)}
+\end{subfigure}
+\caption{Três multiplicadores de luz aplicados às mesmas três faces visíveis. \emph{Classic} dá o aspecto canônico Minecraft vanilla; \emph{Smooth} reduz o contraste para superfícies suaves; \emph{Blocks} é o intermediário com inset geométrico que revela fronteiras entre voxels mesmo quando a textura é a mesma.}
+\label{fig:shading}
+\end{figure}""",
+
+    "FIG_OVERLAY": r"""\begin{figure}[H]
+\centering
+\begin{subfigure}[t]{0.40\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_overlay_off.png}
+  \caption{Overlay \emph{OFF}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.40\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_overlay_on.png}
+  \caption{Overlay \emph{ON} (default)}
+\end{subfigure}
+\caption{Mesmo conjunto de voxels com e sem o contorno preto nas arestas expostas. Com o \emph{highlight overlay} ON, um bloco faltante na casca produz uma descontinuidade no padrão que o olho detecta de relance --- ferramenta de validação rápida durante a construção em survival.}
+\label{fig:overlay}
+\end{figure}""",
+
+    "FIG_OCTANTS": r"""\begin{figure}[H]
+\centering
+\includegraphics[width=0.55\linewidth]{math_3d_octants.png}
+\caption{Esfera $D=10$ com o octante positivo $(+x,+y,+z)$ destacado em verde. Sob a ação do subgrupo $\mathbb{Z}_2^3 \leq O_h$ (ordem 8, gerado pelas três reflexões coordenadas), esse octante determina toda a esfera --- as outras sete regiões são obtidas por uma sequência de \cmd{/clone} com \emph{mode:masked} aplicadas sobre o octante construído manualmente.}
+\label{fig:octants}
+\end{figure}""",
+
+    "FIG_TEXTURES": r"""\begin{figure}[H]
+\centering
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_tex_cobble.png}
+  \caption{\emph{Cobblestone}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_tex_oak.png}
+  \caption{\emph{Oak Planks}}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.30\linewidth}\centering
+  \includegraphics[width=\linewidth]{math_3d_tex_quartz.png}
+  \caption{\emph{Quartz Block}}
+\end{subfigure}
+\caption{A mesma esfera de diâmetro $D=8$ renderizada com três blocos diferentes. A silhueta voxelizada (matemática) é idêntica nas três: o algoritmo escolhe os voxels, a textura é uma camada estética posterior que não altera nem o volume nem a topologia.}
+\label{fig:textures}
+\end{figure}""",
+}
 
 if __name__ == "__main__":
     import io

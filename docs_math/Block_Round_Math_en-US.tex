@@ -25,14 +25,14 @@
 \usepackage{titlesec}
 \usepackage{fancyhdr}
 \usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{caption}
+\usepackage{float}
+\graphicspath{{img/}}
 \usepackage{csquotes}
 \usepackage{needspace}
 \usepackage{tcolorbox}
 \tcbuselibrary{skins,breakable}
-\usepackage[hidelinks,bookmarks=true,bookmarksopen=true,
-            pdftitle={Block Round — The Mathematics of the Project},
-            pdfauthor={Vinícius Rodrigues de Souza}]{hyperref}
-
 \definecolor{accent}{HTML}{5B8E3F}
 \definecolor{accentdark}{HTML}{406A2A}
 \definecolor{earth}{HTML}{825432}
@@ -40,6 +40,15 @@
 \definecolor{muted}{HTML}{4E4E58}
 \definecolor{bg}{HTML}{FBF6E9}
 \definecolor{rule}{HTML}{D8D1BC}
+\definecolor{linkc}{HTML}{2D5A1F}
+
+\usepackage[colorlinks=true,
+            linkcolor=linkc,
+            urlcolor=linkc,
+            citecolor=linkc,
+            bookmarks=true,bookmarksopen=true,
+            pdftitle={Block Round — The Mathematics of the Project},
+            pdfauthor={Vinícius Rodrigues de Souza}]{hyperref}
 
 \color{ink}
 
@@ -175,6 +184,8 @@ $\displaystyle d_x = \dfrac{i+\tfrac{1}{2}-c_x}{r_x},\qquad
 \textbf{Minecraft mapping.} For a tower in survival, the user typically wants a \emph{wide flat circle} for the foundation and progressively smaller circles as the tower rises. Each storey is one application of the implicit ellipse equation with the same semi-axes but a different $z$. Block Round computes the 2D layer once and the user simply duplicates that layer with \cmd{/clone $x_1$ $y_1$ $z_1$ $x_2$ $y_2$ $z_2$ $x_3$ $y_2{+}1$ $z_3$} per storey.
 \end{minec}
 
+
+
 % =============================================================================
 \section{Euclidean algorithm (distance test)}
 
@@ -303,6 +314,8 @@ h_V &= b(i,j{-}1) \;\vee\; b(i,j{+}1).
 \textbf{Minecraft mapping.} For a $D=20$ Glass dome (hollow), the thick mode yields a \emph{watertight} shell of $608$ blocks against $\approx 510$ blocks for the thin mode --- the $\sim 100$ extra blocks are diagonal-bridge stitching that prevents the day-night cycle from leaking ambient light through diagonal cracks.
 \end{minec}
 
+
+
 % =============================================================================
 \section{Discrete area computation}
 
@@ -336,6 +349,8 @@ a_\xi = \frac{\xi + \tfrac{1}{2} - c_\xi}{r_\xi}\;\;(\xi \in \{x,y,z\}),
 \begin{minec}
 \textbf{Minecraft mapping.} An ellipsoid with $W=20$, $H=10$, $D=20$ produces a \emph{flattened sphere} ideal for an underground dome or a stadium roof. The volume is $V = \tfrac{4}{3}\pi \cdot 10 \cdot 5 \cdot 10 \approx 2\,094$ blocks, equivalent to $33$ stacks of any block type. Equivalent WorldEdit command: \cmd{//ellipsoid stone 10 5 10}.
 \end{minec}
+
+
 
 % =============================================================================
 \section{Voxelization and volume computation}
@@ -391,6 +406,8 @@ so $50\%$ on one axis remains $50\%$ when the user switches axis or resizes.
 \begin{minec}
 \textbf{Minecraft mapping.} The Y-axis cut at $50\%$ on a sphere produces the canonical \emph{dome} of half the volume. For $D=16$: $V_{\mathrm{full}} = 2\,145$ blocks, $V_{\mathrm{dome}} \approx 1\,095$ blocks ($\approx 18$ packs of $64$). The diagonal cut at $50\%$ produces a \emph{half-bowl} cross-section frequently used for fountain interiors and amphitheatre seating.
 \end{minec}
+
+
 
 % =============================================================================
 \section{Thick 3D mode: tridimensionalization by slices}
@@ -453,6 +470,8 @@ This is a \emph{linear approximation} of the ideal Lambertian illumination funct
 I \;=\; \max\bigl(0,\;\mathbf{n}\cdot\mathbf{l}\bigr)\cdot \mathit{texture},
 \]
 where the three factors correspond to the cosine of the angle between the normal of each face and a fixed light direction. In \emph{Smooth} the factors are close (similar faces); in \emph{Classic} the factors differ more (strong contrast, the look of vanilla Minecraft). \emph{Blocks} additionally introduces a geometric inset --- a constant translation of each face inward to reveal the inter-voxel boundaries even when adjacent voxels carry the same texture. For emissive blocks (Glowstone, Sea Lantern, Shroomlight, Magma, Crying Obsidian) the Lambertian term is replaced by a constant $I = \mathit{emissive\_factor} \cdot \mathit{texture}$ scaled to the block's MC light level.
+
+
 
 % =============================================================================
 \section{Transition: from continuous mathematics to in-game construction}
@@ -523,6 +542,8 @@ F_{\mathrm{exp}} \;=\; \sum_{\mathbf{v}\in V_{\mathrm{solid}}}\;\sum_{\mathbf{n}
 \]
 For a $D=16$ sphere (filled mode), $V = 2\,145$, $V_{\mathrm{boundary}} \approx 432$ (the shell), and $F_{\mathrm{exp}} \approx 1\,184$ visible faces --- so the build needs only about $432$ \emph{visible} blocks; the remaining $1\,713$ blocks are interior and can be filled with the cheapest block available (Dirt, Cobblestone). The highlight overlay lets the builder spot a missing block in the shell immediately, because a missing voxel produces a discontinuity in the overlay pattern that the eye picks up at a glance.
 
+
+
 % =============================================================================
 \section{Layer-by-layer construction (horizontal decomposition)}
 
@@ -581,6 +602,8 @@ T_{\mathrm{full}}
 \]
 For $N = 7\,238$ in survival ($T_{\mathrm{block}} = 2$\,s, $T_{\mathrm{clone}} = 0{,}05$\,s): full = $14\,476$\,s $\approx 4$\,h $1$\,min; octant + clones = $1\,810$\,s + $0{,}35$\,s $\approx 30$\,min. A factor-$8$ speed-up that closely matches the order of the reflection subgroup. The full octahedral group $O_h$ of order $48$ could in principle reduce further (by a factor of $48$), but exploiting the diagonal rotations requires a $45°$-rotated build area, which is rarely worth the setup cost in vanilla Minecraft.
 
+
+
 % =============================================================================
 \section{Block textures and visual composition}
 
@@ -617,6 +640,8 @@ deepslate          & stone  & dark  & underground, accents \\
 
 \subsection{Gradients by mixing blocks}
 Although a single block type provides one tone, \emph{gradients} can be obtained by interleaving two or three block types per layer. A classic Minecraft technique is the \emph{stone-to-quartz} gradient on a dome: the bottom layers are Smooth Stone, the equatorial layers are a noisy mix of Smooth Stone and Diorite, and the top layers are Quartz. Each layer remains computed by the same Block Round algorithm; what changes is the per-voxel texture lookup. Block Round's \emph{Random} block option implements one such procedural mix by default (grass cap, dirt sub-layer, sparse ores in the middle, deepslate near bedrock). The mathematics is the same as Section~19's layer decomposition; only the per-voxel \enquote{block tag} differs.
+
+
 
 % =============================================================================
 \section{Conclusion}
@@ -776,7 +801,7 @@ The mathematical concepts developed in this document have well-established liter
 
 The eight theoretical areas listed in Section~22 each have textbook-level treatments that go well beyond what a single technical document can summarise. Block Round's contribution is not in the theory itself but in the specific synthesis: applying classical rasterisation to the textured-voxel Minecraft setting, with the explicit inventory and symmetry-cost considerations that are usually omitted from purely geometric tools.
 
-A final remark on reproducibility: the entire pipeline of this document --- the build script, the translations, the LaTeX template, the per-locale tables --- is contained in the project repository's \code{docs_math/} directory. Re-running \code{python build.py} on a system with XeLaTeX/MiKTeX produces this PDF exactly, in any of the nine supported locales. The companion project Pixel Round follows the same structure, allowing direct side-by-side comparison of the textured and untextured variants.
+A final remark on reproducibility: the entire pipeline of this document --- the build script, the translations, the LaTeX template, the per-locale tables --- is contained in the project repository's \code{docs\_math/} directory. Re-running \code{python build.py} on a system with XeLaTeX/MiKTeX produces this PDF exactly, in any of the nine supported locales. The companion project Pixel Round follows the same structure, allowing direct side-by-side comparison of the textured and untextured variants.
 
 \vspace{1.2em}
 
