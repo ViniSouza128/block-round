@@ -193,6 +193,18 @@ Threshold) are available.
   (glowstone, sea lantern, shroomlight, magma, crying obsidian)
   really pop against the night canvas.
 
+## Locales
+
+| Code  | Language            | Speakers |
+| ----- | ------------------- | -------- |
+| en-US | English (US)        | ~380 M   |
+| pt-BR | Português (Brasil)  | ~210 M   |
+| ru-RU | Русский             | ~150 M   |
+| ko-KR | 한국어               | ~77 M    |
+
+The language button in the topbar (or the Settings picker) cycles through all
+supported locales. The choice persists across reloads.
+
 ## Controls
 
 - Toolbar toggles: **2D / 3D** and **Circle / Ellipse** (or Sphere /
