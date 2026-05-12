@@ -296,7 +296,7 @@ function resetState(){
   // straight back to whatever they had before clicking Reset.
   if (typeof pushHistory === 'function') pushHistory();
   Sfx.ok();
-  toast('Reset', 'ok');
+  toast(typeof window.t==='function'?window.t('reset'):'Reset', 'ok');
 }
 
 /* Map each picker block to one of the MC sound categories so the tile-
@@ -367,12 +367,20 @@ function setupClickDelegation(){
     // on document.body via the .theme-night class — CSS handles the
     // canvas-frame background gradient swap. Session-only; nothing
     // persists across reloads.
+    if (a === 'lang'){
+      const next = (typeof getLocale === 'function' && getLocale() === 'pt') ? 'en' : 'pt';
+      if (typeof setLocale === 'function') setLocale(next);
+      document.getElementById('html-root')?.setAttribute('lang', next === 'pt' ? 'pt-BR' : 'en');
+      Sfx.click();
+      return;
+    }
+
     if (a === 'theme'){
       state.theme = (state.theme === 'night') ? 'day' : 'night';
       document.body.classList.toggle('theme-night', state.theme === 'night');
       t.classList.toggle('active', state.theme === 'night');
       Sfx.click();
-      toast(`Night ${state.theme === 'night' ? 'on' : 'off'}`);
+      toast(state.theme === 'night' ? (typeof window.t === 'function' ? window.t('night_on') : 'Night on') : (typeof window.t === 'function' ? window.t('night_off') : 'Night off'));
       return;
     }
 
@@ -389,7 +397,7 @@ function setupClickDelegation(){
       const inp = document.querySelector('[data-pref=sound]');
       if (inp) inp.checked = next;
       if (next) Sfx.click();  // a quiet confirm chime only on UNmute
-      toast(`Sounds ${next ? 'on' : 'off'}`);
+      toast(next ? (typeof window.t==='function'?window.t('sounds_on'):'Sounds on') : (typeof window.t==='function'?window.t('sounds_off'):'Sounds off'));
       return;
     }
 
@@ -412,14 +420,14 @@ function setupClickDelegation(){
         Sfx.click();
         if (typeof toggleEdges3D === 'function') toggleEdges3D();
         else update3D();
-        toast(`Edges ${eff ? 'on' : 'off'}`);
+        toast(eff ? (typeof window.t==='function'?window.t('edges_on'):'Edges on') : (typeof window.t==='function'?window.t('edges_off'):'Edges off'));
       } else {
         state.grid = !state.grid;
         t.classList.toggle('active', state.grid);
         const inp = document.querySelector('[data-pref=grid]');
         if (inp) inp.checked = state.grid;
         Sfx.click(); redraw();
-        toast(`Grid ${state.grid ? 'on' : 'off'}`);
+        toast(state.grid ? (typeof window.t==='function'?window.t('grid_on'):'Grid on') : (typeof window.t==='function'?window.t('grid_off'):'Grid off'));
       }
       return;
     }
@@ -449,7 +457,7 @@ function setupClickDelegation(){
       t.classList.toggle('active', state.zoomBtn);
       Sfx.click(); redraw(); return;
     }
-    if (a === 'download'){ downloadPNG(); Sfx.ok(); toast('PNG saved', 'ok'); return; }
+    if (a === 'download'){ downloadPNG(); Sfx.ok(); toast(typeof window.t==='function'?window.t('png_saved'):'PNG saved', 'ok'); return; }
     if (a === 'schem'){
       // Sponge-format .schem (gzipped NBT) for WorldEdit / Litematica.
       if (typeof downloadSchematic === 'function'){ downloadSchematic(); Sfx.ok(); }
@@ -610,7 +618,7 @@ function setupPrefs(){
         // the Settings checkbox so changing one surface updates both.
         document.body.classList.toggle('sound-off', !t.checked);
         document.querySelector('[data-act=sound]')?.classList.toggle('active', !t.checked);
-        toast(`Sounds ${t.checked ? 'on' : 'off'}`);
+        toast(t.checked ? (typeof window.t==='function'?window.t('sounds_on'):'Sounds on') : (typeof window.t==='function'?window.t('sounds_off'):'Sounds off'));
       } else if (k in state){
         state[k] = t.checked;
         const btn = document.querySelector(`[data-act=${k}]`);
@@ -737,7 +745,7 @@ function setupKeyboard(){
       e.preventDefault();
       const wantRedo = (k === 'y') || (k === 'z' && (e.shiftKey || e.altKey));
       const did = wantRedo ? redo() : undo();
-      if (did) toast(wantRedo ? 'Redo' : 'Undo');
+      if (did) toast(typeof window.t==='function' ? window.t(wantRedo?'redo':'undo') : (wantRedo?'Redo':'Undo'));
       return;
     }
     if (k === 'g'){ document.querySelector('[data-act=grid]')?.click(); }
