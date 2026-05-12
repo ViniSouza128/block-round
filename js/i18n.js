@@ -172,8 +172,9 @@ const TR = {
           { h: 'Source',           p: 'All Rights Reserved on code. Repository: <code>github.com/ViniSouza128/block-round</code>.' },
         ]},
         { h3: '6. Documents', items: [
-          { h: 'Math companion (PDF)',     p: 'In-depth derivation of the implicit ellipse / ellipsoid equations, the three 2D rasterization algorithms, voxelization, cuts, Lambertian shading and the five Minecraft-specific extensions (inventory arithmetic, exposed-face counting, layer-by-layer construction, octahedral-symmetry /clone optimization, block-texture UV mapping). <a href="docs_math/Block_Round_Math_en-US.pdf" target="_blank" rel="noopener">Open Block_Round_Math_en-US.pdf →</a>' },
-          { h: 'All locales',              p: 'The math companion is available in 9 languages (each PDF ≥25 pages): <a href="docs_math/" target="_blank" rel="noopener">docs_math/</a>.' },
+          { h: 'Math companion (PDF)',       p: 'In-depth derivation of the implicit ellipse / ellipsoid equations, the three 2D rasterization algorithms, voxelization, cuts, Lambertian shading and the five Minecraft-specific extensions (inventory arithmetic, exposed-face counting, layer-by-layer construction, octahedral-symmetry /clone optimization, block-texture UV mapping). <a href="docs_math/Block_Round_Math_en-US.pdf" target="_blank" rel="noopener">Open Block_Round_Math_en-US.pdf →</a>' },
+          { h: 'Math — all locales',         p: 'The math companion is available in 9 languages (each PDF ≥25 pages): <a href="docs_math/" target="_blank" rel="noopener">docs_math/</a>.' },
+          { h: 'Classroom lesson plan (PDF)',p: 'Five-period instructional sequence for the 3rd year of Brazilian high school. 58 pages, 21 figures, aligned to BNCC / ENEM / OBMEP, with five regional adaptations. <a href="docs_aula/Plano_de_Aula_pt-BR.pdf" target="_blank" rel="noopener">Open Plano_de_Aula_pt-BR.pdf →</a>' },
         ]},
       ],
     },
@@ -338,8 +339,9 @@ const TR = {
           { h: 'Código-fonte',   p: 'Todos os direitos reservados sobre o código. Repositório: <code>github.com/ViniSouza128/block-round</code>.' },
         ]},
         { h3: '6. Documentos', items: [
-          { h: 'Documento matemático (PDF)',  p: 'Desenvolvimento completo das equações implícitas da elipse e do elipsóide, dos três algoritmos 2D de rasterização, voxelização, cortes, sombreamento Lambertiano e das cinco extensões específicas do Minecraft (aritmética de inventário, contagem de faces expostas, construção camada-por-camada, otimização por simetria octaédrica via /clone, mapeamento UV das texturas de bloco). <a href="docs_math/Block_Round_Math_pt-BR.pdf" target="_blank" rel="noopener">Abrir Block_Round_Math_pt-BR.pdf →</a>' },
-          { h: 'Outros idiomas',              p: 'O documento matemático está disponível em 9 idiomas (cada PDF tem ≥25 páginas): <a href="docs_math/" target="_blank" rel="noopener">docs_math/</a>.' },
+          { h: 'Documento matemático (PDF)', p: 'Desenvolvimento completo das equações implícitas da elipse e do elipsóide, dos três algoritmos 2D de rasterização, voxelização, cortes, sombreamento Lambertiano e das cinco extensões específicas do Minecraft (aritmética de inventário, contagem de faces expostas, construção camada-por-camada, otimização por simetria octaédrica via /clone, mapeamento UV das texturas de bloco). <a href="docs_math/Block_Round_Math_pt-BR.pdf" target="_blank" rel="noopener">Abrir Block_Round_Math_pt-BR.pdf →</a>' },
+          { h: 'Documento — outros idiomas', p: 'O documento matemático está disponível em 9 idiomas (cada PDF tem ≥25 páginas): <a href="docs_math/" target="_blank" rel="noopener">docs_math/</a>.' },
+          { h: 'Plano de aula (PDF)',        p: 'Sequência didática de 5 aulas para o 3.º ano do Ensino Médio brasileiro. 58 páginas, 21 figuras, alinhado à BNCC (EM13MAT307/308/309/404), ENEM e OBMEP, com adaptações regionais para escolas urbanas/interior/IFs/campo/indígenas-quilombolas/EJA e tutorial Litematica para construção real no Minecraft. <a href="docs_aula/Plano_de_Aula_pt-BR.pdf" target="_blank" rel="noopener">Abrir Plano_de_Aula_pt-BR.pdf →</a>' },
         ]},
       ],
     },

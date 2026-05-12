@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Block Round — Planos de aula (PDF)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="index,follow">
+<meta name="description" content="Block Round — planos de aula em PDF. Sequência didática para o Ensino Médio brasileiro, articulando geometria analítica, voxel art e construção em Minecraft.">
+<style>
+  :root{--bg:#f2ede2;--surface:#fbf6e9;--border:#d8d1bc;--text:#1f1f23;--muted:#4e4e58;--accent:#5b8e3f;--accent-dim:rgba(91,142,63,.12)}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Inter,-apple-system,Segoe UI,system-ui,sans-serif;line-height:1.6}
+  main{max-width:820px;margin:0 auto;padding:48px 28px 80px}
+  header a.back{color:var(--muted);text-decoration:none;font-size:14px;letter-spacing:.04em;text-transform:uppercase;font-weight:700}
+  header a.back:hover{color:var(--accent)}
+  h1{font-size:38px;font-weight:800;color:var(--accent);margin:14px 0 6px;letter-spacing:-.01em}
+  .sub{color:var(--muted);font-size:16px;margin-bottom:32px}
+  .card{display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin:10px 0;text-decoration:none;color:var(--text);transition:.12s ease-out;font-size:15px;gap:10px}
+  .card:hover{border-color:var(--accent);background:var(--accent-dim);transform:translateY(-1px)}
+  .card.soon{opacity:.55;cursor:default;pointer-events:none}
+  .card .head{display:flex;align-items:center;flex:1;min-width:0}
+  .card .locale{font-weight:700;letter-spacing:.04em;font-size:13px;color:var(--accent);text-transform:uppercase;display:inline-block;min-width:72px}
+  .card.soon .locale{color:var(--muted)}
+  .card .ctx{color:var(--muted);font-size:13px;margin-left:10px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .card .arrow{color:var(--accent);font-weight:700;flex-shrink:0}
+  .card.soon .arrow{color:var(--muted);font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:600}
+  section.about{margin-top:42px;padding-top:24px;border-top:1px solid var(--border);color:var(--muted);font-size:14px}
+  section.about p{margin:8px 0}
+  section.about a{color:var(--accent);text-decoration:none}
+  section.about a:hover{text-decoration:underline}
+  code{background:var(--surface);border:1px solid var(--border);padding:1px 6px;border-radius:4px;font-family:JetBrains Mono,SFMono-Regular,Consolas,monospace;font-size:12px}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <a class="back" href="../">← Block Round</a>
+    <h1>Planos de aula</h1>
+    <p class="sub">Sequência didática de cinco aulas para o 3.º ano do Ensino Médio, articulando geometria analítica, voxel art e construção real no Minecraft. O plano em português brasileiro é a implementação de referência (58 páginas, 21 figuras, 5 aulas, 8 exercícios, tutorial Litematica). As demais localizações virão depois, cada uma <em>adaptada</em> — não traduzida — ao currículo, exame nacional e cultura visual de cada país.</p>
+  </header>
+
+  <a class="card" href="Plano_de_Aula_pt-BR.pdf"><span class="head"><span class="locale">pt-BR</span><span class="ctx">Brasil · 3.º ano EM · BNCC · ENEM · OBMEP</span></span><span class="arrow">→</span></a>
+
+  <a class="card soon"><span class="head"><span class="locale">en-US</span><span class="ctx">USA · Grade 12 · Common Core · AP / SAT context</span></span><span class="arrow">em breve</span></a>
+  <a class="card soon"><span class="head"><span class="locale">es-ES</span><span class="ctx">España · 2.º Bachillerato · LOMLOE · EvAU</span></span><span class="arrow">em breve</span></a>
+  <a class="card soon"><span class="head"><span class="locale">fr-FR</span><span class="ctx">France · Terminale · BO · Bac · Grand Oral</span></span><span class="arrow">em breve</span></a>
+  <a class="card soon"><span class="head"><span class="locale">de-DE</span><span class="ctx">Deutschland · Q2/12. Jg. · KMK · Abitur</span></span><span class="arrow">em breve</span></a>
+  <a class="card soon"><span class="head"><span class="locale">zh-CN</span><span class="ctx">中国 · 高三 · 课标 (2017修订) · 高考</span></span><span class="arrow">em breve</span></a>
+  <a class="card soon"><span class="head"><span class="locale">ja-JP</span><span class="ctx">日本 · 高校3年 · 学習指導要領 · 共通テスト</span></span><span class="arrow">em breve</span></a>
+  <a class="card soon"><span class="head"><span class="locale">ru-RU</span><span class="ctx">Россия · 11-й класс · ФГОС СОО · ЕГЭ</span></span><span class="arrow">em breve</span></a>
+  <a class="card soon"><span class="head"><span class="locale">ko-KR</span><span class="ctx">대한민국 · 고3 · 2022 개정 교육과정 · 수능</span></span><span class="arrow">em breve</span></a>
+
+  <section class="about">
+    <p><strong>Recompilar:</strong> <code>cd docs_aula &amp;&amp; xelatex Plano_de_Aula_pt-BR.tex</code> (duas passagens para TOC + refs). Requer XeLaTeX com <code>tcolorbox</code>, <code>needspace</code>, <code>subcaption</code>.</p>
+    <p>O plano pt-BR integra 21 figuras geradas pelo Block Round (algoritmos Euclidiano/Bresenham/Limiar, modos preenchido/fino/grosso, 3D em isométrica, cortes Y/X/diagonal, e várias texturas de bloco demonstrando o diferencial Block Round). Sequência de 5 aulas: Aula 1 (problematização), Aula 2 (3 algoritmos), Aula 3 (3D + patrimônio cultural brasileiro), Aula 4 (aritmética de inventário + simetria octaédrica), Aula 5 (construção real no Minecraft via Litematica). Apêndices: roteiro de demonstração, 8 exercícios, adaptação totalmente analógica, glossário, tutorial Litematica.</p>
+    <p><strong>Companion técnico:</strong> <a href="../docs_math/">docs_math/</a> contém o documento matemático em 9 idiomas (≥25 páginas cada).</p>
+    <p>© 2026 Vinícius Rodrigues de Souza. All Rights Reserved.</p>
+  </section>
+</main>
+</body>
+</html>

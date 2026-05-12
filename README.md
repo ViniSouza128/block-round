@@ -301,6 +301,30 @@ The landing page at [`docs_math/index.html`](docs_math/index.html) lists
 all nine locales. The PDFs are typeset with XeLaTeX; rebuild with
 `cd docs_math && python build.py`.
 
+### Classroom lesson plan
+
+A complete five-period **lesson plan in Brazilian Portuguese** for
+the 3rd year of high school is available under
+[`docs_aula/`](docs_aula/):
+
+- [`Plano_de_Aula_pt-BR.pdf`](docs_aula/Plano_de_Aula_pt-BR.pdf) — 58
+  pages, 21 figures generated from the Block Round algorithms,
+  five-aula sequence (problematization → three algorithms → 3D and
+  Brazilian visual heritage → inventory arithmetic and octahedral
+  symmetry → real construction in Minecraft via Litematica).
+  Aligned to BNCC (EM13MAT307/308/309/404), ENEM matrix, OBMEP and
+  Minecraft Education Edition.
+
+The plan integrates Paulo Freire's *problematização*, Ubiratan
+D'Ambrosio's etnomatemática, Anísio Teixeira's *learning by doing*,
+Darcy Ribeiro's interdisciplinary spirit and Bassanezi's mathematical
+modelling tradition, with regional adaptations for: urban state
+schools, interior state schools, Federal Institutes (IFs/CEFETs),
+*escolas do campo*, indigenous and quilombola schools, EJA, and
+fully-analog fallback for low-connectivity contexts. The landing
+page is at [`docs_aula/index.html`](docs_aula/index.html); the
+other eight locales are flagged "em breve".
+
 ## License & notices
 
 - **Code, layout, design system, sound engine:** All Rights Reserved
