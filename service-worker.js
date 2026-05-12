@@ -8,24 +8,43 @@
    we ship them lazily via the runtime fetch handler (cache-on-fetch) to
    keep the install step small.
    ============================================================================ */
-const CACHE = 'block-round-v1';
+/* Bump CACHE whenever any SHELL file changes. The activate handler deletes
+   stale caches on the next visit, so a single-character bump here is what
+   ships fixes to repeat visitors. */
+const CACHE = 'block-round-v5';
 const SHELL = [
   './',
   './index.html',
   './style.css',
   './manifest.json',
   './favicon.svg',
+  './js/flipbook.js',
+  './js/i18n.js',
   './js/state.js',
   './js/algorithms.js',
   './js/audio.js',
   './js/canvas2d.js',
   './js/canvas3d.js',
+  './js/schematic.js',
+  './js/sounds.js',
+  './js/textures.js',
   './js/ui.js',
   './js/main.js',
 ];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  /* Fetch each shell URL with `cache: 'reload'` so the install step
+     bypasses the browser HTTP cache. Without this, bumping CACHE only
+     replaces the cache map; the same stale files come back via the
+     browser's disk cache (Python http.server ETags), and bumps become
+     no-ops until the user hard-refreshes. */
+  e.waitUntil(
+    caches.open(CACHE).then(c =>
+      Promise.all(SHELL.map(url =>
+        fetch(new Request(url, { cache: 'reload' })).then(res => c.put(url, res))
+      ))
+    ).then(() => self.skipWaiting())
+  );
 });
 self.addEventListener('activate', e => {
   e.waitUntil(
