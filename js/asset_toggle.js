@@ -119,6 +119,61 @@ function _saveOriginals(){
   if (!_mcSfxOrig) _mcSfxOrig = Object.assign({}, window.MC_SFX);
 }
 
+/* style.css references `textures/<name>.png` directly for the UI background,
+   panels, and buttons. Inject a high-specificity override stylesheet using
+   the active pack's data URIs so the UI swaps along with block textures.
+   Keep this selector list in sync with style.css. */
+const _UI_OVERRIDE_MAP = {
+  dirt: [
+    'body.asset-free',
+  ],
+  oak_planks: [
+    'body.asset-free .topbar',
+    'body.asset-free .icon-btn.active',
+    'body.asset-free .c-btn.active',
+    'body.asset-free .btn',
+    'body.asset-free .toast',
+  ],
+  stone: [
+    'body.asset-free .icon-btn',
+    'body.asset-free .c-btn',
+    'body.asset-free .info-chip',
+    'body.asset-free .pill-row',
+    'body.asset-free .slider-box',
+    'body.asset-free .cut-row',
+    'body.asset-free .help-item',
+    'body.asset-free .setting-row',
+  ],
+  cobblestone: [
+    'body.asset-free .mc-list',
+    'body.asset-free .btn.ghost',
+  ],
+};
+const _UI_STYLE_ID = 'asset-pack-ui-override';
+
+function _applyUiOverride(){
+  let el = document.getElementById(_UI_STYLE_ID);
+  if (!el){
+    el = document.createElement('style');
+    el.id = _UI_STYLE_ID;
+    document.head.appendChild(el);
+  }
+  const lines = [];
+  Object.entries(_UI_OVERRIDE_MAP).forEach(([texKey, sels]) => {
+    const uri = (window.MC_TEX && window.MC_TEX[texKey]) || '';
+    if (!uri) return;
+    sels.forEach(sel => {
+      lines.push(`${sel} { background-image: url('${uri}') !important; }`);
+    });
+  });
+  el.textContent = lines.join('\n');
+}
+
+function _removeUiOverride(){
+  const el = document.getElementById(_UI_STYLE_ID);
+  if (el) el.remove();
+}
+
 /* Overwrite MC_TEX in-place from the provided source dict.
    Keys absent in src stay as-is (so MC-only keys still render). */
 function _applyTexPack(src){
@@ -158,9 +213,13 @@ function switchAssetPack(pack){
     // Overwrite MC_SFX place keys with Kenney sounds
     const freeSfx = window.FREE_SFX || {};
     Object.keys(freeSfx).forEach(k => { window.MC_SFX[k] = freeSfx[k]; });
+    document.body.classList.add('asset-free');
+    _applyUiOverride();
   } else {
     _restoreTexPack(_mcTexOrig);
     Object.keys(_mcSfxOrig).forEach(k => { window.MC_SFX[k] = _mcSfxOrig[k]; });
+    document.body.classList.remove('asset-free');
+    _removeUiOverride();
   }
 
   // Clear 3-D texture / material cache so Three.js re-loads from new URIs
