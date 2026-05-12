@@ -122,7 +122,14 @@ function _saveOriginals(){
 /* style.css references `textures/<name>.png` directly for the UI background,
    panels, and buttons. Inject a high-specificity override stylesheet using
    the active pack's data URIs so the UI swaps along with block textures.
-   Keep this selector list in sync with style.css. */
+
+   NOTE: keys here name the *FREE* texture to pull (via MC_TEX[k] after the
+   swap), NOT necessarily the same texture style.css uses for MC. The OGA
+   `stone` is much noisier than Mojang's — yellow titles and cream body
+   text bled into the speckled grey on the help/settings/info cards.
+   We replace it with `iron_block` for the FREE pack only (a smooth light
+   silvery fill) so legibility stays high. MC mode is untouched — it
+   keeps the original style.css `textures/stone.png` background. */
 const _UI_OVERRIDE_MAP = {
   dirt: [
     'body.asset-free',
@@ -134,7 +141,10 @@ const _UI_OVERRIDE_MAP = {
     'body.asset-free .btn',
     'body.asset-free .toast',
   ],
-  stone: [
+  // Iron block (smooth, light) — replaces the speckled OGA stone for any
+  // surface that hosts text. Buttons (icon-btn, c-btn) and panel cards
+  // (info-chip, slider-box, cut-row, help-item, setting-row, pill-row).
+  iron_block: [
     'body.asset-free .icon-btn',
     'body.asset-free .c-btn',
     'body.asset-free .info-chip',
@@ -217,6 +227,20 @@ function _refreshPickerTiles(){
 function _doAssetSwap(pack){
   window.ASSET_PACK = pack;
   _saveOriginals();
+
+  // Reflect the new active pack on the toggle button itself. Done here
+  // (synchronous with window.ASSET_PACK) so the label inside the View
+  // Transition's "after" snapshot already shows the correct active pack
+  // — i.e. when FREE is active, the button reads "FREE", when MC is
+  // active, it reads "MC". Previously this was set in onAssetPackToggle
+  // AFTER the async swap fired, which meant the label could lag by one
+  // click in the VT capture.
+  const isFree = pack === 'free';
+  document.querySelectorAll('[data-act="asset-pack"]').forEach(btn => {
+    btn.classList.toggle('asset-free', isFree);
+    btn.title = isFree ? 'Switch to MC assets (Mojang)' : 'Switch to Free CC0 assets (test)';
+    btn.setAttribute('aria-pressed', String(isFree));
+  });
 
   if (pack === 'free'){
     _applyTexPack(window.FREE_TEX || {});
@@ -307,16 +331,11 @@ function switchAssetPack(pack){
   _withCrossfade(() => _doAssetSwap(pack));
 }
 
-/* Toggle button click handler — wired by index.html data-act="asset-pack" */
+/* Toggle button click handler — wired by index.html data-act="asset-pack".
+   Just kicks the swap; the button label / aria-pressed state is updated
+   inside _doAssetSwap so it stays in lock-step with window.ASSET_PACK
+   (and gets captured correctly by the View Transition snapshot). */
 function onAssetPackToggle(){
   const next = window.ASSET_PACK === 'mc' ? 'free' : 'mc';
   switchAssetPack(next);
-
-  // Update button label / aria
-  document.querySelectorAll('[data-act="asset-pack"]').forEach(btn => {
-    const isFree = window.ASSET_PACK === 'free';
-    btn.classList.toggle('asset-free', isFree);
-    btn.title       = isFree ? 'Switch to MC assets (Mojang)' : 'Switch to Free CC0 assets (test)';
-    btn.setAttribute('aria-pressed', String(isFree));
-  });
 }
