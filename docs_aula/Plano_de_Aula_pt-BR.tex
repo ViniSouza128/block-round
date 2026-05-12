@@ -58,9 +58,13 @@
             linkcolor=linkc,
             urlcolor=linkc,
             citecolor=linkc,
+            breaklinks=true,
             bookmarks=true,bookmarksopen=true,
             pdftitle={Block Round --- Plano de Aula (pt-BR)},
             pdfauthor={Vinicius Rodrigues de Souza}]{hyperref}
+% xurl permite quebrar URLs em qualquer caractere (alternativa: url
+% so quebra em pontos pre-definidos). Carregado DEPOIS de hyperref.
+\usepackage{xurl}
 
 \color{ink}
 
@@ -124,11 +128,12 @@
 }
 
 \newtcolorbox{habilidade}[1][BNCC]{
-  enhanced, breakable,
+  enhanced,
+  breakable=false,
   colback=bg!70!white, colframe=accent!60!ink, boxrule=0.4pt, arc=2pt,
   left=10pt,right=10pt,top=6pt,bottom=6pt,
   before skip=6pt, after skip=6pt,
-  before={\par\needspace{3\baselineskip}},
+  before={\par\needspace{8\baselineskip}},
   attach boxed title to top left={xshift=10pt,yshift=-6pt},
   boxed title style={colback=accent!60!ink,colframe=accent!60!ink,boxrule=0pt,arc=2pt},
   coltitle=white, fonttitle=\sffamily\bfseries\footnotesize,
@@ -276,7 +281,7 @@ Esse movimento didatico opera em dialogo com cinco tradicoes da pedagogia brasil
 
 A presenca do software cumpre funcao epistemica precisa: \emph{nao substitui} a algebra, mas \emph{materializa} a diferenca entre formulacoes matematicas concorrentes. Os tres algoritmos correspondem a tres definicoes matematicamente distintas do mesmo objeto --- a circunferencia discreta --- e produzem desenhos visivelmente diferentes, como ilustra a Figura~\ref{fig:comp-d10}. O aluno percebe, pelos olhos, que \emph{a definicao importa}, e simultaneamente que o resultado nao e abstrato: \emph{ele pode construir aquilo, bloco por bloco, no Minecraft}.
 
-\begin{figure}[H]
+\begin{figure}[!htbp]
 \centering
 \begin{subfigure}[t]{0.31\linewidth}\centering
   \includegraphics[width=\linewidth]{fig01_2d_d10_euclidean.png}
@@ -426,7 +431,7 @@ O TCT \acc{Cultura Digital} atravessa toda a sequencia. Discutem-se questoes de 
 
 Alem de mudar o algoritmo, o Block Round oferece tres \emph{modos de renderizacao} (Preenchido, Fino, Grosso) que produzem visuais distintos para a mesma figura geometrica, como ilustra a Figura~\ref{fig:render-modes}. Em Minecraft, esses modos correspondem a tres tipos de construcao distintos: uma esfera \emph{Preenchida} usa todos os blocos do interior (uma cupula opaca de \emph{Stone}); \emph{Fina} mostra apenas a casca (uma cupula \emph{oca}, internamente vazia para uma sala ou museu); \emph{Grossa} fecha as fendas diagonais que o modo Fino deixa (\emph{essencial} para cupulas de \emph{Vidro} ou \emph{Gelo} subaquaticas que precisam ser estanques).
 
-\begin{figure}[H]
+\begin{figure}[!htbp]
 \centering
 \begin{subfigure}[t]{0.31\linewidth}\centering
   \includegraphics[width=\linewidth]{fig04_2d_d20_euclidean.png}
@@ -448,7 +453,7 @@ Alem de mudar o algoritmo, o Block Round oferece tres \emph{modos de renderizaca
 
 Embora a matematica de \emph{quais voxels colocar} seja independente da textura, o Block Round renderiza cada voxel com sua textura canonica de seis faces do Minecraft. A mesma esfera de diametro 10 muda completamente de carater visual conforme o bloco escolhido (Figura~\ref{fig:textures}), \emph{sem nenhuma mudanca no algoritmo} subjacente. Esse e o ponto pedagogico central: a \emph{forma} e fruto da matematica, a \emph{aparencia} e uma decisao estetica posterior.
 
-\begin{figure}[H]
+\begin{figure}[!htbp]
 \centering
 \begin{subfigure}[t]{0.31\linewidth}\centering
   \includegraphics[width=\linewidth]{fig15_3d_sphere_cobblestone.png}
@@ -737,7 +742,7 @@ A celula e incluida se $\left(\dfrac{n_x - c_x}{r_x}\right)^{\!2} + \left(\dfrac
 \textbf{Resultado esperado:} Euclidiano costuma ficar muito proximo (erro abaixo de $2\%$); Limiar sobreestima em poucos por cento; Bresenham fica no meio. Confirmar coletivamente.
 \end{atividade}
 
-\begin{figure}[H]
+\begin{figure}[!htbp]
 \centering
 \begin{subfigure}[t]{0.31\linewidth}\centering
   \includegraphics[width=\linewidth]{fig04_2d_d20_euclidean.png}
@@ -785,7 +790,7 @@ $\displaystyle a_x^2 + a_y^2 + a_z^2 \leq 1,\quad \text{com } a_\xi = \dfrac{\xi
 \textbf{Demonstracao:} abrir o Block Round no modo 3D, alternar entre Esfera e Elipsoide, rotacionar com o \emph{mouse}, observar a estrutura de voxels.
 \end{atividade}
 
-\begin{figure}[H]
+\begin{figure}[!htbp]
 \centering
 \begin{subfigure}[t]{0.45\linewidth}\centering
   \includegraphics[width=\linewidth]{fig10_3d_sphere_d12.png}
@@ -837,7 +842,7 @@ A Figura~\ref{fig:cortes} ilustra os tres cortes a $50\%$.
 \textbf{Discussao dirigida:} \emph{\enquote{Por que um corte diagonal tem amplitude $D_x + D_y$ e nao $D_x$? Onde esta a hipotenusa?}} Conduzir para o reconhecimento de que $x + y$ assume valores entre $0$ e $D_x + D_y$ na caixa retangular. \emph{No Minecraft, um corte Y 50\% em uma esfera produz uma \enquote{cupula} classica --- a metade superior da esfera, que e exatamente a construcao que cobre templos, observatorios e arenas em milhares de servidores.}
 \end{atividade}
 
-\begin{figure}[H]
+\begin{figure}[!htbp]
 \centering
 \begin{subfigure}[t]{0.31\linewidth}\centering
   \includegraphics[width=\linewidth]{fig12_3d_cut_y50.png}
@@ -1231,20 +1236,21 @@ Sequencia recomendada para a demonstracao inicial (Atividade~1.3) e para a famil
   \item Discussao: \emph{\enquote{Voces estao vendo a mesma esfera --- a matematica e identica. So o vestido mudou. Em Minecraft, voce escolhe o bloco; aqui, voce so escolhe a textura para visualizar.}}
 \end{enumerate}
 
+\needspace{18\baselineskip}
 \subsection{Elipse}
 
-\begin{enumerate}[leftmargin=1.5em,itemsep=0.15em,topsep=0.3em]
-  \item Trocar a forma para \acc{Ellipse}. Aparecem dois \emph{sliders}: \emph{Width} e \emph{Height}.
-  \item Definir $W = 24$, $H = 12$. Observar a forma alongada.
-  \item Discutir: \emph{\enquote{A equacao que rege essa forma e $(x/12)^2 + (y/6)^2 = 1$. Por que dividimos $x$ por $12$ e $y$ por $6$?}}
-\end{enumerate}
-
-\begin{figure}[H]
+\begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.55\textwidth]{fig07_2d_ellipse_24x12.png}
+\includegraphics[width=0.45\textwidth]{fig07_2d_ellipse_24x12.png}
 \caption{Elipse $W = 24, H = 12$ no Block Round. Note como as celulas ao longo do eixo maior sao mais espacadas que ao longo do eixo menor.}
 \label{fig:elipse}
 \end{figure}
+
+\begin{enumerate}[leftmargin=1.5em,itemsep=0.15em,topsep=0.3em]
+  \item Trocar a forma para \acc{Ellipse}. Aparecem dois \emph{sliders}: \emph{Width} e \emph{Height}.
+  \item Definir $W = 24$, $H = 12$. Observar a forma alongada --- ver Figura~\ref{fig:elipse}.
+  \item Discutir: \emph{\enquote{A equacao que rege essa forma e $(x/12)^2 + (y/6)^2 = 1$. Por que dividimos $x$ por $12$ e $y$ por $6$?}}
+\end{enumerate}
 
 \subsection{Modo 3D, esfera e elipsoide}
 
