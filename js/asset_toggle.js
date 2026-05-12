@@ -187,12 +187,22 @@ function _restoreTexPack(snapshot){
   for (const k of keys) window.MC_TEX[k] = snapshot[k];
 }
 
-/* Rebuild MC_BLOCKS[k].src and update picker tile background-images. */
+/* Rebuild MC_BLOCKS[k].src and update picker tile background-images.
+   NOTE: state.js declares MC_BLOCKS as `const`, which is *script-scope*
+   (shared across all <script> tags) but NOT a window property. The
+   previous `window.MC_BLOCKS` guard was always false so MC_BLOCKS[k].src
+   never updated — leaving the 2D image cache and the 3D multi-face
+   fallback (canvas3d.js's `MC_BLOCKS[key].src` path for `grass`,
+   `grass_side`, `oak_log_top`, `oak_leaves`) frozen on Mojang data
+   URIs even while window.MC_TEX got swapped. Reference MC_BLOCKS bare
+   here so every picker key — including the internal-face aliases —
+   gets its src rebuilt on every toggle. */
 function _refreshPickerTiles(){
+  const blocks = (typeof MC_BLOCKS !== 'undefined') ? MC_BLOCKS : null;
   Object.entries(_BLOCK_SRC_MAP).forEach(([blockKey, texKey]) => {
     const uri = (window.MC_TEX && window.MC_TEX[texKey]) || null;
-    if (window.MC_BLOCKS && window.MC_BLOCKS[blockKey]){
-      window.MC_BLOCKS[blockKey].src = uri;
+    if (blocks && blocks[blockKey] && uri){
+      blocks[blockKey].src = uri;
     }
     if (blockKey !== 'random' && uri){
       const tile = document.querySelector(`.mc-block[data-block="${blockKey}"]`);
