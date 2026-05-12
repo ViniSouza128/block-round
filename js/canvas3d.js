@@ -78,6 +78,15 @@ const _texCache = new Map();  // key → THREE.Texture
 const _matCache = new Map();  // key → THREE.MeshLambertMaterial
 let _wireMat = null;
 
+/* Called by asset_toggle.js when the active texture pack changes. */
+function clearTexCache3D(){
+  _texCache.forEach(t => t.dispose());
+  _texCache.clear();
+  _matCache.forEach(m => { if (Array.isArray(m)) m.forEach(x => x.dispose()); else m.dispose(); });
+  _matCache.clear();
+  if (_wireMat){ _wireMat.dispose(); _wireMat = null; }
+}
+
 function getTexture3D(key){
   if (_texCache.has(key)) return _texCache.get(key);
   // Look up by raw MC_TEX key FIRST — the multi-face tables here reference
