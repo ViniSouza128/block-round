@@ -59,9 +59,13 @@ TEX = r"""% !TEX program = xelatex
             linkcolor=linkc,
             urlcolor=linkc,
             citecolor=linkc,
+            breaklinks=true,
             bookmarks=true,bookmarksopen=true,
             pdftitle={Block Round — «PDF_TITLE»},
             pdfauthor={Vinícius Rodrigues de Souza}]{hyperref}
+% xurl permite quebrar URLs em qualquer caractere (alternativa a url
+% que so quebra em "." e "/"). Carregado DEPOIS de hyperref.
+\usepackage{xurl}
 
 \color{ink}
 
@@ -95,8 +99,7 @@ TEX = r"""% !TEX program = xelatex
   colback=accent!7, colframe=accent!50!rule, boxrule=0.6pt, arc=2pt,
   left=10pt,right=10pt,top=8pt,bottom=8pt,
   before skip=10pt, after skip=10pt,
-  breakable,
-  before={\par\needspace{5\baselineskip}}
+  breakable
 }
 
 \setlength{\parskip}{0.75em}
@@ -512,8 +515,10 @@ I \;=\; \max\bigl(0,\;\mathbf{n}\cdot\mathbf{l}\bigr)\cdot \mathit{«S15_BASECOL
 \]
 «S17_P4»
 
+\needspace{18\baselineskip}
 \subsection{«S17_SUB3»}
 «S17_P5»
+\nopagebreak
 
 \vspace{0.4em}
 \begin{center}
@@ -948,7 +953,7 @@ def build(loc):
 # BLOCOS DE FIGURA — somente pt-BR nesta revisão
 # ============================================================================
 FIG_BLOCKS_PT_BR = {
-    "FIG_3ALG": r"""\begin{figure}[!htbp]
+    "FIG_3ALG": r"""\begin{figure}[!ht]
 \centering
 \begin{subfigure}[t]{0.30\linewidth}\centering
   \includegraphics[width=\linewidth]{math_2d_d10_eucl.png}
@@ -966,7 +971,7 @@ FIG_BLOCKS_PT_BR = {
 \label{fig:comp-d10}
 \end{figure}""",
 
-    "FIG_MODES": r"""\begin{figure}[!htbp]
+    "FIG_MODES": r"""\begin{figure}[!ht]
 \centering
 \begin{subfigure}[t]{0.30\linewidth}\centering
   \includegraphics[width=\linewidth]{math_2d_d20_filled.png}
@@ -984,7 +989,7 @@ FIG_BLOCKS_PT_BR = {
 \label{fig:modes}
 \end{figure}""",
 
-    "FIG_3D": r"""\begin{figure}[!htbp]
+    "FIG_3D": r"""\begin{figure}[!ht]
 \centering
 \begin{subfigure}[t]{0.46\linewidth}\centering
   \includegraphics[width=\linewidth]{math_3d_sphere_d10.png}
@@ -998,7 +1003,7 @@ FIG_BLOCKS_PT_BR = {
 \label{fig:3d-shapes}
 \end{figure}""",
 
-    "FIG_CUTS": r"""\begin{figure}[!htbp]
+    "FIG_CUTS": r"""\begin{figure}[!ht]
 \centering
 \begin{subfigure}[t]{0.30\linewidth}\centering
   \includegraphics[width=\linewidth]{math_3d_cut_y.png}
@@ -1016,7 +1021,7 @@ FIG_BLOCKS_PT_BR = {
 \label{fig:cuts}
 \end{figure}""",
 
-    "FIG_SHADING": r"""\begin{figure}[!htbp]
+    "FIG_SHADING": r"""\begin{figure}[!ht]
 \centering
 \begin{subfigure}[t]{0.30\linewidth}\centering
   \includegraphics[width=\linewidth]{math_3d_shading_classic.png}
@@ -1034,7 +1039,7 @@ FIG_BLOCKS_PT_BR = {
 \label{fig:shading}
 \end{figure}""",
 
-    "FIG_OVERLAY": r"""\begin{figure}[!htbp]
+    "FIG_OVERLAY": r"""\begin{figure}[!ht]
 \centering
 \begin{subfigure}[t]{0.40\linewidth}\centering
   \includegraphics[width=\linewidth]{math_3d_overlay_off.png}
@@ -1048,14 +1053,14 @@ FIG_BLOCKS_PT_BR = {
 \label{fig:overlay}
 \end{figure}""",
 
-    "FIG_OCTANTS": r"""\begin{figure}[!htbp]
+    "FIG_OCTANTS": r"""\begin{figure}[!ht]
 \centering
 \includegraphics[width=0.45\linewidth]{math_3d_octants.png}
 \caption{Esfera $D=10$ com o octante positivo $(+x,+y,+z)$ destacado em verde. Sob a ação do subgrupo $\mathbb{Z}_2^3 \leq O_h$ (ordem 8, gerado pelas três reflexões coordenadas), esse octante determina toda a esfera --- as outras sete regiões são obtidas por uma sequência de \cmd{/clone} com \emph{mode:masked} aplicadas sobre o octante construído manualmente.}
 \label{fig:octants}
 \end{figure}""",
 
-    "FIG_TEXTURES": r"""\begin{figure}[!htbp]
+    "FIG_TEXTURES": r"""\begin{figure}[!ht]
 \centering
 \begin{subfigure}[t]{0.30\linewidth}\centering
   \includegraphics[width=\linewidth]{math_3d_tex_cobble.png}

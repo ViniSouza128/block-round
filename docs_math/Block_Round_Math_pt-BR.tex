@@ -46,9 +46,13 @@
             linkcolor=linkc,
             urlcolor=linkc,
             citecolor=linkc,
+            breaklinks=true,
             bookmarks=true,bookmarksopen=true,
             pdftitle={Block Round — A Matemática do Projeto},
             pdfauthor={Vinícius Rodrigues de Souza}]{hyperref}
+% xurl permite quebrar URLs em qualquer caractere (alternativa a url
+% que so quebra em "." e "/"). Carregado DEPOIS de hyperref.
+\usepackage{xurl}
 
 \color{ink}
 
@@ -82,8 +86,7 @@
   colback=accent!7, colframe=accent!50!rule, boxrule=0.6pt, arc=2pt,
   left=10pt,right=10pt,top=8pt,bottom=8pt,
   before skip=10pt, after skip=10pt,
-  breakable,
-  before={\par\needspace{5\baselineskip}}
+  breakable
 }
 
 \setlength{\parskip}{0.75em}
@@ -184,7 +187,7 @@ $\displaystyle d_x = \dfrac{i+\tfrac{1}{2}-c_x}{r_x},\qquad
 \textbf{Mapeamento Minecraft.} Para uma torre em survival, o usuário tipicamente quer um \emph{círculo achatado e largo} para a fundação e círculos progressivamente menores conforme a torre sobe. Cada andar é uma aplicação da equação implícita da elipse com os mesmos semi-eixos mas um $z$ diferente. O Block Round calcula a camada 2D uma vez e o usuário simplesmente duplica essa camada com \cmd{/clone $x_1$ $y_1$ $z_1$ $x_2$ $y_2$ $z_2$ $x_3$ $y_2{+}1$ $z_3$} por andar.
 \end{minec}
 
-\begin{figure}[!htbp]
+\begin{figure}[!ht]
 \centering
 \begin{subfigure}[t]{0.30\linewidth}\centering
   \includegraphics[width=\linewidth]{math_2d_d10_eucl.png}
@@ -330,7 +333,7 @@ h_V &= b(i,j{-}1) \;\vee\; b(i,j{+}1).
 \textbf{Mapeamento Minecraft.} Para uma cúpula de Vidro de $D=20$ (oca), o modo grosso produz uma casca \emph{contínua} de $608$ blocos contra $\approx 510$ blocos do modo fino --- os $\sim 100$ blocos extras são costura diagonal que elimina as células vazias deixadas a $45°$ pela voxelização, fechando o interior contra água, mobs e propagação de luz.
 \end{minec}
 
-\begin{figure}[!htbp]
+\begin{figure}[!ht]
 \centering
 \begin{subfigure}[t]{0.30\linewidth}\centering
   \includegraphics[width=\linewidth]{math_2d_d20_filled.png}
@@ -382,7 +385,7 @@ a_\xi = \frac{\xi + \tfrac{1}{2} - c_\xi}{r_\xi}\;\;(\xi \in \{x,y,z\}),
 \textbf{Mapeamento Minecraft.} Um elipsóide com $W=20$, $H=10$, $D=20$ produz uma \emph{esfera achatada} ideal para uma cúpula subterrânea ou um teto de estádio. O volume é $V = \tfrac{4}{3}\pi \cdot 10 \cdot 5 \cdot 10 \approx 2\,094$ blocos, equivalente a $33$ stacks de qualquer tipo de bloco. Comando WorldEdit equivalente: \cmd{//ellipsoid stone 10 5 10}.
 \end{minec}
 
-\begin{figure}[!htbp]
+\begin{figure}[!ht]
 \centering
 \begin{subfigure}[t]{0.46\linewidth}\centering
   \includegraphics[width=\linewidth]{math_3d_sphere_d10.png}
@@ -451,7 +454,7 @@ de modo que $50\%$ num eixo continua sendo $50\%$ quando o usuário troca de eix
 \textbf{Mapeamento Minecraft.} O corte no eixo Y a $50\%$ sobre uma esfera produz a clássica \emph{cúpula} de metade do volume. Para $D=16$: $V_{\mathrm{full}} = 2\,145$ blocos, $V_{\mathrm{cupula}} \approx 1\,095$ blocos ($\approx 18$ packs de $64$). O corte diagonal a $50\%$ produz uma seção \emph{meia-bacia} muito usada para interiores de fontes e arquibancadas de anfiteatro.
 \end{minec}
 
-\begin{figure}[!htbp]
+\begin{figure}[!ht]
 \centering
 \begin{subfigure}[t]{0.30\linewidth}\centering
   \includegraphics[width=\linewidth]{math_3d_cut_y.png}
@@ -531,7 +534,7 @@ I \;=\; \max\bigl(0,\;\mathbf{n}\cdot\mathbf{l}\bigr)\cdot \mathit{textura},
 \]
 quando os três fatores correspondem ao cosseno do ângulo entre a normal de cada face e a direção de luz fixa. Em \emph{Smooth} os fatores são próximos (faces parecidas); em \emph{Classic} os fatores diferem mais (contraste forte, o visual do Minecraft vanilla). \emph{Blocks} ainda introduz uma reentrância geométrica nos voxels --- uma translação constante de cada face para dentro, para revelar as fronteiras entre voxels mesmo quando vizinhos têm a mesma textura. Para blocos emissivos (Glowstone, Sea Lantern, Shroomlight, Magma, Crying Obsidian) o termo Lambertiano é substituído por uma constante $I = \mathit{fator\_emissivo} \cdot \mathit{textura}$ escalada pelo nível de luz do bloco no MC.
 
-\begin{figure}[!htbp]
+\begin{figure}[!ht]
 \centering
 \begin{subfigure}[t]{0.30\linewidth}\centering
   \includegraphics[width=\linewidth]{math_3d_shading_classic.png}
@@ -575,8 +578,10 @@ Para calcular quantos \emph{baús duplos} uma construção exige, divida a conta
 \]
 Um \emph{baú simples} guarda $27 \times 64 = 1\,728$ itens. Uma \emph{shulker box} (container portátil) guarda $27 \times 64 = 1\,728$ itens mas pode ela mesma ser guardada \emph{dentro} de um slot de baú, então um baú duplo cheio de $54$ shulker boxes guarda até $54 \times 1\,728 = 93\,312$ itens. Para mega-builds a unidade de capacidade relevante é o \emph{baú duplo carregado de shulkers}.
 
+\needspace{18\baselineskip}
 \subsection{Tabela de referência: esferas canônicas}
 A tabela abaixo converte os volumes canônicos de esfera preenchida em planos de coleta. A última coluna sugere um contexto de construção para cada diâmetro:
+\nopagebreak
 
 \vspace{0.4em}
 \begin{center}
@@ -619,7 +624,7 @@ F_{\mathrm{exp}} \;=\; \sum_{\mathbf{v}\in V_{\mathrm{solid}}}\;\sum_{\mathbf{n}
 \]
 Para uma esfera de $D=16$ (modo preenchido), $V = 2\,145$, $V_{\mathrm{bordo}} \approx 432$ (a casca), e $F_{\mathrm{exp}} \approx 1\,184$ faces visíveis --- ou seja, a construção precisa de apenas cerca de $432$ blocos \emph{visíveis}; os $1\,713$ restantes são interior e podem ser preenchidos com o bloco mais barato disponível (Terra, Pedra Lisa). O highlight overlay permite ao construtor identificar imediatamente um bloco faltante na casca, porque um voxel ausente produz uma descontinuidade no padrão do overlay que o olho capta de relance.
 
-\begin{figure}[!htbp]
+\begin{figure}[!ht]
 \centering
 \begin{subfigure}[t]{0.40\linewidth}\centering
   \includegraphics[width=\linewidth]{math_3d_overlay_off.png}
@@ -691,7 +696,7 @@ T_{\mathrm{full}}
 \]
 Para $N = 7\,238$ em survival ($T_{\mathrm{block}} = 2$\,s, $T_{\mathrm{clone}} = 0{,}05$\,s): cheio = $14\,476$\,s $\approx 4$\,h $1$\,min; octante + clones = $1\,810$\,s + $0{,}35$\,s $\approx 30$\,min. Um fator-$8$ de aceleração que casa exatamente com a ordem do subgrupo de reflexões. O grupo octaédrico completo $O_h$ de ordem $48$ poderia em princípio reduzir mais ainda (por um fator de $48$), mas explorar as rotações diagonais exige uma área rotada a $45°$, o que raramente vale o custo de setup no Minecraft vanilla.
 
-\begin{figure}[!htbp]
+\begin{figure}[!ht]
 \centering
 \includegraphics[width=0.45\linewidth]{math_3d_octants.png}
 \caption{Esfera $D=10$ com o octante positivo $(+x,+y,+z)$ destacado em verde. Sob a ação do subgrupo $\mathbb{Z}_2^3 \leq O_h$ (ordem 8, gerado pelas três reflexões coordenadas), esse octante determina toda a esfera --- as outras sete regiões são obtidas por uma sequência de \cmd{/clone} com \emph{mode:masked} aplicadas sobre o octante construído manualmente.}
@@ -713,7 +718,7 @@ Para cada face de voxel o renderer consulta o modelo do bloco:
 
 A maioria dos blocos (Pedra, Pedra Lisa, Bloco de Diamante, Tábuas de Carvalho) usa a \emph{mesma textura em todas as seis faces}. Blocos multi-face (Bloco de Grama, Abóbora, Fardo de Feno, Pilar de Quartzo, todos os troncos de árvore, Bancada, Fornalha, Estante, TNT) usam \emph{texturas diferentes} no topo, nos lados e no fundo: Bloco de Grama tem topo verde, lado grama-com-terra e fundo terra puro; um Tronco de Carvalho tem o anel da madeira no topo/fundo e a casca nas quatro laterais. Crucialmente a \emph{matemática de quais voxels colocar} não depende da textura usada --- a silhueta de uma esfera de Diamante e a de uma esfera de Pedra Lisa do mesmo diâmetro é idêntica. A decisão de textura é uma camada \emph{puramente estética} aplicada depois do algoritmo geométrico terminar.
 
-\begin{figure}[!htbp]
+\begin{figure}[!ht]
 \centering
 \begin{subfigure}[t]{0.30\linewidth}\centering
   \includegraphics[width=\linewidth]{math_3d_tex_cobble.png}

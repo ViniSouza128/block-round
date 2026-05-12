@@ -46,9 +46,13 @@
             linkcolor=linkc,
             urlcolor=linkc,
             citecolor=linkc,
+            breaklinks=true,
             bookmarks=true,bookmarksopen=true,
             pdftitle={Block Round — The Mathematics of the Project},
             pdfauthor={Vinícius Rodrigues de Souza}]{hyperref}
+% xurl permite quebrar URLs em qualquer caractere (alternativa a url
+% que so quebra em "." e "/"). Carregado DEPOIS de hyperref.
+\usepackage{xurl}
 
 \color{ink}
 
@@ -82,8 +86,7 @@
   colback=accent!7, colframe=accent!50!rule, boxrule=0.6pt, arc=2pt,
   left=10pt,right=10pt,top=8pt,bottom=8pt,
   before skip=10pt, after skip=10pt,
-  breakable,
-  before={\par\needspace{5\baselineskip}}
+  breakable
 }
 
 \setlength{\parskip}{0.75em}
@@ -499,8 +502,10 @@ To compute how many \emph{double chests} a build requires, divide the block coun
 \]
 A \emph{single chest} holds $27 \times 64 = 1\,728$ items. A \emph{shulker box} (portable container) holds $27 \times 64 = 1\,728$ items but can itself be stored \emph{inside} a chest slot, so a double chest filled with $54$ shulker boxes can hold up to $54 \times 1\,728 = 93\,312$ items. For mega-builds the relevant capacity unit is the \emph{shulker-loaded double chest}.
 
+\needspace{18\baselineskip}
 \subsection{Reference table: canonical spheres}
 The table below converts the canonical filled-sphere volumes into gathering plans. The last column suggests a build context for each diameter:
+\nopagebreak
 
 \vspace{0.4em}
 \begin{center}
