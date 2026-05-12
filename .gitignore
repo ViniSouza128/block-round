@@ -1,0 +1,4 @@
+# Generated high-res texture exports — created by temp/extract_textures.py.
+# These are derived from js/textures.js (already base64-embedded) so there's
+# no point versioning them. The .py script IS tracked so users can re-run.
+temp/textures-hires/

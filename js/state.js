@@ -66,10 +66,13 @@ function setSliderPct(input){
   input.style.setProperty('--pct', pct + '%');
 }
 
-const SHAPE_LABELS = {
+/* Shape button labels — exported on window so js/i18n.js can rewrite them
+   per-locale (`const` bindings don't auto-attach to window). */
+window.SHAPE_LABELS = {
   circle:  { '2d':'Circle',  '3d':'Sphere' },
   ellipse: { '2d':'Ellipse', '3d':'Ellipsoid' },
 };
+const SHAPE_LABELS = window.SHAPE_LABELS;
 const ALGO_FULL_NAME = {
   euclidean: 'Euclidean',
   bresenham: 'Bresenham',
