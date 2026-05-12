@@ -78,13 +78,21 @@ const _texCache = new Map();  // key → THREE.Texture
 const _matCache = new Map();  // key → THREE.MeshLambertMaterial
 let _wireMat = null;
 
-/* Called by asset_toggle.js when the active texture pack changes. */
+/* Called by asset_toggle.js when the active texture pack changes.
+   Disposes every cached texture / material AND invalidates the geometry
+   signature so the next update3D() call rebuilds the voxel meshes with
+   the new materials. Camera / zoom state lives on camera3D and is NOT
+   touched here, so the figure swaps textures in place without snapping
+   the view back to the default orbit. */
 function clearTexCache3D(){
   _texCache.forEach(t => t.dispose());
   _texCache.clear();
   _matCache.forEach(m => { if (Array.isArray(m)) m.forEach(x => x.dispose()); else m.dispose(); });
   _matCache.clear();
   if (_wireMat){ _wireMat.dispose(); _wireMat = null; }
+  // Force a full rebuild on the next update3D — otherwise the geometry-sig
+  // short-circuit keeps the now-disposed materials on the live meshes.
+  _lastGeomSig3D = null;
 }
 
 function getTexture3D(key){
@@ -561,6 +569,11 @@ const CREEPER_BODY_H  = 0.75;
 const CREEPER_HEAD_H  = 0.5;
 
 function creeperIsActive(){
+  // Free asset pack disables the creeper easter egg entirely — the creeper
+  // skin atlas is a procedural redraw, but the *character* itself is still
+  // Mojang IP. We only summon it under the MC pack toggle so the free pack
+  // is 100 % free of Minecraft-flavoured entities.
+  if (window.ASSET_PACK === 'free') return false;
   if (state.mcBlock !== 'tnt') return false;
   if (state.shape === 'circle')  return state.size === 15;
   /* ellipsoid */                return state.width === 15 || state.height === 15 || state.depth === 15;
