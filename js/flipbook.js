@@ -50,16 +50,19 @@ window.MC_TICK_MS = 50;
    non-linear sequence (used by prismarine_rough — the classic 22-step
    ripple that flickers back through frame 0).
 
-   prismarine_rough deviates from Bedrock canon (300 ticks/frame, full
-   cycle ~5.5 min) — in a single-screen generator UI that reads as
-   "broken / no animation". 60 ticks (3 s/frame) keeps Mojang's 22-step
-   ordering while making the ripple actually visible. To restore canon,
-   set ticks_per_frame back to 300. */
+   All three match the in-game Bedrock animation exactly:
+     • magma            — 10 ticks/frame  ( 500 ms ) ×  3 frames =  1.5 s loop
+     • sea_lantern      —  5 ticks/frame  ( 250 ms ) ×  5 frames =  1.25 s loop
+     • prismarine_rough — 300 ticks/frame (15.0 s ) × 22-step seq = 5.5 min loop
+
+   Prismarine looks "frozen" most of the time — that's the actual game
+   behaviour. The flicker is meant to be a subtle surprise, not an
+   obvious animation. */
 window.MC_FLIPBOOK = {
   magma:            { ticks_per_frame: 10 },
   sea_lantern:      { ticks_per_frame: 5  },
   prismarine_rough: {
-    ticks_per_frame: 60,
+    ticks_per_frame: 300,
     frames: [0, 1, 0, 2, 0, 3, 0, 1, 2, 1, 3, 1, 0, 2, 1, 2, 3, 2, 0, 3, 1, 3],
   },
 };

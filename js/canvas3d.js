@@ -369,6 +369,20 @@ function _visibleBounds3D(){
   const finalCy = (yTop + yBot) / 2;
   const finalHy = (yTop - yBot) / 2;
 
+  /* Creeper override: when the creeper easter egg is on, the geometric
+     centre of figure+creeper sits halfway up the figure — far below the
+     creeper itself. We instead orbit/lookAt the creeper's FEET (= world
+     Y of the figure's top face) so the creeper stays roughly centred on
+     screen. `hy` is recomputed as the max distance from feet to any
+     bbox edge so the bounding-sphere autoZoom still fits everything
+     (figure body extends downward, creeper extends upward). */
+  if (typeof creeperIsActive === 'function' && creeperIsActive()){
+    const feetY = cyW + hy;                       // world Y of figure top face
+    const hyFromFeet = Math.max(feetY - yBot,     // downward (whole figure)
+                                yTop  - feetY);   // upward   (creeper)
+    return { cx: cxW, cy: feetY, cz: czW, hx, hy: hyFromFeet, hz };
+  }
+
   return { cx: cxW, cy: finalCy, cz: czW, hx, hy: finalHy, hz };
 }
 
