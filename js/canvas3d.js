@@ -78,13 +78,21 @@ const _texCache = new Map();  // key → THREE.Texture
 const _matCache = new Map();  // key → THREE.MeshLambertMaterial
 let _wireMat = null;
 
-/* Called by asset_toggle.js when the active texture pack changes. */
+/* Called by asset_toggle.js when the active texture pack changes.
+   Disposes every cached texture / material AND invalidates the geometry
+   signature so the next update3D() call rebuilds the voxel meshes with
+   the new materials. Camera / zoom state lives on camera3D and is NOT
+   touched here, so the figure swaps textures in place without snapping
+   the view back to the default orbit. */
 function clearTexCache3D(){
   _texCache.forEach(t => t.dispose());
   _texCache.clear();
   _matCache.forEach(m => { if (Array.isArray(m)) m.forEach(x => x.dispose()); else m.dispose(); });
   _matCache.clear();
   if (_wireMat){ _wireMat.dispose(); _wireMat = null; }
+  // Force a full rebuild on the next update3D — otherwise the geometry-sig
+  // short-circuit keeps the now-disposed materials on the live meshes.
+  _lastGeomSig3D = null;
 }
 
 function getTexture3D(key){
