@@ -211,11 +211,11 @@ function _refreshPickerTiles(){
   });
 }
 
-/* Main switch function — called by the toggle button. */
-function switchAssetPack(pack){
-  if (pack === window.ASSET_PACK) return;
+/* Performs the in-place swap of textures, sounds, picker tiles, caches,
+   and triggers a re-render. Split out from switchAssetPack so we can
+   wrap it in a smooth crossfade transition. */
+function _doAssetSwap(pack){
   window.ASSET_PACK = pack;
-
   _saveOriginals();
 
   if (pack === 'free'){
@@ -234,22 +234,77 @@ function switchAssetPack(pack){
 
   // Clear 3-D texture / material cache so Three.js re-loads from new URIs
   if (typeof clearTexCache3D === 'function') clearTexCache3D();
-
   // Clear 2-D image cache
   if (typeof clearImgCache === 'function') clearImgCache();
-
   // Rebuild MC_BLOCKS.src + picker backgrounds
   _refreshPickerTiles();
-
   // Reload all block images for 2D canvas
   if (typeof preloadAllBlockImages === 'function') preloadAllBlockImages();
-
   // Re-render whichever canvas is active
   if (state.mode === '3d'){
     if (typeof update3D === 'function') update3D();
   } else {
     if (typeof redraw === 'function') redraw();
   }
+}
+
+/* Smooth crossfade transition. Two strategies in priority order:
+   1. Native View Transitions API (Chrome 111+) — auto-captures the page
+      snapshot, runs our swap callback, crossfades old → new at 220 ms.
+      Best result; works on background, panels, picker, AND canvas.
+   2. Fallback: overlay a fixed snapshot div that holds the body's current
+      background CSS, fade it out while the swap happens underneath. The
+      <canvas> snapshot isn't captured (would need html-to-image lib), so
+      the canvas itself updates instantly — but the UI shell (background,
+      topbar, panels, buttons) gets a clean crossfade. */
+const _ASSET_SWAP_DURATION = 240;  // ms — fast but not abrupt
+function _withCrossfade(swapFn){
+  // Path 1: native View Transitions
+  if (document.startViewTransition){
+    document.documentElement.style.setProperty('--asset-vt-dur', _ASSET_SWAP_DURATION + 'ms');
+    const t = document.startViewTransition(() => swapFn());
+    // Clean up the custom property after the transition completes
+    t.finished.finally(() => {
+      document.documentElement.style.removeProperty('--asset-vt-dur');
+    });
+    return;
+  }
+  // Path 2: snapshot-overlay fallback
+  const overlay = document.createElement('div');
+  overlay.id = 'asset-pack-fade-overlay';
+  // Mirror the entire viewport so the overlay reads as the current frame.
+  // We capture every property that contributes to the body's painted look
+  // (background-image + the dirt fill colour behind it).
+  const body = document.body;
+  const cs = getComputedStyle(body);
+  Object.assign(overlay.style, {
+    position: 'fixed', inset: '0', zIndex: '9999', pointerEvents: 'none',
+    background: cs.background,
+    backgroundColor: cs.backgroundColor,
+    backgroundImage: cs.backgroundImage,
+    backgroundSize: cs.backgroundSize,
+    backgroundPosition: cs.backgroundPosition,
+    backgroundRepeat: cs.backgroundRepeat,
+    opacity: '1',
+    transition: `opacity ${_ASSET_SWAP_DURATION}ms ease`,
+    imageRendering: 'pixelated',
+  });
+  document.body.appendChild(overlay);
+  // Force a layout flush so the overlay paints at opacity 1 BEFORE we swap.
+  void overlay.offsetWidth;
+  // Now do the swap behind the overlay
+  swapFn();
+  // Next frame, start the fade-out
+  requestAnimationFrame(() => {
+    overlay.style.opacity = '0';
+    setTimeout(() => overlay.remove(), _ASSET_SWAP_DURATION + 40);
+  });
+}
+
+/* Main switch function — called by the toggle button. */
+function switchAssetPack(pack){
+  if (pack === window.ASSET_PACK) return;
+  _withCrossfade(() => _doAssetSwap(pack));
 }
 
 /* Toggle button click handler — wired by index.html data-act="asset-pack" */

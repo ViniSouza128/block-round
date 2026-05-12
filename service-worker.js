@@ -11,7 +11,7 @@
 /* Bump CACHE whenever any SHELL file changes. The activate handler deletes
    stale caches on the next visit, so a single-character bump here is what
    ships fixes to repeat visitors. */
-const CACHE = 'block-round-v8';
+const CACHE = 'block-round-v9';
 const SHELL = [
   './',
   './index.html',

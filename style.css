@@ -300,6 +300,17 @@ body.sound-off .icon-btn[data-act="sound"] .snd-off-ico{ display:inline-block; }
   padding:1px 2px; line-height:1; pointer-events:none;
 }
 
+/* Asset-pack crossfade — uses the native View Transitions API when
+   available (Chrome 111+). The default UA crossfade is fine; we just
+   tune the duration so the swap feels snappy (240 ms) instead of the
+   ~400 ms UA default. Fallback for non-VT browsers is a snapshot
+   overlay (see asset_toggle.js — _withCrossfade). */
+::view-transition-old(root),
+::view-transition-new(root){
+  animation-duration: var(--asset-vt-dur, 240ms);
+  animation-timing-function: ease;
+}
+
 /* Language toggle button — pill showing CURRENT locale (e.g. EN-US / PT-BR).
    Wider than other icon buttons because the BCP-47-style label is 5 chars
    (en-US, pt-BR). Click cycles through AVAILABLE_LOCALES in i18n.js. */
