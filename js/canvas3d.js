@@ -22,8 +22,11 @@
      • glass / ice   → MeshLambertMaterial with alphaTest:0.5 so the
                        inner panes drop out, mirroring MC's translucent
                        look without depth-sort artefacts.
-     • magma / sea_lantern (animated vertical sprite strips) → texture
-                       cropped to the top frame via tex.offset/repeat.
+     • magma / sea_lantern / prismarine (animated vertical sprite strips)
+                       → texture window is locked to one 16x16 frame via
+                       repeat.y = 1/N, and offset.y is driven on the
+                       Bedrock tick by js/flipbook.js so the block pulses
+                       on screen instead of being frozen on frame 0.
      • sand / gravel → after a 500 ms hold the voxels fall under
                        gravity onto an invisible floor at the figure's
                        bottom-most Y. Animation supports both the
@@ -97,14 +100,22 @@ function getTexture3D(key){
   }
   if (!src) return null;
   const tex = new THREE.TextureLoader().load(src, (t) => {
-    // Animated MC textures are vertical strips of 16×16 frames.
-    // Crop to the top frame so blocks don't squash vertically in 3D.
+    // Animated MC textures are vertical strips of 16×16 frames. Lock
+    // repeat.y to 1/N so each face shows exactly one frame, then drive
+    // offset.y per Bedrock tick via the shared flipbook ticker. flipY
+    // defaults to true on THREE textures, so the *top* PNG row sits at
+    // v = 1 — i.e. frame i lives at offset.y = (N - 1 - i) / N.
     const im = t.image;
-    if (im && im.height > im.width * 1.5){
-      const frac = im.width / im.height;
-      t.repeat.set(1, frac);
-      t.offset.set(0, 1 - frac);
+    const N = (window.flipbookFrameCount ? window.flipbookFrameCount(im) : 1);
+    if (N > 1){
+      t.repeat.set(1, 1 / N);
+      t.offset.set(0, (N - 1) / N);
       t.needsUpdate = true;
+      const fbKey = (window.resolveFlipbookKey && window.resolveFlipbookKey(key)) || key;
+      window.registerFlipbook(fbKey, N, (frameIdx) => {
+        t.offset.y = (N - 1 - frameIdx) / N;
+        if (state && state.mode === '3d') scheduleRender3D();
+      });
     }
     scheduleRender3D();
   });

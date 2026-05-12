@@ -129,15 +129,51 @@ function _hash01(i, j){
 }
 
 /* For animated textures (magma, sea_lantern, prismarine) the PNG is a vertical
-   strip of 16×16 frames. Draw only the top frame so blocks don't squash. */
-function drawBlockImage(ctx, img, dx, dy, dw, dh){
+   strip of 16×16 frames. Blit the source rect of the current animation
+   frame so the block both sits at correct 1:1 proportions AND pulses on
+   the Bedrock tick schedule defined in flipbook.js. Non-flipbook
+   textures keep the plain whole-image blit. */
+function drawBlockImage(ctx, img, dx, dy, dw, dh, blockKey){
   const sw = img.naturalWidth;
-  const sh = img.naturalHeight;
-  if (sh > sw * 1.5){
-    ctx.drawImage(img, 0, 0, sw, sw, dx, dy, dw, dh);
+  const N = window.flipbookFrameCount ? window.flipbookFrameCount(img) : 1;
+  if (N > 1){
+    const fbKey = (window.resolveFlipbookKey && window.resolveFlipbookKey(blockKey)) || blockKey;
+    const frame = window.flipbookCurrentFrame(fbKey, N, performance.now());
+    ctx.drawImage(img, 0, frame * sw, sw, sw, dx, dy, dw, dh);
   } else {
     ctx.drawImage(img, dx, dy, dw, dh);
   }
+}
+
+/* Drive 2D redraws whenever an animated block's frame index advances.
+   Subscriptions are installed once per animated picker key and gated to
+   state.mcBlock === blockKey inside the callback, so a magma loop doesn't
+   burn frames while the user is looking at dirt. Mode gate (`state.mode
+   === '2d'`) keeps the 3D path from being touched here — that side has
+   its own per-texture subscription in canvas3d.js. */
+let _flipbook2DInstalled = false;
+function _install2DFlipbookRedraws(){
+  if (_flipbook2DInstalled) return;
+  _flipbook2DInstalled = true;
+  // MC_BLOCKS keys whose underlying texture is a flipbook strip. Order
+  // matches the picker layout (`state.js` -> MC_BLOCKS).
+  const animatedBlockKeys = ['magma', 'sea_lantern', 'prismarine'];
+  animatedBlockKeys.forEach(blockKey => {
+    const img = loadBlockImage(blockKey);
+    if (!img) return;
+    const start = () => {
+      const N = window.flipbookFrameCount(img);
+      if (N <= 1) return;
+      const fbKey = window.resolveFlipbookKey(blockKey) || blockKey;
+      window.registerFlipbook(fbKey, N, () => {
+        if (state.mode === '2d' && state.mcBlock === blockKey){
+          if (typeof redraw === 'function') redraw();
+        }
+      });
+    };
+    if (img.complete && img.naturalWidth > 0) start();
+    else img.addEventListener('load', start, { once: true });
+  });
 }
 
 /* Ore pool sampled inside the stone band. Probabilities ordered roughly by
@@ -288,7 +324,7 @@ function drawTree2D(ctx, f, Gx, Gy, ox, oy, ps){
     const w = Math.floor(ox + (i + 1) * ps) - x;
     const h = Math.floor(oy + (j + 1) * ps) - y;
     const img = loadBlockImage(key);
-    if (imageReady(img)) drawBlockImage(ctx, img, x, y, w, h);
+    if (imageReady(img)) drawBlockImage(ctx, img, x, y, w, h, key);
     else { ctx.fillStyle = BLOCK_FALLBACK_COLOR[key] || '#3a6b25'; ctx.fillRect(x, y, w, h); }
   };
   for (let i = 0; i < TRUNK_H; i++){
@@ -314,6 +350,7 @@ function drawTree2D(ctx, f, Gx, Gy, ox, oy, ps){
 
 function draw2D(canvas){
   if (!canvas) return;
+  _install2DFlipbookRedraws();
   const cw = canvas.clientWidth  || 300;
   const ch = canvas.clientHeight || 220;
   const dpr = window.devicePixelRatio || 1;
@@ -384,7 +421,7 @@ function draw2D(canvas){
       const w = Math.floor(ox + (c.i + 1) * ps) - x;
       const h = Math.floor(oy + (cur + 1) * ps) - y;
       if (imageReady(img)){
-        drawBlockImage(ctx, img, x, y, w, h);
+        drawBlockImage(ctx, img, x, y, w, h, state.mcBlock);
       } else {
         ctx.fillStyle = BLOCK_FALLBACK_COLOR[state.mcBlock] || '#d8c896';
         ctx.fillRect(x, y, w, h);
@@ -406,7 +443,7 @@ function draw2D(canvas){
         const blockKey = pickBlockFor(i, j, ext);
         const img = loadBlockImage(blockKey);
         if (imageReady(img)){
-          drawBlockImage(ctx, img, x, y, w, h);
+          drawBlockImage(ctx, img, x, y, w, h, blockKey);
         } else {
           ctx.fillStyle = BLOCK_FALLBACK_COLOR[blockKey] || '#888';
           ctx.fillRect(x, y, w, h);
@@ -525,7 +562,7 @@ function downloadPNG(){
         const blockKey = pickBlockFor(i, j, ext);
         const img = loadBlockImage(blockKey);
         if (imageReady(img)){
-          drawBlockImage(ctx, img, i * TILE, oy + j * TILE, TILE, TILE);
+          drawBlockImage(ctx, img, i * TILE, oy + j * TILE, TILE, TILE, blockKey);
         } else {
           ctx.fillStyle = BLOCK_FALLBACK_COLOR[blockKey] || '#888';
           ctx.fillRect(i * TILE, oy + j * TILE, TILE, TILE);

@@ -46,6 +46,7 @@ window.addEventListener('DOMContentLoaded', () => {
   applyLoadedPrefsToUI();
   preloadAllBlockImages();
 
+  if (typeof initI18N === 'function') initI18N();
   setupUI();
   syncShape();
 
