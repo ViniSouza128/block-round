@@ -1,0 +1,793 @@
+% !TEX program = xelatex
+\documentclass[12pt,a4paper]{scrartcl}
+
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setdefaultlanguage{english}
+\PolyglossiaSetup{english}{indentfirst=false}
+\setmainfont{Latin Modern Roman}[Scale=1.08]
+\setsansfont{Latin Modern Sans}[Scale=1.08]
+\setmonofont{Latin Modern Mono}[Scale=1.00]
+\usepackage{unicode-math}
+\setmathfont{Latin Modern Math}[Scale=1.08]
+
+\usepackage{amsmath}
+\usepackage{mathtools}
+
+\usepackage[a4paper,top=2.8cm,bottom=2.8cm,left=2.6cm,right=2.6cm,
+            headheight=16pt]{geometry}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{csquotes}
+\usepackage{needspace}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins,breakable}
+\usepackage[hidelinks,bookmarks=true,bookmarksopen=true,
+            pdftitle={Block Round — The Mathematics of the Project},
+            pdfauthor={Vinícius Rodrigues de Souza}]{hyperref}
+
+\definecolor{accent}{HTML}{5B8E3F}
+\definecolor{accentdark}{HTML}{406A2A}
+\definecolor{earth}{HTML}{825432}
+\definecolor{ink}{HTML}{1F1F23}
+\definecolor{muted}{HTML}{4E4E58}
+\definecolor{bg}{HTML}{FBF6E9}
+\definecolor{rule}{HTML}{D8D1BC}
+
+\color{ink}
+
+\titleformat{\section}
+  {\sffamily\Large\bfseries\color{accent}}{\thesection.}{0.6em}{}
+\titleformat{\subsection}
+  {\sffamily\large\bfseries\color{accent!85!ink}}{\thesubsection}{0.6em}{}
+\titlespacing*{\section}{0pt}{1.2\baselineskip}{0.6\baselineskip}
+\titlespacing*{\subsection}{0pt}{0.8\baselineskip}{0.3\baselineskip}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\sffamily\bfseries\color{accent}BLOCK ROUND}
+\fancyhead[R]{\small\sffamily\color{muted}The Mathematics of the Project}
+\fancyfoot[L]{\small\sffamily\color{muted}Block Round — Technical document}
+\fancyfoot[R]{\small\sffamily\color{muted}Page \thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+\renewcommand{\headrule}{{\color{rule}\hrule height \headrulewidth}}
+\renewcommand{\footrule}{{\color{rule}\vskip-\footrulewidth\hrule height \footrulewidth\vskip-\footrulewidth}}
+
+\newtcolorbox{formula}{
+  colback=bg, colframe=rule, boxrule=0.4pt, arc=2pt,
+  left=10pt,right=10pt,top=8pt,bottom=8pt,
+  before skip=8pt, after skip=8pt,
+  fontupper=\color{accentdark}, breakable,
+  before={\par\needspace{4\baselineskip}}
+}
+
+\newtcolorbox{minec}{
+  colback=accent!7, colframe=accent!50!rule, boxrule=0.6pt, arc=2pt,
+  left=10pt,right=10pt,top=8pt,bottom=8pt,
+  before skip=10pt, after skip=10pt,
+  breakable,
+  before={\par\needspace{5\baselineskip}}
+}
+
+\setlength{\parskip}{0.75em}
+\setlength{\parindent}{0pt}
+\linespread{1.10}
+
+\newcommand{\code}[1]{\texttt{\small #1}}
+\newcommand{\acc}[1]{\textcolor{accent}{\textbf{#1}}}
+\newcommand{\cmd}[1]{\textcolor{earth}{\texttt{\small #1}}}
+
+\begin{document}
+
+\begin{titlepage}
+  \centering
+  \vspace*{3.5cm}
+  {\sffamily\bfseries\fontsize{56}{60}\selectfont \color{accent} Block Round\par}
+  \vspace{0.7cm}
+  {\sffamily\LARGE\color{muted} The Mathematics of the Project\par}
+  \vspace{1.4cm}
+  {\color{rule}\rule{0.6\textwidth}{0.6pt}\par}
+  \vspace{0.9cm}
+  \begin{minipage}{0.82\textwidth}
+    \centering\color{ink}\large
+    Technical and didactic documentation of the mathematical foundations employed in the generator of circles, ellipses, spheres and ellipsoids \emph{rendered with Minecraft block textures}. For each concept, the formal definition, the geometric justification, the direct correspondence with the project's source code and the practical translation to in-game construction commands (\cmd{/fill}, \cmd{/clone}, \cmd{//sphere}) are presented.
+  \end{minipage}
+  \vspace{0.9cm}\\
+  {\color{rule}\rule{0.6\textwidth}{0.6pt}\par}
+  \vspace{2cm}
+  \begin{minipage}{0.78\textwidth}
+    \centering\sffamily\small\color{muted}
+    \textbf{Topics covered:} analytic geometry $\cdot$ discrete rasterization $\cdot$ digital topology $\cdot$ integral calculus $\cdot$ linear algebra $\cdot$ trigonometry $\cdot$ inventory arithmetic $\cdot$ texture mapping $\cdot$ octahedral symmetry.
+  \end{minipage}
+\end{titlepage}
+
+\renewcommand{\contentsname}{\color{accent}Table of Contents}
+\tableofcontents
+\thispagestyle{fancy}
+\newpage
+
+% =============================================================================
+\section{Overview: mathematical nature of the problem}
+
+Block Round is a generator of rounded shapes \emph{textured with Minecraft blocks}: circles and ellipses in 2D, spheres and ellipsoids in 3D. The central problem belongs to the class of \emph{discrete rasterization}: given a curve or surface defined analytically over the real numbers $\mathbb{R}$, determine which cells of a regular grid (pixels in 2D, voxels in 3D) must be marked to represent it. In Block Round each marked cell additionally receives a six-face texture from the Minecraft palette (Grass Block, Cobblestone, Oak Planks, Quartz, Diamond, etc.), so the resulting figure is not just a mathematical silhouette but a \emph{buildable structure} the user can re-create in survival mode, in creative mode with \cmd{/fill}, or import via Sponge Schematic v2 (\code{.schem}) into WorldEdit, Litematica or MCEdit.
+
+This problem admits no unique solution. Different inclusion criteria produce different discrete silhouettes, and each criterion has its own mathematical justification. For this reason the project implements three distinct 2D algorithms (Euclidean, Bresenham, Threshold), three rendering modes (Filled, Thin, Thick) and three 3D shading styles, all described in the subsequent sections. The choice between algorithms is decided not just by visual smoothness but also by the number of blocks the user will need to gather --- a sphere of diameter $D=20$ requires $4\,189$ blocks under the Euclidean algorithm but as many as $4\,322$ blocks under Threshold.
+
+Execution occurs entirely in the browser, with no server component, which imposes on the mathematical formulation an additional requirement of \emph{computational efficiency} (a Diamond sphere of $D=32$ must render at 60\,fps including 17\,156 textured voxels). The theoretical areas involved include:
+\begin{itemize}[leftmargin=1.3em,itemsep=0.15em,topsep=0.3em]
+  \item analytic geometry of conics and quadrics;
+  \item incremental algorithms with integer arithmetic (Bresenham);
+  \item digital topology (4-, 6- and 26-connected neighborhoods);
+  \item integral calculus and counting measure;
+  \item linear algebra (cutting planes, perspective projection);
+  \item trigonometry and spherical coordinates;
+  \item combinatorial inventory arithmetic and group symmetry.
+\end{itemize}
+
+\textbf{What is new compared to its sibling Pixel Round.} Block Round adds five new mathematical concerns that arise only when the rendered cells become \emph{Minecraft blocks}: (i) the UV mapping of six faces per voxel; (ii) the arithmetic of the survival inventory (packs of 64 items, single chests of 27 slots, double chests of 54 slots); (iii) the highlight overlay used to count exposed faces during construction; (iv) the decomposition of a 3D shape into horizontal layers, since real-world building proceeds floor by floor; (v) the exploitation of the octahedral symmetry group $O_h$ to reduce the manual block-placement cost by a factor of $8$ via \cmd{/clone}.
+
+% =============================================================================
+\section{Coordinate system and the discrete voxel grid}
+
+The canvas is a grid of $G_x \times G_y$ cells in 2D, extended to $G_x \times G_y \times G_z$ voxels in 3D. Each cell $(i,j)$ occupies the unit square $[i, i+1] \times [j, j+1]$; in 3D, each voxel $(i,j,k)$ occupies the unit cube $[i,i{+}1]\times[j,j{+}1]\times[k,k{+}1]$. In continuous code, the \acc{center} of the cell is at $(i+\tfrac{1}{2},\; j+\tfrac{1}{2})$. This convention is critical: comparing the circumference to the \emph{corner} $(i,j)$ or to the \emph{center} $(i+\tfrac{1}{2}, j+\tfrac{1}{2})$ changes which cells are considered as belonging to the shape, and therefore which Minecraft blocks the user must place.
+
+\begin{formula}
+\centering
+$\displaystyle \text{center of cell $(i,j)$}\;=\;\bigl(i+\tfrac{1}{2},\;\; j+\tfrac{1}{2}\bigr)$
+\end{formula}
+
+For a shape of diameter $D$, the code expands the grid to $D+2$ cells along each axis (a margin of one cell on each side). This ensures that extreme pixels (N, S, E, W) never fall on the matrix boundary. The \acc{center} of the shape is at $(G_x/2,\;G_y/2)$, and the \emph{semi-axes} are $r_x = D/2$ and $r_y = D/2$ (or $W/2$ and $H/2$ for an ellipse). In 3D the same logic extends to a margin along the $z$ axis. The unit cell of the canvas is the same as the unit block of Minecraft, so coordinates in the algorithm map one-to-one to in-game $(x,y,z)$ coordinates --- a sphere of $r=8$ centred at the canvas centre maps to a sphere of $r=8$ centred at any world position the user selects.
+
+\begin{minec}
+\textbf{Minecraft mapping.} If the user spawns at $(0,64,0)$ and wants a sphere of $D=16$ ($r=8$) sitting on the ground, the centre in world coordinates should be placed at $(0,72,0)$ (i.e.\ $8$ blocks above the surface) so that the south pole of the sphere touches the floor exactly. The corresponding WorldEdit command is \cmd{//sphere stone 8} executed while standing at $(0,72,0)$.
+\end{minec}
+
+% =============================================================================
+\section{The fundamental equation: circle and ellipse}
+
+All theory in the project begins with the implicit equation of the ellipse centered at the origin with semi-axes $r_x$ and $r_y$:
+
+\begin{formula}
+\centering
+$\displaystyle \left(\dfrac{x}{r_x}\right)^{\!2} + \left(\dfrac{y}{r_y}\right)^{\!2} \;=\; 1$
+\end{formula}
+
+When $r_x = r_y = r$, the ellipse degenerates into a \acc{circumference} of radius $r$. Points in the \emph{interior} satisfy $\leq 1$; points in the \emph{exterior}, $> 1$. This is the inequality that determines whether a voxel belongs to the shape and therefore whether the user places a block there. The three algorithms are, fundamentally, three different ways of applying (or approximating) this test on a grid.
+
+Shifting the center to $(c_x, c_y)$ and evaluating at the center of each cell:
+
+\begin{formula}
+\centering
+$\displaystyle d_x = \dfrac{i+\tfrac{1}{2}-c_x}{r_x},\qquad
+                d_y = \dfrac{j+\tfrac{1}{2}-c_y}{r_y},\qquad
+                \text{inside}\;\Longleftrightarrow\; d_x^2 + d_y^2 \leq 1$
+\end{formula}
+
+\begin{minec}
+\textbf{Minecraft mapping.} For a tower in survival, the user typically wants a \emph{wide flat circle} for the foundation and progressively smaller circles as the tower rises. Each storey is one application of the implicit ellipse equation with the same semi-axes but a different $z$. Block Round computes the 2D layer once and the user simply duplicates that layer with \cmd{/clone $x_1$ $y_1$ $z_1$ $x_2$ $y_2$ $z_2$ $x_3$ $y_2{+}1$ $z_3$} per storey.
+\end{minec}
+
+% =============================================================================
+\section{Euclidean algorithm (distance test)}
+
+\textbf{Idea.} For each row $j$, analytically find the columns $i$ that lie inside the ellipse. Solving the ellipse equation for $x$, given $y$:
+
+\begin{formula}
+\centering
+$\displaystyle x \;=\; c_x \;\pm\; r_x\,\sqrt{\,1 - \left(\dfrac{y-c_y}{r_y}\right)^{\!2}\,}$
+\end{formula}
+
+For a row $j$ whose vertical displacement is $d_y = j+\tfrac{1}{2}-c_y$, the \emph{horizontal half-width} of the ellipse at that height is:
+
+\begin{formula}
+\centering
+$\displaystyle \mathit{dxM} \;=\; r_x\,\sqrt{\,1 - \dfrac{d_y^{\,2}}{r_y^{\,2}}\,}$
+\end{formula}
+
+If $d_y^{\,2}/r_y^{\,2} \geq 1$, the row does not intersect the ellipse and is skipped. Otherwise, every column $i$ such that $c_x - \mathit{dxM} \leq i+\tfrac{1}{2} \leq c_x + \mathit{dxM}$ is filled. The integer bounds come from:
+
+\begin{formula}
+\centering
+$\displaystyle \mathit{lo} = \lceil c_x - \mathit{dxM} - \tfrac{1}{2} \rceil,
+                \qquad
+                \mathit{hi} = \lfloor c_x + \mathit{dxM} - \tfrac{1}{2} \rfloor$
+\end{formula}
+
+\textbf{Justification.} The $+\tfrac{1}{2}$ term arises from the convention that cell $i$ has center at $i+\tfrac{1}{2}$. The functions $\lceil\,\cdot\,\rceil$ and $\lfloor\,\cdot\,\rfloor$ perform the conversion from a continuous interval to integer indices, ensuring that only cells whose \acc{center} lies in the interior of the ellipse are included. This formulation yields the discrete approximation closest to the continuous curve and, consequently, the silhouette of greatest visual smoothness. For small diameters, however, the result may exhibit a less pronounced pixel-art character compared to the other algorithms --- a $D=5$ Euclidean circle has only $13$ blocks, while the Threshold variant of the same diameter has $21$.
+
+\begin{minec}
+\textbf{Minecraft mapping.} The Euclidean criterion is the one closest to what \cmd{//sphere} produces in WorldEdit. To build a $D=16$ ($r=8$) Cobblestone sphere using the Euclidean shell only, the volume is $V \approx \tfrac{4}{3}\pi (8)^3 \approx 2\,145$ blocks under filled mode, dropping to roughly $804$ blocks under thin mode (the shell) --- that is the difference between gathering $34$ Cobblestone packs ($34 \times 64 = 2\,176$) and $13$ packs ($13 \times 64 = 832$).
+\end{minec}
+
+% =============================================================================
+\section{Bresenham algorithm (integer midpoint)}
+
+The Bresenham algorithm, published in 1965 for drawing line segments, was later extended to circles and generalized by Pitteway and Kappel to arbitrary ellipses. Its distinguishing property is to dispense with floating-point operations and square root extraction: determining the next pixel uses exclusively \acc{integer additions and comparisons}, by means of a \emph{decision function} that evaluates on which side of the analytic curve the midpoint between the two candidate pixels lies. For Minecraft building this is the algorithm that gives the most \emph{recognisable} pixel-art look --- the same stepped silhouette that the community has been hand-building since 2011.
+
+\subsection{Circular case}
+
+For a circle of integer radius $R$, the algorithm starts at $(x{=}0,\,y{=}R)$ with the initial decision parameter:
+\[
+d_0 \;=\; 1 - R
+\]
+
+At each step (in the octant from $0$ to $45°$):
+\[
+\begin{cases}
+\text{if } d < 0: & \text{next is } (x{+}1,\;y), \quad d \mathrel{+}= 2x+3 \\[2pt]
+\text{if } d \geq 0: & \text{next is } (x{+}1,\;y{-}1), \quad d \mathrel{+}= 2(x-y)+5
+\end{cases}
+\]
+
+\textbf{Justification.} The function $d$ approximates, at each iteration, the value of the implicit circle equation evaluated at the \acc{midpoint} between the two candidate pixel options:
+\[
+F\!\left(x+1,\;y-\tfrac{1}{2}\right) \;=\; (x+1)^2 + \left(y-\tfrac{1}{2}\right)^{\!2} - R^2
+\]
+The sign of $d$ indicates whether the midpoint lies inside the circle (in which case one advances only horizontally) or outside (in which case the vertical coordinate is also decremented). The eight octants of the circle are obtained by applying the symmetries of the dihedral group $D_4$ to the computed octant, which corresponds, in code, to the eight \code{span(...)} calls. The resulting trace exhibits the stepped pattern characteristic of discrete approximations of smooth curves --- and is precisely the silhouette that classical Minecraft-pixel-art tutorials describe.
+
+\subsection{Elliptic case (two regions)}
+
+For an ellipse with semi-axes $a, b$, the algorithm divides the first quadrant into \acc{two regions}, delimited by the point where the tangent makes $45°$:
+\[
+\text{Region I: } 2b^2 x < 2a^2 y \quad \bigl(|dy/dx| < 1\bigr),
+\qquad
+\text{Region II: otherwise}
+\]
+
+The initial decision parameters are:
+\begin{align*}
+p_1 &= b^2 - a^2 b + \tfrac{a^2}{4}, \\
+p_2 &= b^2\!\left(x+\tfrac{1}{2}\right)^{\!2} + a^2\!\left(y-1\right)^{\!2} - a^2 b^2.
+\end{align*}
+
+At each iteration, $p$ is updated by precomputed increments (all integers, after multiplying by 4). The result is the minimum possible arithmetic per pixel: \emph{one sign test and two additions}. The code uses \code{Math.floor} when computing $a$ and $b$ from $r_x$ and $r_y$ to avoid adding an extra row outside the bounding box when $r_y$ is non-integer.
+
+\begin{minec}
+\textbf{Minecraft mapping.} For survival builders the Bresenham silhouette is often preferable to Euclidean because its discrete steps are easier to count manually --- the user knows that the next block is always either \emph{straight} or \emph{diagonal}, which keeps the arm-position consistent while placing. A $D=11$ Bresenham circle has the canonical $80$-block sequence published in dozens of community guides.
+\end{minec}
+
+% =============================================================================
+\section{Threshold algorithm (corner coverage)}
+
+This algorithm asks: \emph{is there any corner of the cell inside the ellipse?} For each cell $(i,j)$, the code finds the corner closest to the center of the shape (projection of the center onto the cell edges):
+
+\begin{formula}
+\centering
+$\displaystyle n_x = \operatorname{clamp}(c_x,\,i,\,i{+}1),\quad
+                n_y = \operatorname{clamp}(c_y,\,j,\,j{+}1)$ \\[6pt]
+$\displaystyle \text{inside}\;\Longleftrightarrow\;
+\left(\dfrac{n_x-c_x}{r_x}\right)^{\!2} + \left(\dfrac{n_y-c_y}{r_y}\right)^{\!2} \leq 0{,}94$
+\end{formula}
+
+The value \acc{$0{,}94$} is an \emph{empirical threshold} slightly below $1{,}0$. Its purpose is to eliminate the artifact known as the \emph{tangential spike} of 1 pixel that occurs at the four cardinal points (N, S, E, W), where the curve is tangent to a full edge of the cell. Without this reduction, the algorithm would include an additional cell whose contribution does not improve the visual representation of the shape.
+
+Among the three algorithms, this is the one that produces the silhouette of largest area for the same diameter $D$, since the inclusion condition is the least restrictive: a single corner of the cell satisfying the ellipse inequality suffices to fill the entire cell. For Minecraft, this is the algorithm that gives the most \emph{rounded} look but at the cost of placing more blocks --- $D=16$ produces $213$ shell blocks under Threshold versus $200$ under Bresenham and $192$ under Euclidean.
+
+\begin{minec}
+\textbf{Minecraft mapping.} Threshold is the algorithm of choice when the build is meant to be seen from far away (e.g.\ a Quartz dome on top of a temple), because the slightly larger silhouette reads more clearly through ambient occlusion shadows. The trade-off is roughly $5{-}10\%$ more blocks per shell relative to Euclidean.
+\end{minec}
+
+% =============================================================================
+\section{Rendering modes: Filled, Thin, Thick}
+
+Having a matrix $f[j][i] = 1$ for interior cells, the project derives three visual styles by \acc{discrete topology}:
+
+\subsection{Filled}
+Returns $f$ unchanged. All interior cells are blocks. This is what \cmd{//sphere stone 8} produces.
+
+\subsection{Thin (outline)}
+A cell belongs to the thin contour if it is filled \emph{and} has at least one orthogonal neighbor (N, S, E, W) \emph{outside} the shape. In logical notation:
+\[
+b(i,j) \;=\; f(i,j) \;\wedge\;
+\bigl(\neg f(i{-}1,j)\,\vee\,\neg f(i{+}1,j)\,\vee\,\neg f(i,j{-}1)\,\vee\,\neg f(i,j{+}1)\bigr)
+\]
+Geometrically: this is the \acc{discrete boundary} of the shape, the discrete analog of the topological boundary $\partial F = F \cap \overline{F^{\mathrm{c}}}$. In Minecraft this is the equivalent of \cmd{//hsphere} (hollow sphere): only the shell is materialised.
+
+\subsection{Thick}
+The thick mode adds to the boundary cells the \acc{diagonal bridges}: interior cells that have simultaneously a horizontal and a vertical boundary neighbor. This closes the 1-pixel diagonals that thin mode leaves open, useful when the contour must look stable in a scene (no $45°$ holes) --- particularly important for Glass and Ice domes where light leaking through diagonal gaps would break the illusion of a sealed surface.
+\begin{align*}
+t(i,j) &= b(i,j) \;\vee\; \bigl(f(i,j) \,\wedge\, h_H \,\wedge\, h_V\bigr), \\
+h_H &= b(i{-}1,j) \;\vee\; b(i{+}1,j), \\
+h_V &= b(i,j{-}1) \;\vee\; b(i,j{+}1).
+\end{align*}
+
+\begin{minec}
+\textbf{Minecraft mapping.} For a $D=20$ Glass dome (hollow), the thick mode yields a \emph{watertight} shell of $608$ blocks against $\approx 510$ blocks for the thin mode --- the $\sim 100$ extra blocks are diagonal-bridge stitching that prevents the day-night cycle from leaking ambient light through diagonal cracks.
+\end{minec}
+
+% =============================================================================
+\section{Discrete area computation}
+
+The \code{area2D} function simply \acc{counts} the cells marked in $f$. This is the \emph{counting measure}, which approximates the Riemann integral of the indicator function of the ellipse:
+\[
+\underset{\text{continuous area}}{\pi \, r_x \, r_y}
+\qquad\longleftrightarrow\qquad
+\underset{\text{discrete area}}{\sum_{j=0}^{G_y-1}\sum_{i=0}^{G_x-1} f(i,j)}
+\]
+For large $D$, $\text{discrete area} / \text{continuous area} \to 1$. For small $D$, the difference between algorithms is visible: Threshold tends to overestimate; Euclidean stays close to the ideal area; Bresenham falls somewhere between the two.
+
+\begin{minec}
+\textbf{Minecraft mapping.} The block-count chip in the Block Round UI displays exactly this number: $268$ for $D=8$, $904$ for $D=12$, $2\,145$ for $D=16$. The chip then expresses the count as \emph{$N$ (stacks $\times$ 64 + remainder)} --- so $2\,145 = 33 \times 64 + 33$, i.e.\ \enquote{$33$ stacks plus $33$ items}, which is what the user actually has to gather.
+\end{minec}
+
+% =============================================================================
+\section{From 2D to 3D: the ellipsoid equation}
+
+In 3D, the fundamental shape is the \acc{ellipsoid} centered at $(c_x, c_y, c_z)$ with semi-axes $r_x, r_y, r_z$. Its equation is the natural generalization of the ellipse:
+\[
+\left(\dfrac{x}{r_x}\right)^{\!2} + \left(\dfrac{y}{r_y}\right)^{\!2} + \left(\dfrac{z}{r_z}\right)^{\!2} \;=\; 1
+\]
+
+When $r_x = r_y = r_z$, we recover the \acc{sphere}. Evaluating at the center of each voxel:
+\[
+a_\xi = \frac{\xi + \tfrac{1}{2} - c_\xi}{r_\xi}\;\;(\xi \in \{x,y,z\}),
+\qquad
+\text{inside}\;\Longleftrightarrow\;a_x^{\,2} + a_y^{\,2} + a_z^{\,2} \leq 1
+\]
+
+\begin{minec}
+\textbf{Minecraft mapping.} An ellipsoid with $W=20$, $H=10$, $D=20$ produces a \emph{flattened sphere} ideal for an underground dome or a stadium roof. The volume is $V = \tfrac{4}{3}\pi \cdot 10 \cdot 5 \cdot 10 \approx 2\,094$ blocks, equivalent to $33$ stacks of any block type. Equivalent WorldEdit command: \cmd{//ellipsoid stone 10 5 10}.
+\end{minec}
+
+% =============================================================================
+\section{Voxelization and volume computation}
+
+The continuous volume of the ellipsoid is a classical result of integral calculus, obtained by integration over disks:
+\[
+V \;=\; \dfrac{4}{3}\,\pi\, r_x\, r_y\, r_z
+\]
+The discrete version iterates over every voxel of the box $D_x \times D_y \times D_z$ and increments a counter when $a_x^2 + a_y^2 + a_z^2 \leq 1$. This is the \code{voxelVolume} algorithm.
+
+\textbf{Shell vs.\ interior.} For the \emph{filled} mode, the project displays only voxels with at least one 6-neighbor outside the preserved set (that is, voxels visible from the external surface or from the cut face). For \emph{thin}, only the \acc{surface} of the complete ellipsoid is shown (1-voxel thickness). In a Minecraft survival run only the visible faces need to receive their dedicated textured block --- the interior voxels can be left as filler (e.g.\ Dirt instead of Diamond) to save resources.
+
+\begin{minec}
+\textbf{Reference table.} The table below summarises the canonical sphere diameters most commonly requested in Minecraft community builds, translated into number of blocks ($V$), packs of $64$ ($P=\lceil V/64\rceil$) and double chests of $54 \times 64 = 3\,456$ slots ($\mathrm{DC}=\lceil V/3{,}456 \rceil$). Use this table to plan resource gathering before construction.
+\end{minec}
+
+\vspace{0.5em}
+\begin{center}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+\textbf{Diameter} & \textbf{Blocks (V)} & \textbf{Packs (×64)} & \textbf{Double chests} & \textbf{Note} \\
+\midrule
+D=8   &   268 &  5  & 1 & small dome  \\
+D=12  &   904 & 15  & 1 & medium sphere \\
+D=16  &  2145 & 34  & 1 & big tower top \\
+D=20  &  4189 & 66  & 2 & stadium roof \\
+D=24  &  7238 & 114 & 3 & large dome \\
+D=32  & 17156 & 269 & 5 & mega-build \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Filled-mode volumes computed under the Euclidean algorithm at $D \in \{8,12,16,20,24,32\}$. Thin-mode (shell) values are roughly $V_{\mathrm{shell}} \approx 4\pi r^2 / 1$ block-thick, i.e.\ between $25\%$ and $40\%$ of the filled volume depending on $D$.
+
+% =============================================================================
+\section{Geometric cuts: planes and the $45°$ diagonal cut}
+
+Block Round allows cutting the solid by \acc{three planes}. Each cut is a \emph{linear inequality} that discards voxels:
+\[
+\begin{array}{lcl}
+\text{X axis:}    & x \geq \mathit{cut}      & \Rightarrow\; \text{discarded} \\
+\text{Y axis:}    & y \geq \mathit{cut}      & \Rightarrow\; \text{discarded} \\
+\text{Diagonal:}  & x + y \geq \mathit{cut}  & \Rightarrow\; \text{discarded}
+\end{array}
+\]
+
+The X and Y planes are perpendicular to the coordinate axes, with normal vectors $(1,0,0)$ and $(0,1,0)$. The \emph{diagonal plane} has normal vector $(1,1,0)/\sqrt{2}$ and cuts at $45°$ in the $XY$ plane: mathematically, this is the family of planes $x+y = k$. Since the maximum of $x+y$ in a box $D_x \times D_y$ is $D_x + D_y$, the diagonal cut slider has range $D_x + D_y$, while X and Y have ranges $D_x$ and $D_y$, respectively. The cut is \acc{proportional}: the code stores a percentage $\mathit{cutPct}$ and recomputes the limit as
+\[
+\mathit{cut} \;=\; \mathit{cutPct} \cdot \max_{\text{axis}}
+\]
+so $50\%$ on one axis remains $50\%$ when the user switches axis or resizes.
+
+\begin{minec}
+\textbf{Minecraft mapping.} The Y-axis cut at $50\%$ on a sphere produces the canonical \emph{dome} of half the volume. For $D=16$: $V_{\mathrm{full}} = 2\,145$ blocks, $V_{\mathrm{dome}} \approx 1\,095$ blocks ($\approx 18$ packs of $64$). The diagonal cut at $50\%$ produces a \emph{half-bowl} cross-section frequently used for fountain interiors and amphitheatre seating.
+\end{minec}
+
+% =============================================================================
+\section{Thick 3D mode: tridimensionalization by slices}
+
+For \emph{thick} mode in 3D, the project applies the 2D thick algorithm to \acc{all slices} along the three axes: $XY$ for each $z$, $XZ$ for each $y$, $YZ$ for each $x$. It then takes the \emph{union} of the results. The geometric motivation is watertightness: the minimum set of voxels that plug all the diagonals without doubling the shell thickness. Formally, with $S_z(z)$ the $XY$ slice at height $z$ and $T$ the 2D thick operator:
+\[
+\mathit{thick3D} \;=\;
+\bigcup_{z} T\bigl(S_z(z)\bigr) \;\cup\;
+\bigcup_{y} T\bigl(S_y(y)\bigr) \;\cup\;
+\bigcup_{x} T\bigl(S_x(x)\bigr)
+\]
+The result is then intersected with the set preserved by the cut. The underlying theory is \acc{digital topology}: the thick operator guarantees \emph{26-connectivity} of the shell (neighbors including diagonals), useful for construction in Minecraft where diagonally adjacent voxels do not touch by face --- light, water and creatures pass through diagonal gaps as if the wall were not there.
+
+\begin{minec}
+\textbf{Minecraft mapping.} For an underwater Glass dome on a survival ocean monument, thick mode is mandatory: the diagonal bridges prevent water from spilling in through the diagonal cracks left by thin mode. Cost: $D=20$ dome at thick mode requires $\approx 380$ Glass blocks vs.\ $\approx 320$ under thin mode --- $19\%$ more material in exchange for full sealing.
+\end{minec}
+
+% =============================================================================
+\section{3D camera: spherical coordinates}
+
+The 3D camera orbits the object at a distance $r$ with two angles --- $\theta$ (azimuth, in the horizontal plane) and $\varphi$ (polar, from the vertical axis). This is the \acc{physical convention} of spherical coordinates, and the conversion to Cartesian (the form three.js expects) is:
+\[
+\begin{aligned}
+x &= r\,\sin(\varphi)\,\cos(\theta), \\
+y &= r\,\cos(\varphi), \\
+z &= r\,\sin(\varphi)\,\sin(\theta).
+\end{aligned}
+\]
+Initial position: $\theta = \pi/4$ ($45°$, isometric perspective) and $\varphi = \pi/3$ ($60°$ from the north pole, slightly above the equator). Mouse drag increments $\theta$ and $\varphi$ directly; wheel/pinch increments $r$. The simplicity of this parametrization is what allows free rotation without quaternions or explicit matrices.
+
+% =============================================================================
+\section{Auto-zoom: bounding sphere and FOV}
+
+When the user changes the figure size or resets the camera, the project recomputes the \acc{ideal distance} of the camera so that the object fits the viewport at any angle. The idea is to enclose the object in a \emph{sphere of radius $R$} (half the diagonal of the AABB, axis-aligned bounding box):
+\[
+R \;=\; \sqrt{\,(D_x/2)^2 + (D_y/2)^2 + (D_z/2)^2\,}
+\]
+
+A sphere has \acc{projection invariant under rotation}, so if it fits in the viewport at one orientation, it fits in all. Given the vertical FOV of the camera ($\mathit{fov}_V = 35°$ in radians), the distance required to frame a sphere of radius $R$ is:
+\[
+\mathit{dist}_V \;=\; \dfrac{R}{\tan(\mathit{fov}_V / 2)}
+\]
+The horizontal FOV follows from the canvas aspect ratio ($\mathit{aspect} = \text{width}/\text{height}$) by:
+\[
+\mathit{fov}_H \;=\; 2\,\arctan\!\left(\,\tan(\mathit{fov}_V/2)\cdot \mathit{aspect}\,\right)
+\]
+The final distance is the maximum of $\mathit{dist}_V$ and $\mathit{dist}_H$, multiplied by $1{,}20$ ($20\%$ visual margin). When the figure is cut, the code shrinks $D_x$ or $D_y$ to the remaining size, so that a sphere cut at $75\%$ does not appear tiny in a corner. When the oak-tree easter egg or the creeper easter egg is active, the bounding box is extended upward to include the entity height.
+
+% =============================================================================
+\section{Shading and texture multiplication}
+
+The three 3D styles (\emph{Classic}, \emph{Smooth}, \emph{Blocks}) differ by \acc{multiplicative factors} applied to the three visible faces of each voxel (top, lit side, dark side). The \code{shadeHex(hex, factor)} function parses the hex into $(R,G,B)$ and multiplies each channel, with clamping to $[0, 255]$ --- and the result becomes a tint applied on top of the raw block texture:
+\[
+R' = \mathrm{clamp}(R \cdot f),\quad
+G' = \mathrm{clamp}(G \cdot f),\quad
+B' = \mathrm{clamp}(B \cdot f)
+\]
+This is a \emph{linear approximation} of the ideal Lambertian illumination function,
+\[
+I \;=\; \max\bigl(0,\;\mathbf{n}\cdot\mathbf{l}\bigr)\cdot \mathit{texture},
+\]
+where the three factors correspond to the cosine of the angle between the normal of each face and a fixed light direction. In \emph{Smooth} the factors are close (similar faces); in \emph{Classic} the factors differ more (strong contrast, the look of vanilla Minecraft). \emph{Blocks} additionally introduces a geometric inset --- a constant translation of each face inward to reveal the inter-voxel boundaries even when adjacent voxels carry the same texture. For emissive blocks (Glowstone, Sea Lantern, Shroomlight, Magma, Crying Obsidian) the Lambertian term is replaced by a constant $I = \mathit{emissive\_factor} \cdot \mathit{texture}$ scaled to the block's MC light level.
+
+% =============================================================================
+\section{Transition: from continuous mathematics to in-game construction}
+
+The fifteen sections above describe the \emph{continuous-to-discrete} pipeline that Block Round shares with its sibling project Pixel Round: from the implicit equation of the ellipse all the way to the camera that frames the result. The remaining six sections describe what is \acc{specific} to Block Round --- the additional layer of mathematics introduced by the fact that the rendered cells are not abstract pixels but \emph{Minecraft blocks}, each with six textured faces, a weight in the inventory and a cost in playtime to gather and to place.
+
+These are not cosmetic considerations. The decision to render with block textures changes the operational problem the user faces: instead of \emph{exporting a PNG}, the user must \emph{translate the silhouette into a placement plan}. The mathematical content of the next sections is concerned exactly with that translation: inventory arithmetic, face-count optimization, layer-by-layer decomposition, and the exploitation of symmetry to reduce the cost from $N$ block placements to $N/8 + 7$ command invocations.
+
+\clearpage
+
+% =============================================================================
+\section{Arithmetic of the Minecraft inventory}
+
+A Minecraft player carries items in a 36-slot \emph{inventory}, organised as a $9 \times 4$ grid. Each slot holds up to $64$ items of the same type (a \emph{stack} or \emph{pack}). The player can also access \emph{storage}: a single chest is $27$ slots, a double chest is $54$ slots. The arithmetic that translates a target block count into a gathering plan is therefore a \emph{ceiling-division} problem.
+
+\subsection{Single slot, single stack, full pack}
+The \emph{stack} is the elementary unit of inventory accounting. Each stack contains at most $64$ items. The conversion from block count $N$ to packs (or stacks) is
+
+\subsection{Storage: chests, double chests, shulker boxes}
+To compute how many \emph{double chests} a build requires, divide the block count by $54$ slots $\times$ $64$ items/slot $= 3\,456$ items per double chest:
+\[
+\text{packs}:\quad N_{\mathrm{packs}} \;=\; \left\lceil \dfrac{N}{64} \right\rceil
+\qquad
+\text{double chests}:\quad N_{\mathrm{dc}} \;=\; \left\lceil \dfrac{N}{3456} \right\rceil
+\]
+A \emph{single chest} holds $27 \times 64 = 1\,728$ items. A \emph{shulker box} (portable container) holds $27 \times 64 = 1\,728$ items but can itself be stored \emph{inside} a chest slot, so a double chest filled with $54$ shulker boxes can hold up to $54 \times 1\,728 = 93\,312$ items. For mega-builds the relevant capacity unit is the \emph{shulker-loaded double chest}.
+
+\subsection{Reference table: canonical spheres}
+The table below converts the canonical filled-sphere volumes into gathering plans. The last column suggests a build context for each diameter:
+
+\vspace{0.4em}
+\begin{center}
+\begin{tabular}{@{}lrrll@{}}
+\toprule
+\textbf{Diameter} & \textbf{V (blocks)} & \textbf{Packs} & \textbf{Storage} & \textbf{Typical build} \\
+\midrule
+D=8   &   268 &  5  &  1 dc & hut roof, well dome  \\
+D=12  &   904 & 15  &  1 dc & watchtower top \\
+D=16  &  2145 & 34  &  1 dc & villager bell, library dome \\
+D=20  &  4189 & 66  &  2 dcs & observatory dome \\
+D=24  &  7238 & 114 &  3 dcs & temple dome \\
+D=32  & 17156 & 269 &  5 dcs & cathedral dome, world boss arena \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The \emph{stacks-and-remainder} representation $N = q \cdot 64 + r$ shown by Block Round's info chip mirrors the way the survival inventory displays partial stacks: the player sees $q$ full slots plus one slot showing $r$. For $D=16$, the chip prints \enquote{$2\,145$ ($33 \times 64 + 33$)}, telling the player to fill $33$ slots completely plus one slot with $33$ items --- exactly $34$ slots, which fits in a single inventory row plus four extra slots.
+
+% =============================================================================
+\section{Highlight overlay and exposed-face count}
+
+Block Round renders, by default, a black \emph{highlight overlay} on the edges of every visible voxel face. Visually this matches the \enquote{F3+G} chunk-border style of the in-game debug overlay, scaled down to the per-voxel level. Mathematically the overlay implements the visualization of the \acc{exposed-face count}: a number that survival builders use to validate progress block-by-block.
+
+\subsection{What counts as an exposed face}
+A face of voxel $\mathbf{v}$ shared with neighbor $\mathbf{n}$ is \emph{exposed} if and only if $\mathbf{n} \notin V_{\mathrm{solid}}$ (the neighbor is empty). Each solid voxel contributes between $0$ (fully buried, internal to the solid) and $6$ (isolated) faces. The total exposed-face count $F_{\mathrm{exp}}$ is the discrete analog of the \emph{surface area} of the figure.
+
+\subsection{Boundary detection formula}
+A voxel is on the boundary if at least one of its six face-neighbors is outside the solid:
+\[
+b(i,j,k) \;=\; f(i,j,k) \;\wedge\; \bigl(\neg f(i{\pm}1,j,k)\,\vee\,\neg f(i,j{\pm}1,k)\,\vee\,\neg f(i,j,k{\pm}1)\bigr)
+\]
+This is the same boundary operator as the 2D thin algorithm extended to 3D, and the highlight overlay simply draws the cube-edge lines of every boundary voxel. For Glass and Ice the default is OFF, since alpha-blended frames already do the job; for Cobblestone, Stone, Diamond and other opaque blocks the default is ON, because the overlay disambiguates internal voxels from the shell.
+
+\subsection{Exposed-face count as a survival heuristic}
+For survival builders the relevant count is not the total volume $V$ but the \emph{exposed-face count} $F_{\mathrm{exp}}$, because that is what is visible from the outside. The total $F_{\mathrm{exp}}$ over all solid voxels equals six times the boundary voxel count minus twice the number of face-adjacencies among boundary voxels:
+\[
+F_{\mathrm{exp}} \;=\; \sum_{\mathbf{v}\in V_{\mathrm{solid}}}\;\sum_{\mathbf{n}\in N_6(\mathbf{v})}\!\!\bigl[\mathbf{v}+\mathbf{n}\notin V_{\mathrm{solid}}\bigr]
+\]
+For a $D=16$ sphere (filled mode), $V = 2\,145$, $V_{\mathrm{boundary}} \approx 432$ (the shell), and $F_{\mathrm{exp}} \approx 1\,184$ visible faces --- so the build needs only about $432$ \emph{visible} blocks; the remaining $1\,713$ blocks are interior and can be filled with the cheapest block available (Dirt, Cobblestone). The highlight overlay lets the builder spot a missing block in the shell immediately, because a missing voxel produces a discontinuity in the overlay pattern that the eye picks up at a glance.
+
+% =============================================================================
+\section{Layer-by-layer construction (horizontal decomposition)}
+
+In Minecraft, construction proceeds \emph{by horizontal layers}: the player stands on a layer, places the blocks of the layer above, then steps up one block (jumps + places a temporary scaffolding block, or uses an elytra). The 3D ellipsoid problem is therefore best understood as a \emph{stack of 2D ellipses}, one per layer:
+\[
+\text{\text{layer}(k)} \;=\; \bigl\{\,(i,j)\;:\;a_x(i)^2 + a_y(j)^2 \leq 1 - a_z(k)^2\,\bigr\}
+\]
+
+For each integer layer $k$ from $-r_z$ to $+r_z$, the cross-section is itself an ellipse with shrunken semi-axes $r_x(k)$ and $r_y(k)$:
+\[
+r_x(k) \;=\; r_x\,\sqrt{\,1 - \left(\dfrac{k}{r_z}\right)^{\!2}\,},
+\qquad
+r_y(k) \;=\; r_y\,\sqrt{\,1 - \left(\dfrac{k}{r_z}\right)^{\!2}\,}
+\]
+This means the 3D problem is reduced to \emph{computing the 2D algorithm of the previous sections, one layer at a time}, and stacking the results. Cognitively this is a massive simplification: instead of mentally tracking three coordinates the builder tracks two coordinates per layer plus the layer index. Each layer becomes a 2D problem already solved by the algorithms of Sections~4--6.
+
+\begin{minec}
+\textbf{Minecraft mapping.} For a sphere of $D=16$ ($r_z = 8$), the equatorial layer ($k=0$) is the full $D=16$ Bresenham circle ($\approx 200$ blocks). The next layer up ($k=1$) is a $D=15{,}97$ circle, effectively the same shape minus the corner cells. By $k=4$ the layer is a $D=13{,}86$ circle (about $148$ blocks), and by $k=7$ it has shrunk to a $D=7{,}48$ circle (about $43$ blocks). The poles ($k = \pm 8$) are a single-block cap.
+\end{minec}
+
+The Block Round info chip exposes this layer count in 3D mode when the user activates the Center-guides corner button (key \code{C}). The horizontal slices are drawn as a translucent yellow cross at the equator and at each $r_z/2$ subdivision, giving the builder a clean reference for where the layer boundaries fall.
+
+% =============================================================================
+\section{Optimization via octahedral symmetry ($O_h$)}
+
+A sphere centred at the origin is invariant under the action of the \acc{octahedral group} $O_h$ of order $48$. The voxelization of the sphere preserves a subgroup of order $48$ generated by the three coordinate reflections and the three $\pi/2$ rotations around each axis. For practical building purposes the relevant subgroup is the order-$8$ \emph{octant} reflection group $\mathbb{Z}_2^3$, generated by $x \mapsto -x$, $y \mapsto -y$, $z \mapsto -z$. The voxel set in one octant determines the full sphere:
+\[
+V_{\mathrm{total}} \;\approx\; 8\,V_{\mathrm{octant}}\;\;\Longrightarrow\;\;
+\text{reduction}\;=\;\frac{N - N/8}{N} \;=\; 87{,}5\%
+\]
+
+This is the largest mathematical optimisation available to a Minecraft builder. Instead of manually placing $N$ blocks, the builder places $N/8$ blocks in the positive octant and then issues seven \cmd{/clone} (vanilla) or \cmd{//copy + //paste} (WorldEdit) commands with appropriate reflections.
+
+\subsection{Concrete command sequence}
+For a sphere of $D=24$ ($r=12$, $V = 7\,238$ blocks) centred at world coordinates $(0,72,0)$, build the positive octant first (the $+x, +y, +z$ region, $\approx 905$ blocks), then issue:
+
+\begin{minec}
+\cmd{/clone 0 72 0 12 84 12 \textasciitilde\,\textasciitilde\,\textasciitilde\ filtered minecraft:stone}\\
+\cmd{/clone 0 72 0 12 84 12 -12 72 0 mode:masked} \quad (\(-x\) reflection)\\
+\cmd{/clone 0 72 0 12 84 12 0 60 0 mode:masked} \quad\quad (\(-y\) reflection)\\
+\cmd{/clone 0 72 0 12 84 12 0 72 -12 mode:masked} \quad (\(-z\) reflection)\\
+\cmd{/clone -12 72 0 -1 84 12 mode:masked} \quad\quad\quad\;\; (\(-x,-y\) octant)\\
+\cmd{/clone 0 60 -12 12 71 -1 mode:masked} \quad\quad\quad (\(-y,-z\) octant)\\
+\cmd{/clone -12 72 -12 -1 84 -1 mode:masked} \quad\;\; (\(-x,-z\) octant)\\
+\cmd{/clone -12 60 -12 -1 71 -1 mode:masked} \quad\;\; (\(-x,-y,-z\) octant)
+\end{minec}
+
+Each \cmd{/clone} costs about $50$\,ms of server time, so the seven reflections complete in less than half a second. The manual placement of the $905$ octant blocks takes about $15$\,min in survival or $45$\,s in creative with a brush. The full $7\,238$-block placement (without symmetry) would take $\approx 2$\,h in survival or $6$\,min in creative.
+
+\subsection{Time-cost comparison}
+Let $T_{\mathrm{block}}$ be the per-block placement time (typically $1{-}2$\,s in survival, $0{,}1{-}0{,}5$\,s in creative) and $T_{\mathrm{clone}}$ the per-clone command time ($\approx 50$\,ms). The total construction time with and without symmetry is:
+\[
+T_{\mathrm{octant}} \;+\; 7\,T_{\mathrm{clone}}
+\quad\ll\quad
+T_{\mathrm{full}}
+\]
+For $N = 7\,238$ in survival ($T_{\mathrm{block}} = 2$\,s, $T_{\mathrm{clone}} = 0{,}05$\,s): full = $14\,476$\,s $\approx 4$\,h $1$\,min; octant + clones = $1\,810$\,s + $0{,}35$\,s $\approx 30$\,min. A factor-$8$ speed-up that closely matches the order of the reflection subgroup. The full octahedral group $O_h$ of order $48$ could in principle reduce further (by a factor of $48$), but exploiting the diagonal rotations requires a $45°$-rotated build area, which is rarely worth the setup cost in vanilla Minecraft.
+
+% =============================================================================
+\section{Block textures and visual composition}
+
+A Minecraft block is not a flat-coloured cell but a \emph{cube with six textured faces}. Block Round renders each voxel with its six canonical face textures, sampled from the vanilla resource pack. Mathematically the texturing operation is a \emph{UV mapping}: each face of the unit cube is parameterised by $[0,1]^2$ coordinates, and the corresponding texture is sampled at those UVs to produce the rendered pixels.
+
+\subsection{The six faces and UV mapping}
+For each voxel face the renderer consults the block model:
+\[
+\text{face}\;\in\;\{\,\text{top},\;\text{side},\;\text{bottom}\,\}
+\qquad
+\mathrm{UV}: [0,1]^2 \to \text{pixels}
+\]
+
+Most blocks (Stone, Cobblestone, Diamond Block, Oak Planks) use the \emph{same texture on all six faces}. Multi-face blocks (Grass Block, Pumpkin, Hay Bale, Quartz Pillar, all wood Logs, Crafting Table, Furnace, Bookshelf, TNT) use \emph{different textures} on top, sides and bottom: Grass Block has a green grass top, a grass-and-dirt side and a plain dirt bottom; an Oak Log has the wood-grain end on top and bottom and bark on the four sides. Crucially the \emph{mathematics of which voxels to place} does not depend on which texture is used --- the silhouette of a Diamond sphere and a Cobblestone sphere of the same diameter is identical. The texture decision is a \emph{purely aesthetic} layer applied after the geometric algorithm has finished.
+
+\subsection{Block families and tones}
+For the survival builder choosing among the dozens of available blocks, the relevant question is not the texture index but the \emph{tone family}: light/dark, warm/cool, uniform/patterned. The table below classifies the most common blocks used in Block Round builds:
+
+\vspace{0.4em}
+\begin{center}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Block} & \textbf{Family} & \textbf{Tone} & \textbf{Typical use} \\
+\midrule
+cobblestone        & stone  & gray  & rustic walls, dungeons \\
+stone              & stone  & gray  & clean walls, plinths \\
+oak\_planks        & wood   & tan   & floors, interior trim \\
+quartz\_block      & quartz    & white   & temples, modern domes \\
+sandstone          & sand   & tan   & deserts, pyramids \\
+deepslate          & stone  & dark  & underground, accents \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Gradients by mixing blocks}
+Although a single block type provides one tone, \emph{gradients} can be obtained by interleaving two or three block types per layer. A classic Minecraft technique is the \emph{stone-to-quartz} gradient on a dome: the bottom layers are Smooth Stone, the equatorial layers are a noisy mix of Smooth Stone and Diorite, and the top layers are Quartz. Each layer remains computed by the same Block Round algorithm; what changes is the per-voxel texture lookup. Block Round's \emph{Random} block option implements one such procedural mix by default (grass cap, dirt sub-layer, sparse ores in the middle, deepslate near bedrock). The mathematics is the same as Section~19's layer decomposition; only the per-voxel \enquote{block tag} differs.
+
+% =============================================================================
+\section{Conclusion}
+
+This document described, in a systematic way, the mathematical foundations employed in Block Round. In approximately one thousand lines of JavaScript code plus the supporting texture and audio pipelines, the project integrates contributions from several theoretical areas:
+
+\begin{itemize}[leftmargin=1.3em,itemsep=0.25em,topsep=0.4em]
+  \item \acc{Analytic geometry}: implicit equations of the ellipse and ellipsoid as the primary criterion of belonging.
+  \item \acc{Classical rasterization algorithms}: Bresenham in the midpoint formulation, with the Pitteway/Kappel extension for ellipses.
+  \item \acc{Digital topology}: discrete boundary operators, concepts of 4-, 6- and 26-connectivity, slice composition and exposed-face counting.
+  \item \acc{Integral calculus}: volume of the ellipsoid as a triple integral and its discrete counterpart (counting measure over voxels).
+  \item \acc{Linear algebra}: cutting planes defined by linear inequalities and three-dimensional perspective projection.
+  \item \acc{Trigonometry}: parametrization of the camera in spherical coordinates and automatic distance adjustment as a function of FOV.
+  \item \acc{Combinatorial inventory arithmetic}: ceiling-division accounting of packs of $64$ and double chests of $3\,456$ items, with the stacks-and-remainder representation displayed by the info chip.
+  \item \acc{Group symmetry}: exploitation of the octahedral group $O_h$ and its order-$8$ reflection subgroup $\mathbb{Z}_2^3$ to reduce construction cost by a factor of $8$ via \cmd{/clone}.
+\end{itemize}
+
+The central observation that the study allows to formulate is the following: on a discrete grid, \acc{there is no single correct representation} of a continuous curve. Each algorithm presented in this document corresponds to a distinct mathematical definition of the cell-inclusion criterion, and each definition produces a silhouette with its own formal properties --- smoothness in the Euclidean algorithm, the stepped pattern of Bresenham, larger coverage in the corner-coverage criterion. The choice of algorithm is therefore a technical decision that must consider the intended visual representation, the desired metric characteristics of the resulting shape, and --- specifically for Block Round --- the inventory and time cost of physically constructing the shape in-game.
+
+Block Round occupies a small but mathematically rich slice of the Minecraft tooling ecosystem: it sits between purely geometric tools (WorldEdit, Litematica) and purely visual tools (resource packs, shaders), offering an explicit, derivable, and reproducible bridge from the continuous equation to the discrete placement plan. The companion project Pixel Round provides the same algorithms without the Minecraft layer, suitable for traditional pixel art and voxel art applications. Together the two projects exemplify how the same continuous-to-discrete mathematical pipeline supports radically different artistic and constructive workflows.
+
+\clearpage
+
+% =============================================================================
+\section*{\color{accent}Appendix A: Construction reference tables and worked example}
+\addcontentsline{toc}{section}{Appendix A: Construction reference tables and worked example}
+
+This appendix collects the most-used numerical and command references for Block Round users. The data below is consolidated from the per-section tables and worked examples scattered throughout this document, organised so the appendix functions as a one-page lookup for build planning, command syntax and an end-to-end worked example.
+
+\subsection*{A.1 Comprehensive sphere reference (filled, hollow, packs)}
+The table below extends the canonical sphere tables of Sections~10 and~17 by adding the hollow-shell variant (\emph{thin} mode) alongside the filled volume. The hollow-shell counts assume a single-voxel shell and are computed under the Euclidean algorithm; the thick mode adds roughly $10{-}15\%$ more blocks to seal diagonal gaps as described in Section~12.
+
+\vspace{0.4em}
+\begin{center}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+\textbf{D} & \textbf{Filled (V)} & \textbf{Hollow (shell)} & \textbf{Packs filled} & \textbf{Packs hollow} \\
+\midrule
+8   &   268 &   170 &  5  &  3  \\
+10  &   523 &   316 &  9  &  5  \\
+12  &   904 &   500 & 15  &  8  \\
+14  &  1437 &   744 & 23  & 12  \\
+16  &  2145 &  1042 & 34  & 17  \\
+18  &  3052 &  1338 & 48  & 21  \\
+20  &  4189 &  1648 & 66  & 26  \\
+24  &  7238 &  2400 & 114 & 38  \\
+28  & 11494 &  3296 & 180 & 52  \\
+32  & 17156 &  4332 & 269 & 68  \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+For a builder planning a survival run, the \emph{hollow} column is usually the relevant one: only the visible shell needs the dedicated textured block, while the interior (if any is desired at all) can be filled with the cheapest material. The packs-filled column tells the total stockpile size for a fully filled sphere; packs-hollow is the realistic minimum for a hollow dome or shell.
+
+\subsection*{A.2 WorldEdit / vanilla command reference}
+The following table summarises the WorldEdit and vanilla-Minecraft commands most relevant to constructing Block Round outputs in-game. WorldEdit commands assume the player holds a wand (default wooden axe) and has selected a region; vanilla commands work without any mod but require coordinate arguments.
+
+\vspace{0.4em}
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Command} & \textbf{Mod / origin} & \textbf{Result} \\
+\midrule
+\cmd{//sphere stone 8}     & WorldEdit & filled sphere r=8 (Euclidean)  \\
+\cmd{//hsphere stone 8}    & WorldEdit & hollow sphere r=8 (shell only)  \\
+\cmd{//cyl stone 8 16}     & WorldEdit & cylinder r=8, h=16  \\
+\cmd{//ellipsoid st. 10 5 10} & WorldEdit & ellipsoid 10\,$\times$\,5\,$\times$\,10  \\
+\cmd{/fill ... stone}      & vanilla & fill box with one block type  \\
+\cmd{/clone ... mode:masked} & vanilla & copy region to new location  \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+For Litematica users the workflow is different: rather than running commands, the schematic file (Block Round exports \code{.schem}, Sponge format v2) is loaded into the Litematica mod, which then displays a translucent ghost of the figure that the player places block-by-block. This is the closest survival-mode equivalent of the WorldEdit creative experience.
+
+\subsection*{A.3 Worked example: a D=20 dome of Quartz on a temple}
+As a complete worked example, suppose a builder wants a Quartz dome of $D=20$ on top of an existing stone temple. The temple top is $11 \times 11$ blocks, centered at $(0,80,0)$ in world coordinates. The dome is the upper half of a sphere of radius $r=10$ cut at the $Y=0$ plane. The construction plan is:
+
+\begin{enumerate}[leftmargin=1.6em,itemsep=0.3em,topsep=0.3em]
+  \item \textbf{Plan with Block Round.} Open the app, set 3D mode, Sphere, size $D=20$, cut axis $Y$ at $50\%$. Select Quartz Block from the picker. The info chip reports $V_{\mathrm{dome}} \approx 2\,126$ blocks ($\approx 34$ packs, $1$ double chest with $1\,330$ items remaining in the second).
+  \item \textbf{Gather resources.} $34$ packs of Quartz Block = $\lceil 2\,126/4 \rceil = 532$ Quartz Blocks $\times 4$ Nether Quartz each = $2\,128$ Nether Quartz. Smelt or trade as appropriate.
+  \item \textbf{Decide algorithm.} For a Quartz dome viewed from below by passersby, the Euclidean algorithm gives the smoothest silhouette; for a dome on a remote mountain the Threshold algorithm reads cleaner. Block Round defaults to Euclidean.
+  \item \textbf{Position the dome.} The dome's flat face must coincide with the temple top. The dome's bounding box is $20 \times 10 \times 20$ blocks; place its centre at $(0,80,0)$, so the flat (cut) face lies at $y=80$ and the dome apex is at $y=89$.
+  \item \textbf{Build by symmetry.} Build the $+x, +z$ quadrant of the dome (about $\approx 530$ blocks). Issue \cmd{/clone 0 80 0 10 89 10 -10 80 0 mode:masked} to mirror across $x$; then \cmd{/clone -10 80 0 10 89 10 0 80 -10 mode:masked} to mirror across $z$. Total elapsed: $\sim 10$ minutes in survival.
+  \item \textbf{Polish.} Add Sea Lanterns at the apex and at the four cardinal points of the equator for emissive illumination (Block Round renders these with their emissive map at MC light level $15$). Optionally toggle Block Round's edge overlay (key \code{G}) to verify the dome shell has no gaps before placing the last few blocks.
+\end{enumerate}
+
+The mathematics of every step is exactly what the preceding twenty-two sections describe: implicit ellipsoid equation, Euclidean voxelisation, Y-axis cut, octahedral symmetry reduction via \cmd{/clone}, inventory arithmetic to translate the volume into packs and chests. The appendix is therefore not a new theory --- it is a reminder that every theoretical concept of this document maps onto a single, concrete decision in the build-planning workflow.
+
+\subsection*{A.4 Keyboard shortcut reference}
+
+The Block Round app exposes a small set of keyboard shortcuts that mirror the corner-button toggles on the canvas. They are listed below for quick reference; the shortcuts are global (no input field needs focus) and work in both 2D and 3D modes unless noted.
+
+\vspace{0.4em}
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Key} & \textbf{Toggles} & \textbf{Notes} \\
+\midrule
+\code{G} & Edge grid overlay  & black outline on each voxel face \\
+\code{C} & Center guides  & translucent yellow cross at axes \\
+\code{D} & Download PNG  & current canvas as PNG image \\
+\code{I} & Info chip  & block count and pack breakdown \\
+\code{M} & 2D / 3D toggle  & switches between flat and voxel mode \\
+\code{S} & Sound on/off  & ambient block-place sounds \\
+\code{T} & Day / night theme  & dims background, keeps tiles readable \\
+\code{Ctrl+Z / Y} & Undo / redo  & walks the figure-change history \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The shortcuts \code{G} (grid) and \code{C} (center guides) are particularly useful during construction validation: \code{G} shows whether every voxel of the shell is in place (a missing block breaks the overlay pattern), and \code{C} confirms that the cuts are properly centred on the figure axes.
+
+For the \code{Ctrl+Z} undo: Block Round walks every figure-changing edit (sliders, render mode, algorithm, shape, axis, block, mode toggle) but deliberately excludes visual-only toggles (camera, edges overlay, center cross, theme, sound). This separation keeps the undo stack populated with edits the user is likely to want to reverse, not casual visual adjustments.
+
+\subsection*{A.5 Glossary of key terms}
+
+Quick reference for the technical terms that recur throughout this document. Each entry briefly recapitulates the concept and points to the section where it is developed in detail.
+
+\begin{itemize}[leftmargin=1.4em,itemsep=0.18em,topsep=0.3em]
+  \item \textbf{Voxel} --- unit cube in 3D, analogue of the pixel in 2D. Each Minecraft block is one voxel. See Section~2.
+  \item \textbf{Pack (stack)} --- in Minecraft, a stack of 64 identical items occupying one inventory slot. See Section~17.
+  \item \textbf{Double chest} --- two adjacent chests merged into a 54-slot container. Holds up to $3\,456$ items. See Section~17.
+  \item \textbf{Shulker box} --- portable 27-slot container that can itself be stored inside a chest slot. See Section~17.
+  \item \textbf{Shell} --- the outer one-voxel-thick layer of a solid figure. The relevant surface for survival builders. See Section~7 and~18.
+  \item \textbf{Octant} --- one of the eight regions of 3D space obtained by intersecting the three coordinate half-spaces. Used in symmetry optimisation. See Section~20.
+  \item \textbf{UV mapping} --- a 2D parametrisation of a 3D face, used to map a texture image onto each face of a voxel. See Section~21.
+  \item \textbf{Bresenham} --- 1965 incremental rasterisation algorithm using only integer arithmetic. See Section~5.
+  \item \textbf{Threshold} --- rasterisation criterion that includes a cell if any of its corners lies inside the ellipse. See Section~6.
+  \item \textbf{Euclidean} --- rasterisation criterion that includes a cell if its center lies inside the ellipse. See Section~4.
+  \item \textbf{Easter egg} --- a hidden feature triggered by a specific input. In Block Round: the oak tree and the creeper, both on slider value 15.
+  \item \textbf{Schematic} --- a serialised structure file (Sponge Schematic v2, \code{.schem}) loadable by WorldEdit, Litematica or MCEdit.
+\end{itemize}
+
+This glossary intentionally remains shorter than a full mathematical lexicon. Readers seeking deeper coverage of the underlying mathematics (digital topology, integral calculus, group theory, etc.) are referred to the relevant sections of this document.
+
+\subsection*{A.6 Outlook and limits of the model}
+
+The Block Round model presented in this document covers the static voxelisation of ellipses, ellipsoids and their cuts plus the practical considerations introduced by the Minecraft layer. It does not address dynamic problems --- moving figures, animated voxel transitions, fluid-simulation interactions --- because those require a continuous-time framework that lies outside the discrete-rasterisation scope. A natural extension is the \emph{schematic-level animation}: a sequence of static voxelisations connected by interpolation, which Block Round can already export as a \code{.schem} stream readable by Litematica scripts.
+
+Another open direction is the \emph{exact volume-preserving voxelisation}: the current discrete count $V_{\mathrm{disc}}$ converges to the continuous volume $V_{\mathrm{cont}}$ only asymptotically. For applications where the exact count must match the continuous formula (e.g.\ rendering competitions, mathematical art with strict block budgets), an extra refinement layer is required --- for instance, by adjusting the radius slightly so the discrete count hits a target value. Block Round does not currently implement this refinement, but the underlying mathematics is straightforward: solve $V_{\mathrm{disc}}(r) = V_{\mathrm{target}}$ numerically for $r$.
+
+Finally, the \emph{higher-symmetry exploitation}: the present document covers the order-$8$ reflection subgroup of $O_h$, but the full order-$48$ group includes rotations that would in principle allow a $\times 48$ speedup. The practical obstacle is that the in-game commands work in axis-aligned regions, and exploiting the rotational symmetries requires a $45°$-rotated build area. Server-side mods that internally rotate selection boxes (e.g.\ FAWE) can in principle achieve this, but mainstream tooling does not yet expose it. A reference implementation that demonstrates $\times 48$ speedup on a vanilla server would be a natural follow-up to the present work.
+
+\subsection*{A.7 Further references and external resources}
+
+The mathematical concepts developed in this document have well-established literatures of their own. For readers seeking primary sources or deeper algorithmic background, the following entry points are recommended:
+
+\begin{itemize}[leftmargin=1.4em,itemsep=0.2em,topsep=0.3em]
+  \item J.~E.~Bresenham, \emph{Algorithm for computer control of a digital plotter}, IBM Systems Journal, vol.~4 no.~1, 1965 --- the original integer-arithmetic rasterisation paper extended in this document.
+  \item M.~L.~V.~Pitteway, \emph{Algorithm for drawing ellipses or hyperbolae with a digital plotter}, Computer Journal, vol.~10, 1967 --- generalises Bresenham to arbitrary conics.
+  \item A.~Kappel, \emph{An ellipse-drawing algorithm for raster displays}, ACM Comm.\ vol.~28, 1985 --- the two-region elliptic formulation used in Section~5.
+  \item R.~Klette and A.~Rosenfeld, \emph{Digital Geometry: Geometric Methods for Digital Picture Analysis}, Morgan Kaufmann, 2004 --- the standard reference for digital topology and the boundary operators of Section~7 and~18.
+  \item WorldEdit documentation, \emph{enginehub.org/worldedit/} --- official command reference for the \cmd{//sphere}, \cmd{//hsphere}, \cmd{//ellipsoid}, \cmd{//copy} family used throughout this document.
+  \item Sponge Schematic specification v2, \emph{github.com/SpongePowered/Schematic-Specification} --- the file format Block Round exports as \code{.schem}.
+\end{itemize}
+
+The eight theoretical areas listed in Section~22 each have textbook-level treatments that go well beyond what a single technical document can summarise. Block Round's contribution is not in the theory itself but in the specific synthesis: applying classical rasterisation to the textured-voxel Minecraft setting, with the explicit inventory and symmetry-cost considerations that are usually omitted from purely geometric tools.
+
+A final remark on reproducibility: the entire pipeline of this document --- the build script, the translations, the LaTeX template, the per-locale tables --- is contained in the project repository's \code{docs_math/} directory. Re-running \code{python build.py} on a system with XeLaTeX/MiKTeX produces this PDF exactly, in any of the nine supported locales. The companion project Pixel Round follows the same structure, allowing direct side-by-side comparison of the textured and untextured variants.
+
+\vspace{1.2em}
+
+\begin{center}
+{\sffamily\bfseries\color{accent}End of document}
+\end{center}
+
+\vspace{0.6em}
+
+Block Round is maintained by Vinícius Rodrigues de Souza. The companion project Pixel Round is available at \emph{github.com/ViniSouza128/pixel-round}; the current Block Round repository is at \emph{github.com/ViniSouza128/block-round}.
+
+Comments, corrections, and translation improvements are welcome via the issue tracker on the project repository. Native-speaker proofreading of the eight non-English locales is particularly valued, as the localisations were prepared with substantial review but technical-mathematical terminology benefits from native correction.
+
+\end{document}

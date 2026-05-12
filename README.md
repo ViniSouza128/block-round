@@ -265,6 +265,42 @@ visit starts at the defaults.
 Vanilla JavaScript + Canvas 2D + three.js. No framework, no build
 step. Loads as a single static HTML file. Works offline (PWA).
 
+## Documentation
+
+Block Round ships a full **technical math companion** in
+nine languages, ≥25 pages each, available under
+[`docs_math/`](docs_math/):
+
+| Locale | File |
+|--------|------|
+| en-US  | [`Block_Round_Math_en-US.pdf`](docs_math/Block_Round_Math_en-US.pdf) |
+| es-ES  | [`Block_Round_Math_es-ES.pdf`](docs_math/Block_Round_Math_es-ES.pdf) |
+| pt-BR  | [`Block_Round_Math_pt-BR.pdf`](docs_math/Block_Round_Math_pt-BR.pdf) |
+| fr-FR  | [`Block_Round_Math_fr-FR.pdf`](docs_math/Block_Round_Math_fr-FR.pdf) |
+| de-DE  | [`Block_Round_Math_de-DE.pdf`](docs_math/Block_Round_Math_de-DE.pdf) |
+| zh-CN  | [`Block_Round_Math_zh-CN.pdf`](docs_math/Block_Round_Math_zh-CN.pdf) |
+| ja-JP  | [`Block_Round_Math_ja-JP.pdf`](docs_math/Block_Round_Math_ja-JP.pdf) |
+| ru-RU  | [`Block_Round_Math_ru-RU.pdf`](docs_math/Block_Round_Math_ru-RU.pdf) |
+| ko-KR  | [`Block_Round_Math_ko-KR.pdf`](docs_math/Block_Round_Math_ko-KR.pdf) |
+
+Each PDF covers 22 numbered sections plus an appendix:
+
+- the implicit ellipse and ellipsoid equations,
+- the three 2D rasterization algorithms (Euclidean, Bresenham, Threshold),
+- rendering modes (Filled, Thin, Thick) and discrete-area computation,
+- voxelization, voxel volume and the three planar cuts (X, Y, 45° diagonal),
+- the 3D spherical-coordinate camera with auto-zoom via bounding sphere,
+- shading as Lambertian approximation on top of block textures, and
+- five **Minecraft-specific extensions**: block-texture UV mapping,
+  inventory arithmetic (packs of 64, double chests of 3,456 items),
+  highlight-overlay exposed-face counting, layer-by-layer horizontal
+  decomposition, and octahedral-symmetry construction-cost reduction
+  via `/clone` and WorldEdit.
+
+The landing page at [`docs_math/index.html`](docs_math/index.html) lists
+all nine locales. The PDFs are typeset with XeLaTeX; rebuild with
+`cd docs_math && python build.py`.
+
 ## License & notices
 
 - **Code, layout, design system, sound engine:** All Rights Reserved

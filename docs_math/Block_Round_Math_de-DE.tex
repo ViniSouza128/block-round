@@ -1,0 +1,793 @@
+% !TEX program = xelatex
+\documentclass[12pt,a4paper]{scrartcl}
+
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setdefaultlanguage{german}
+\PolyglossiaSetup{german}{indentfirst=false}
+\setmainfont{Latin Modern Roman}[Scale=1.08]
+\setsansfont{Latin Modern Sans}[Scale=1.08]
+\setmonofont{Latin Modern Mono}[Scale=1.00]
+\usepackage{unicode-math}
+\setmathfont{Latin Modern Math}[Scale=1.08]
+
+\usepackage{amsmath}
+\usepackage{mathtools}
+
+\usepackage[a4paper,top=2.8cm,bottom=2.8cm,left=2.6cm,right=2.6cm,
+            headheight=16pt]{geometry}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{csquotes}
+\usepackage{needspace}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins,breakable}
+\usepackage[hidelinks,bookmarks=true,bookmarksopen=true,
+            pdftitle={Block Round — Die Mathematik des Projekts},
+            pdfauthor={Vinícius Rodrigues de Souza}]{hyperref}
+
+\definecolor{accent}{HTML}{5B8E3F}
+\definecolor{accentdark}{HTML}{406A2A}
+\definecolor{earth}{HTML}{825432}
+\definecolor{ink}{HTML}{1F1F23}
+\definecolor{muted}{HTML}{4E4E58}
+\definecolor{bg}{HTML}{FBF6E9}
+\definecolor{rule}{HTML}{D8D1BC}
+
+\color{ink}
+
+\titleformat{\section}
+  {\sffamily\Large\bfseries\color{accent}}{\thesection.}{0.6em}{}
+\titleformat{\subsection}
+  {\sffamily\large\bfseries\color{accent!85!ink}}{\thesubsection}{0.6em}{}
+\titlespacing*{\section}{0pt}{1.2\baselineskip}{0.6\baselineskip}
+\titlespacing*{\subsection}{0pt}{0.8\baselineskip}{0.3\baselineskip}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\sffamily\bfseries\color{accent}BLOCK ROUND}
+\fancyhead[R]{\small\sffamily\color{muted}Die Mathematik des Projekts}
+\fancyfoot[L]{\small\sffamily\color{muted}Block Round — Technisches Dokument}
+\fancyfoot[R]{\small\sffamily\color{muted}Seite \thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+\renewcommand{\headrule}{{\color{rule}\hrule height \headrulewidth}}
+\renewcommand{\footrule}{{\color{rule}\vskip-\footrulewidth\hrule height \footrulewidth\vskip-\footrulewidth}}
+
+\newtcolorbox{formula}{
+  colback=bg, colframe=rule, boxrule=0.4pt, arc=2pt,
+  left=10pt,right=10pt,top=8pt,bottom=8pt,
+  before skip=8pt, after skip=8pt,
+  fontupper=\color{accentdark}, breakable,
+  before={\par\needspace{4\baselineskip}}
+}
+
+\newtcolorbox{minec}{
+  colback=accent!7, colframe=accent!50!rule, boxrule=0.6pt, arc=2pt,
+  left=10pt,right=10pt,top=8pt,bottom=8pt,
+  before skip=10pt, after skip=10pt,
+  breakable,
+  before={\par\needspace{5\baselineskip}}
+}
+
+\setlength{\parskip}{0.75em}
+\setlength{\parindent}{0pt}
+\linespread{1.10}
+
+\newcommand{\code}[1]{\texttt{\small #1}}
+\newcommand{\acc}[1]{\textcolor{accent}{\textbf{#1}}}
+\newcommand{\cmd}[1]{\textcolor{earth}{\texttt{\small #1}}}
+
+\begin{document}
+
+\begin{titlepage}
+  \centering
+  \vspace*{3.5cm}
+  {\sffamily\bfseries\fontsize{56}{60}\selectfont \color{accent} Block Round\par}
+  \vspace{0.7cm}
+  {\sffamily\LARGE\color{muted} Die Mathematik des Projekts\par}
+  \vspace{1.4cm}
+  {\color{rule}\rule{0.6\textwidth}{0.6pt}\par}
+  \vspace{0.9cm}
+  \begin{minipage}{0.82\textwidth}
+    \centering\color{ink}\large
+    Technische und didaktische Dokumentation der mathematischen Grundlagen des Generators für Kreise, Ellipsen, Kugeln und Ellipsoide, \emph{gerendert mit Minecraft-Block-Texturen}. Für jedes Konzept werden die formale Definition, die geometrische Begründung, die direkte Korrespondenz mit dem Quellcode des Projekts und die praktische Übersetzung in In-Game-Baubefehle (\cmd{/fill}, \cmd{/clone}, \cmd{//sphere}) dargestellt.
+  \end{minipage}
+  \vspace{0.9cm}\\
+  {\color{rule}\rule{0.6\textwidth}{0.6pt}\par}
+  \vspace{2cm}
+  \begin{minipage}{0.78\textwidth}
+    \centering\sffamily\small\color{muted}
+    \textbf{Themen:} analytische Geometrie $\cdot$ diskrete Rasterung $\cdot$ digitale Topologie $\cdot$ Integralrechnung $\cdot$ lineare Algebra $\cdot$ Trigonometrie $\cdot$ Inventar-Arithmetik $\cdot$ Textur-Mapping $\cdot$ oktaedrische Symmetrie.
+  \end{minipage}
+\end{titlepage}
+
+\renewcommand{\contentsname}{\color{accent}Inhaltsverzeichnis}
+\tableofcontents
+\thispagestyle{fancy}
+\newpage
+
+% =============================================================================
+\section{Überblick: mathematische Natur des Problems}
+
+Block Round ist ein Generator für abgerundete Formen, \emph{mit Minecraft-Block-Texturen gerendert}: Kreise und Ellipsen in 2D, Kugeln und Ellipsoide in 3D. Das zentrale Problem gehört zur \emph{diskreten Rasterung}: Gegeben eine analytisch definierte Kurve oder Fläche über $\mathbb{R}$, bestimme welche Zellen eines regelmäßigen Gitters (Pixel in 2D, Voxel in 3D) markiert werden müssen. Jede markierte Zelle in Block Round erhält zusätzlich eine Sechs-Flächen-Textur aus dem Minecraft-Sortiment (Grasblock, Bruchstein, Eichenholzbretter, Quarz, Diamant usw.), sodass die resultierende Figur nicht nur eine mathematische Silhouette ist, sondern eine \emph{baubare Struktur}, die der Nutzer im Survival, im Creative mit \cmd{/fill} oder über Sponge Schematic v2 (\code{.schem}) in WorldEdit, Litematica oder MCEdit importieren kann.
+
+Das Problem hat keine eindeutige Lösung. Verschiedene Einschluss-Kriterien erzeugen verschiedene diskrete Silhouetten, jedes Kriterium hat seine eigene mathematische Begründung. Daher implementiert das Projekt drei verschiedene 2D-Algorithmen (Euklidisch, Bresenham, Schwellwert), drei Render-Modi (Gefüllt, Dünn, Dick) und drei 3D-Schattierungsstile. Die Wahl des Algorithmus hängt nicht nur von der visuellen Glätte ab, sondern auch von der Anzahl der Blöcke, die der Nutzer sammeln muss --- eine Kugel von $D=20$ benötigt $4\,189$ Blöcke unter Euklidisch, aber bis zu $4\,322$ unter Schwellwert.
+
+Die Ausführung findet vollständig im Browser statt, ohne Server, was eine zusätzliche Anforderung an \emph{Recheneffizienz} stellt (eine Diamant-Kugel von $D=32$ muss mit 60\,fps gerendert werden, mit 17\,156 texturierten Voxeln). Die einbezogenen theoretischen Bereiche sind:
+\begin{itemize}[leftmargin=1.3em,itemsep=0.15em,topsep=0.3em]
+  \item analytische Geometrie von Kegelschnitten und Quadriken;
+  \item inkrementelle Algorithmen mit Ganzzahlarithmetik (Bresenham);
+  \item digitale Topologie (4-, 6- und 26-zusammenhängende Nachbarschaften);
+  \item Integralrechnung und Zählmaß;
+  \item lineare Algebra (Schnittebenen, perspektivische Projektion);
+  \item Trigonometrie und Kugelkoordinaten;
+  \item kombinatorische Inventar-Arithmetik und Gruppen-Symmetrie.
+\end{itemize}
+
+\textbf{Neuerungen gegenüber dem Schwesterprojekt Pixel Round.} Block Round fügt fünf neue mathematische Belange hinzu, die nur entstehen, wenn die gerenderten Zellen zu \emph{Minecraft-Blöcken} werden: (i) das UV-Mapping der sechs Flächen jedes Voxels; (ii) die Arithmetik des Survival-Inventars (Packs von 64 Items, Einzeltruhen mit 27 Slots, Doppeltruhen mit 54 Slots); (iii) das Kontur-Overlay zum Zählen der freiliegenden Flächen während des Baus; (iv) die Zerlegung einer 3D-Form in horizontale Schichten, da der reale Bau Etage für Etage erfolgt; (v) die Ausnutzung der oktaedrischen Symmetriegruppe $O_h$ zur Reduktion der manuellen Blockplatzierungskosten um den Faktor $8$ mittels \cmd{/clone}.
+
+% =============================================================================
+\section{Koordinatensystem und das diskrete Voxel-Gitter}
+
+Die Leinwand ist ein Gitter aus $G_x \times G_y$ Zellen in 2D, erweitert auf $G_x \times G_y \times G_z$ Voxel in 3D. Jede Zelle $(i,j)$ belegt das Einheitsquadrat $[i, i+1] \times [j, j+1]$; in 3D belegt jeder Voxel den Einheitskubus. Im stetigen Code befindet sich der \acc{Mittelpunkt} der Zelle bei $(i+\tfrac{1}{2},\; j+\tfrac{1}{2})$. Diese Konvention ist entscheidend: Den Kreis mit der \emph{Ecke} $(i,j)$ oder mit dem \emph{Mittelpunkt} zu vergleichen, ändert welche Zellen zur Form gehören und damit welche Blöcke der Nutzer platzieren muss.
+
+\begin{formula}
+\centering
+$\displaystyle \text{Mittelpunkt der Zelle $(i,j)$}\;=\;\bigl(i+\tfrac{1}{2},\;\; j+\tfrac{1}{2}\bigr)$
+\end{formula}
+
+Für eine Form vom Durchmesser $D$ erweitert der Code das Gitter auf $D+2$ Zellen pro Achse (Rand von einer Zelle auf jeder Seite). Damit fallen extreme Pixel (N, S, O, W) nie auf den Matrix-Rand. Der \acc{Mittelpunkt} der Form liegt bei $(G_x/2,\;G_y/2)$, die \emph{Halbachsen} sind $r_x = D/2$ und $r_y = D/2$. Die Einheitszelle der Leinwand entspricht dem Einheitsblock von Minecraft, sodass die Koordinaten des Algorithmus eins zu eins auf die $(x,y,z)$-Koordinaten im Spiel abgebildet werden.
+
+\begin{minec}
+\textbf{Minecraft-Mapping.} Wenn der Spieler bei $(0,64,0)$ spawnt und eine Kugel $D=16$ ($r=8$) auf dem Boden möchte, sollte der Mittelpunkt in Welt-Koordinaten bei $(0,72,0)$ ($8$ Blöcke über der Oberfläche) sein, damit der Südpol den Boden berührt. WorldEdit-Befehl: \cmd{//sphere stone 8} stehend an $(0,72,0)$.
+\end{minec}
+
+% =============================================================================
+\section{Die Fundamentalgleichung: Kreis und Ellipse}
+
+Die gesamte Theorie des Projekts beginnt mit der impliziten Gleichung der Ellipse, zentriert im Ursprung mit Halbachsen $r_x$ und $r_y$:
+
+\begin{formula}
+\centering
+$\displaystyle \left(\dfrac{x}{r_x}\right)^{\!2} + \left(\dfrac{y}{r_y}\right)^{\!2} \;=\; 1$
+\end{formula}
+
+Wenn $r_x = r_y = r$, entartet die Ellipse zu einem \acc{Kreis} vom Radius $r$. Punkte im \emph{Inneren} erfüllen $\leq 1$; Punkte im \emph{Äußeren}, $> 1$. Diese Ungleichung entscheidet, ob ein Voxel zur Form gehört und damit ob der Nutzer dort einen Block platziert.
+
+Verschiebung des Mittelpunkts zu $(c_x, c_y)$ und Auswertung im Zellenmittelpunkt:
+
+\begin{formula}
+\centering
+$\displaystyle d_x = \dfrac{i+\tfrac{1}{2}-c_x}{r_x},\qquad
+                d_y = \dfrac{j+\tfrac{1}{2}-c_y}{r_y},\qquad
+                \text{innen}\;\Longleftrightarrow\; d_x^2 + d_y^2 \leq 1$
+\end{formula}
+
+\begin{minec}
+\textbf{Minecraft-Mapping.} Für einen Survival-Turm möchte der Nutzer typischerweise einen \emph{breiten, flachen Kreis} als Fundament und schrittweise kleinere Kreise nach oben. Jedes Stockwerk ist eine Anwendung der impliziten Ellipsengleichung mit denselben Halbachsen und unterschiedlichem $z$. Block Round berechnet die 2D-Schicht einmal, der Nutzer dupliziert per \cmd{/clone} pro Stockwerk.
+\end{minec}
+
+% =============================================================================
+\section{Euklidischer Algorithmus (Distanztest)}
+
+\textbf{Idee.} Für jede Zeile $j$ analytisch die Spalten $i$ finden, die in der Ellipse liegen. Auflösen nach $x$ bei gegebenem $y$:
+
+\begin{formula}
+\centering
+$\displaystyle x \;=\; c_x \;\pm\; r_x\,\sqrt{\,1 - \left(\dfrac{y-c_y}{r_y}\right)^{\!2}\,}$
+\end{formula}
+
+Für eine Zeile $j$ mit vertikaler Verschiebung $d_y = j+\tfrac{1}{2}-c_y$ ist die \emph{horizontale Halbbreite} der Ellipse in dieser Höhe:
+
+\begin{formula}
+\centering
+$\displaystyle \mathit{dxM} \;=\; r_x\,\sqrt{\,1 - \dfrac{d_y^{\,2}}{r_y^{\,2}}\,}$
+\end{formula}
+
+Falls $d_y^{\,2}/r_y^{\,2} \geq 1$, schneidet die Zeile die Ellipse nicht und wird übersprungen. Sonst werden alle Spalten $i$ mit $c_x - \mathit{dxM} \leq i+\tfrac{1}{2} \leq c_x + \mathit{dxM}$ gefüllt. Die ganzzahligen Grenzen ergeben sich aus:
+
+\begin{formula}
+\centering
+$\displaystyle \mathit{lo} = \lceil c_x - \mathit{dxM} - \tfrac{1}{2} \rceil,
+                \qquad
+                \mathit{hi} = \lfloor c_x + \mathit{dxM} - \tfrac{1}{2} \rfloor$
+\end{formula}
+
+\textbf{Begründung.} Der Term $+\tfrac{1}{2}$ resultiert aus der Konvention, dass Zelle $i$ den Mittelpunkt bei $i+\tfrac{1}{2}$ hat. Die Funktionen $\lceil\,\cdot\,\rceil$ und $\lfloor\,\cdot\,\rfloor$ konvertieren das stetige Intervall in ganzzahlige Indizes und garantieren, dass nur Zellen einbezogen werden, deren \acc{Mittelpunkt} im Inneren der Ellipse liegt. Diese Formulierung liefert die diskrete Approximation, die der stetigen Kurve am nächsten ist, und damit die glatteste Silhouette. Für kleine Durchmesser kann das Ergebnis allerdings weniger pixel-art-artig wirken --- ein Euklidischer Kreis $D=5$ hat nur $13$ Blöcke, der Schwellwert-Variante des gleichen Durchmessers $21$.
+
+\begin{minec}
+\textbf{Minecraft-Mapping.} Das Euklidische Kriterium kommt dem am nächsten, was \cmd{//sphere} in WorldEdit erzeugt. Für eine Bruchstein-Kugel von $D=16$ ($r=8$) nur mit Euklidischer Schale ist das Volumen $V \approx 2\,145$ Blöcke im gefüllten Modus, $\approx 804$ im dünnen Modus --- der Unterschied zwischen dem Sammeln von $34$ Packs ($2\,176$) und $13$ Packs ($832$).
+\end{minec}
+
+% =============================================================================
+\section{Bresenham-Algorithmus (Ganzzahl-Mittelpunkt)}
+
+Der 1965 für Strecken veröffentlichte Bresenham-Algorithmus wurde später auf Kreise erweitert und von Pitteway und Kappel auf beliebige Ellipsen verallgemeinert. Seine kennzeichnende Eigenschaft ist der Verzicht auf Gleitkomma-Operationen und Wurzelziehen: Die Bestimmung des nächsten Pixels benutzt ausschließlich \acc{ganzzahlige Additionen und Vergleiche}, mittels einer \emph{Entscheidungsfunktion}, die auswertet, auf welcher Seite der analytischen Kurve der Mittelpunkt zwischen den zwei Pixelkandidaten liegt. Für Minecraft-Bau ist es der Algorithmus mit dem am \emph{wiedererkennbarsten} Pixel-Art-Look --- dieselbe stufenförmige Silhouette, die die Community seit 2011 von Hand baut.
+
+\subsection{Kreisfall}
+
+Für einen Kreis mit ganzzahligem Radius $R$ startet man bei $(x{=}0,\,y{=}R)$ mit dem initialen Entscheidungsparameter:
+\[
+d_0 \;=\; 1 - R
+\]
+
+Bei jedem Schritt (im Oktanten von $0$ bis $45°$):
+\[
+\begin{cases}
+\text{wenn } d < 0: & \text{nächster ist } (x{+}1,\;y), \quad d \mathrel{+}= 2x+3 \\[2pt]
+\text{wenn } d \geq 0: & \text{nächster ist } (x{+}1,\;y{-}1), \quad d \mathrel{+}= 2(x-y)+5
+\end{cases}
+\]
+
+\textbf{Begründung.} Die Funktion $d$ approximiert in jeder Iteration den Wert der impliziten Kreisgleichung ausgewertet am \acc{Mittelpunkt} zwischen den zwei Pixelkandidaten:
+\[
+F\!\left(x+1,\;y-\tfrac{1}{2}\right) \;=\; (x+1)^2 + \left(y-\tfrac{1}{2}\right)^{\!2} - R^2
+\]
+Das Vorzeichen von $d$ gibt an, ob der Mittelpunkt im Inneren des Kreises liegt (nur horizontal weiter) oder außen (auch $y$ dekrementieren). Die acht Oktanten ergeben sich durch die Symmetrien der Diedergruppe $D_4$, was im Code den acht \code{span(...)}-Aufrufen entspricht. Die resultierende Spur zeigt das stufenartige Muster, das charakteristisch für diskrete Approximationen glatter Kurven ist.
+
+\subsection{Elliptischer Fall (zwei Regionen)}
+
+Für eine Ellipse mit Halbachsen $a, b$ teilt der Algorithmus den ersten Quadranten in \acc{zwei Regionen}, getrennt durch den Punkt, an dem die Tangente $45°$ bildet:
+\[
+\text{Region I: } 2b^2 x < 2a^2 y \quad \bigl(|dy/dx| < 1\bigr),
+\qquad
+\text{Region II: andernfalls}
+\]
+
+Die initialen Entscheidungsparameter sind:
+\begin{align*}
+p_1 &= b^2 - a^2 b + \tfrac{a^2}{4}, \\
+p_2 &= b^2\!\left(x+\tfrac{1}{2}\right)^{\!2} + a^2\!\left(y-1\right)^{\!2} - a^2 b^2.
+\end{align*}
+
+Bei jeder Iteration wird $p$ mit vorberechneten Inkrementen aktualisiert (alle ganzzahlig nach Multiplikation mit 4). Das Ergebnis ist die minimale Arithmetik pro Pixel: \emph{ein Vorzeichentest und zwei Additionen}.
+
+\begin{minec}
+\textbf{Minecraft-Mapping.} Für Survival-Bauer ist die Bresenham-Silhouette oft der Euklidischen vorzuziehen, weil die diskreten Schritte leicht manuell zählbar sind --- der Nutzer weiß, dass der nächste Block immer entweder \emph{gerade} oder \emph{diagonal} ist. Ein Bresenham-Kreis $D=11$ hat die kanonische $80$-Block-Sequenz aus Dutzenden von Community-Guides.
+\end{minec}
+
+% =============================================================================
+\section{Schwellwert-Algorithmus (Eck-Abdeckung)}
+
+Dieser Algorithmus fragt: \emph{Liegt irgendeine Ecke der Zelle in der Ellipse?} Für jede Zelle $(i,j)$ findet der Code die zum Form-Mittelpunkt nächstliegende Ecke:
+
+\begin{formula}
+\centering
+$\displaystyle n_x = \operatorname{clamp}(c_x,\,i,\,i{+}1),\quad
+                n_y = \operatorname{clamp}(c_y,\,j,\,j{+}1)$ \\[6pt]
+$\displaystyle \text{innen}\;\Longleftrightarrow\;
+\left(\dfrac{n_x-c_x}{r_x}\right)^{\!2} + \left(\dfrac{n_y-c_y}{r_y}\right)^{\!2} \leq 0{,}94$
+\end{formula}
+
+Der Wert \acc{$0{,}94$} ist ein \emph{empirischer Schwellwert} leicht unter $1{,}0$. Sein Zweck ist es, das als \emph{tangentialer Spike} bekannte 1-Pixel-Artefakt an den vier Himmelsrichtungen zu eliminieren, wo die Kurve eine ganze Zellkante tangiert.
+
+Unter den drei Algorithmen liefert dieser die Silhouette mit der größten Fläche bei gleichem $D$, da die Einschluss-Bedingung am wenigsten restriktiv ist. Für Minecraft liefert er den \emph{rundesten} Look auf Kosten von mehr Blöcken --- $D=16$ liefert $213$ Schalen-Blöcke unter Schwellwert gegen $200$ unter Bresenham und $192$ unter Euklidisch.
+
+\begin{minec}
+\textbf{Minecraft-Mapping.} Schwellwert ist die Wahl, wenn der Bau aus großer Distanz betrachtet wird (z.B.\ eine Quarz-Kuppel auf einem Tempel), weil die etwas größere Silhouette durch Umgebungs-Verdeckung besser lesbar ist. Trade-off: ca.\ $5{-}10\%$ mehr Blöcke pro Schale gegenüber Euklidisch.
+\end{minec}
+
+% =============================================================================
+\section{Render-Modi: Gefüllt, Dünn, Dick}
+
+Mit einer Matrix $f[j][i] = 1$ für innere Zellen leitet das Projekt drei visuelle Stile per \acc{diskreter Topologie} ab:
+
+\subsection{Gefüllt}
+Liefert $f$ unverändert. Alle inneren Zellen werden Blöcke. Das produziert \cmd{//sphere stone 8}.
+
+\subsection{Dünn (Umriss)}
+Eine Zelle gehört zum dünnen Umriss, wenn sie gefüllt ist \emph{und} mindestens einen orthogonalen Nachbarn (N, S, O, W) \emph{außerhalb} der Form hat. In logischer Notation:
+\[
+b(i,j) \;=\; f(i,j) \;\wedge\;
+\bigl(\neg f(i{-}1,j)\,\vee\,\neg f(i{+}1,j)\,\vee\,\neg f(i,j{-}1)\,\vee\,\neg f(i,j{+}1)\bigr)
+\]
+Geometrisch: das ist der \acc{diskrete Rand} der Form, diskretes Analogon der topologischen Grenze $\partial F = F \cap \overline{F^{\mathrm{c}}}$. In Minecraft entspricht es \cmd{//hsphere}: nur die Schale wird materialisiert.
+
+\subsection{Dick}
+Der Dick-Modus fügt den Rand-Pixeln die \acc{Diagonal-Brücken} hinzu: innere Zellen, die gleichzeitig einen horizontalen und einen vertikalen Rand-Nachbarn haben. Das schließt die 1-Pixel-Diagonalen, die der dünne Modus offen lässt, nützlich wenn die Kontur in einer Szene stabil wirken muss (keine $45°$-Löcher) --- besonders wichtig für Glas- und Eis-Kuppeln.
+\begin{align*}
+t(i,j) &= b(i,j) \;\vee\; \bigl(f(i,j) \,\wedge\, h_H \,\wedge\, h_V\bigr), \\
+h_H &= b(i{-}1,j) \;\vee\; b(i{+}1,j), \\
+h_V &= b(i,j{-}1) \;\vee\; b(i,j{+}1).
+\end{align*}
+
+\begin{minec}
+\textbf{Minecraft-Mapping.} Für eine Glas-Kuppel $D=20$ (hohl) liefert der Dick-Modus eine \emph{wasserdichte} Schale von $608$ Blöcken gegen $\approx 510$ im dünnen Modus --- die $\sim 100$ zusätzlichen Blöcke sind Diagonal-Nähte, die das Lecken von Umgebungslicht verhindern.
+\end{minec}
+
+% =============================================================================
+\section{Diskrete Flächenberechnung}
+
+Die Funktion \code{area2D} \acc{zählt} einfach die in $f$ markierten Zellen. Das ist das \emph{Zählmaß}, das das Riemann-Integral der Indikatorfunktion der Ellipse approximiert:
+\[
+\underset{\text{stetige Fläche}}{\pi \, r_x \, r_y}
+\qquad\longleftrightarrow\qquad
+\underset{\text{diskrete Fläche}}{\sum_{j=0}^{G_y-1}\sum_{i=0}^{G_x-1} f(i,j)}
+\]
+Für großes $D$ gilt $\text{diskrete Fläche} / \text{stetige Fläche} \to 1$. Für kleines $D$ ist der Unterschied zwischen Algorithmen sichtbar: Schwellwert tendiert zu Überschätzung; Euklidisch bleibt nahe an der idealen Fläche; Bresenham liegt dazwischen.
+
+\begin{minec}
+\textbf{Minecraft-Mapping.} Der Blockzähler-Chip in der Block-Round-UI zeigt genau diese Zahl: $268$ für $D=8$, $904$ für $D=12$, $2\,145$ für $D=16$. Der Chip drückt die Zählung als \emph{$N$ (Stacks $\times$ 64 + Rest)} aus --- z.B.\ $2\,145 = 33 \times 64 + 33$, also \enquote{$33$ Stacks plus $33$ Items}.
+\end{minec}
+
+% =============================================================================
+\section{Von 2D zu 3D: die Ellipsoid-Gleichung}
+
+In 3D ist die Grundform das \acc{Ellipsoid} zentriert in $(c_x, c_y, c_z)$ mit Halbachsen $r_x, r_y, r_z$. Seine Gleichung verallgemeinert die Ellipse natürlich:
+\[
+\left(\dfrac{x}{r_x}\right)^{\!2} + \left(\dfrac{y}{r_y}\right)^{\!2} + \left(\dfrac{z}{r_z}\right)^{\!2} \;=\; 1
+\]
+
+Wenn $r_x = r_y = r_z$, bekommen wir die \acc{Kugel} zurück. Auswertung im Zentrum jedes Voxels:
+\[
+a_\xi = \frac{\xi + \tfrac{1}{2} - c_\xi}{r_\xi}\;\;(\xi \in \{x,y,z\}),
+\qquad
+\text{innen}\;\Longleftrightarrow\;a_x^{\,2} + a_y^{\,2} + a_z^{\,2} \leq 1
+\]
+
+\begin{minec}
+\textbf{Minecraft-Mapping.} Ein Ellipsoid mit $W=20$, $H=10$, $D=20$ erzeugt eine \emph{abgeflachte Kugel}, ideal für eine unterirdische Kuppel oder ein Stadiondach. Volumen $\approx 2\,094$ Blöcke ($33$ Stacks). WorldEdit-Befehl: \cmd{//ellipsoid stone 10 5 10}.
+\end{minec}
+
+% =============================================================================
+\section{Voxelisierung und Volumenberechnung}
+
+Das stetige Volumen des Ellipsoids ist ein klassisches Ergebnis der Integralrechnung, gewonnen durch Integration über Scheiben:
+\[
+V \;=\; \dfrac{4}{3}\,\pi\, r_x\, r_y\, r_z
+\]
+Die diskrete Version durchläuft jeden Voxel der Box $D_x \times D_y \times D_z$ und inkrementiert einen Zähler, wenn $a_x^2 + a_y^2 + a_z^2 \leq 1$. Das ist der \code{voxelVolume}-Algorithmus.
+
+\textbf{Schale vs.\ Inneres.} Im \emph{filled}-Modus zeigt das Projekt nur Voxel mit mindestens einem 6-Nachbarn außerhalb der erhaltenen Menge (also Voxel, die von der Außenfläche oder von der Schnittfläche sichtbar sind). Im \emph{thin}-Modus nur die \acc{Oberfläche} des vollständigen Ellipsoids (1 Voxel Dicke). Im Survival brauchen nur die sichtbaren Flächen ihren dedizierten texturierten Block --- die inneren Voxel können billige Füllung sein (Erde statt Diamant), um Ressourcen zu sparen.
+
+\begin{minec}
+\textbf{Referenztabelle.} Die Tabelle fasst die kanonischen Kugel-Durchmesser zusammen, die in der Minecraft-Community am häufigsten gefragt werden, übersetzt in Blockzahl ($V$), Packs zu $64$ ($P=\lceil V/64\rceil$) und Doppeltruhen zu $3\,456$ Slots ($\mathrm{DC}=\lceil V/3{,}456 \rceil$). Hilft beim Planen der Ressourcen-Sammlung vor dem Bau.
+\end{minec}
+
+\vspace{0.5em}
+\begin{center}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+\textbf{Durchmesser} & \textbf{Blöcke (V)} & \textbf{Packs (×64)} & \textbf{Doppeltruhen} & \textbf{Hinweis} \\
+\midrule
+D=8   &   268 &  5  & 1 & kleine Kuppel  \\
+D=12  &   904 & 15  & 1 & mittlere Kugel \\
+D=16  &  2145 & 34  & 1 & Turmspitze \\
+D=20  &  4189 & 66  & 2 & Stadiondach \\
+D=24  &  7238 & 114 & 3 & große Kuppel \\
+D=32  & 17156 & 269 & 5 & Megabau \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Volumen im gefüllten Modus berechnet unter dem Euklidischen Algorithmus für $D \in \{8,12,16,20,24,32\}$. Werte im dünnen Modus (Schale) sind ungefähr $V_{\mathrm{Schale}} \approx 4\pi r^2$ Blöcke ein-Voxel-dick, also zwischen $25\%$ und $40\%$ des gefüllten Volumens je nach $D$.
+
+% =============================================================================
+\section{Geometrische Schnitte: Ebenen und der $45°$-Diagonalschnitt}
+
+Block Round erlaubt das Schneiden des Körpers durch \acc{drei Ebenen}. Jeder Schnitt ist eine \emph{lineare Ungleichung}, die Voxel verwirft:
+\[
+\begin{array}{lcl}
+\text{X-Achse:}    & x \geq \mathit{cut}      & \Rightarrow\; \text{verworfen} \\
+\text{Y-Achse:}    & y \geq \mathit{cut}      & \Rightarrow\; \text{verworfen} \\
+\text{Diagonale:}  & x + y \geq \mathit{cut}  & \Rightarrow\; \text{verworfen}
+\end{array}
+\]
+
+Die X- und Y-Ebenen sind senkrecht zu den Koordinatenachsen mit Normalen $(1,0,0)$ und $(0,1,0)$. Die \emph{Diagonalebene} hat Normale $(1,1,0)/\sqrt{2}$ und schneidet $45°$ in der $XY$-Ebene: die Familie $x+y = k$. Der Diagonal-Schnitt-Schieberegler hat Reichweite $D_x + D_y$, während X und Y $D_x$ und $D_y$ haben. Der Schnitt ist \acc{proportional}: der Code speichert $\mathit{cutPct}$ und berechnet die Grenze neu als
+\[
+\mathit{cut} \;=\; \mathit{cutPct} \cdot \max_{\text{Achse}}
+\]
+sodass $50\%$ auf einer Achse $50\%$ bleibt, wenn der Nutzer die Achse wechselt oder die Größe ändert.
+
+\begin{minec}
+\textbf{Minecraft-Mapping.} Der Y-Achsen-Schnitt bei $50\%$ auf einer Kugel erzeugt die klassische \emph{Kuppel} der halben Volumen. Für $D=16$: $V_{\mathrm{voll}} = 2\,145$, $V_{\mathrm{Kuppel}} \approx 1\,095$ Blöcke ($\approx 18$ Packs). Der Diagonalschnitt bei $50\%$ erzeugt eine \emph{Halbschüssel}-Sektion, häufig für Brunnen-Interieurs und Amphitheater-Sitzreihen.
+\end{minec}
+
+% =============================================================================
+\section{Dick-Modus 3D: Dreidimensionalisierung durch Scheiben}
+
+Für den \emph{thick}-Modus in 3D wendet das Projekt den 2D-Dick-Algorithmus auf \acc{alle Scheiben} entlang der drei Achsen an: $XY$ für jedes $z$, $XZ$ für jedes $y$, $YZ$ für jedes $x$. Dann nimmt es die \emph{Vereinigung} der Ergebnisse. Die geometrische Motivation ist Wasserdichtheit: die minimale Menge von Voxeln, die alle Diagonalen verschließen, ohne die Schalendicke zu verdoppeln. Mit $S_z(z)$ als $XY$-Scheibe bei Höhe $z$ und $T$ als 2D-Dick-Operator:
+\[
+\mathit{thick3D} \;=\;
+\bigcup_{z} T\bigl(S_z(z)\bigr) \;\cup\;
+\bigcup_{y} T\bigl(S_y(y)\bigr) \;\cup\;
+\bigcup_{x} T\bigl(S_x(x)\bigr)
+\]
+Das Ergebnis wird dann mit der vom Schnitt erhaltenen Menge geschnitten. Die zugrunde liegende Theorie ist \acc{digitale Topologie}: der Dick-Operator garantiert \emph{26-Zusammenhang} der Schale, nützlich in Minecraft, wo diagonale Voxel sich nicht durch Flächen berühren --- Licht, Wasser und Kreaturen passieren diagonale Lücken.
+
+\begin{minec}
+\textbf{Minecraft-Mapping.} Für eine Unterwasser-Glaskuppel auf einem Ozeanmonument im Survival ist der Dick-Modus zwingend: die Diagonal-Brücken verhindern, dass Wasser durch die Lücken sickert, die der dünne Modus offen lässt. Kosten: Kuppel $D=20$ im Dick-Modus benötigt $\approx 380$ Glasblöcke gegen $\approx 320$ im dünnen Modus --- $19\%$ mehr Material für vollständige Abdichtung.
+\end{minec}
+
+% =============================================================================
+\section{3D-Kamera: Kugelkoordinaten}
+
+Die 3D-Kamera umkreist das Objekt mit Abstand $r$ und zwei Winkeln --- $\theta$ (Azimut, in der horizontalen Ebene) und $\varphi$ (polar, von der vertikalen Achse). Das ist die \acc{physikalische Konvention} der Kugelkoordinaten, und die Umrechnung in Kartesische (was \emph{three.js} erwartet) ist:
+\[
+\begin{aligned}
+x &= r\,\sin(\varphi)\,\cos(\theta), \\
+y &= r\,\cos(\varphi), \\
+z &= r\,\sin(\varphi)\,\sin(\theta).
+\end{aligned}
+\]
+Anfangsposition: $\theta = \pi/4$ ($45°$, isometrische Perspektive) und $\varphi = \pi/3$ ($60°$ vom Nordpol, leicht über dem Äquator). Mausziehen inkrementiert $\theta$ und $\varphi$ direkt; Rad/Pinch inkrementiert $r$. Die Einfachheit dieser Parametrisierung erlaubt freie Rotation ohne Quaternionen oder explizite Matrizen.
+
+% =============================================================================
+\section{Auto-Zoom: einschließende Kugel und FOV}
+
+Wenn der Nutzer die Figurgröße ändert oder die Kamera zurücksetzt, berechnet das Projekt die \acc{ideale Distanz} neu, sodass das Objekt in jedem Winkel ins Viewport passt. Die Idee ist, das Objekt in eine \emph{Kugel vom Radius $R$} einzuschließen (halbe Diagonale der AABB, Axis-Aligned Bounding Box):
+\[
+R \;=\; \sqrt{\,(D_x/2)^2 + (D_y/2)^2 + (D_z/2)^2\,}
+\]
+
+Eine Kugel hat \acc{rotationsinvariante Projektion}, also passt sie, wenn sie in einer Orientierung passt, in alle. Bei vertikalem FOV der Kamera ($\mathit{fov}_V = 35°$ in Bogenmaß) ist die Distanz für eine Kugel vom Radius $R$:
+\[
+\mathit{dist}_V \;=\; \dfrac{R}{\tan(\mathit{fov}_V / 2)}
+\]
+Das horizontale FOV ergibt sich aus dem Leinwand-Seitenverhältnis durch:
+\[
+\mathit{fov}_H \;=\; 2\,\arctan\!\left(\,\tan(\mathit{fov}_V/2)\cdot \mathit{aspect}\,\right)
+\]
+Die finale Distanz ist das Maximum von $\mathit{dist}_V$ und $\mathit{dist}_H$, multipliziert mit $1{,}20$ ($20\%$ visueller Rand). Bei geschnittener Figur verkleinert der Code $D_x$ oder $D_y$ auf die Restgröße. Wenn das Eichenbaum- oder Creeper-Easter-Egg aktiv ist, wird die Bounding Box nach oben erweitert.
+
+% =============================================================================
+\section{Schattierung und Texturmultiplikation}
+
+Die drei 3D-Stile (\emph{Classic}, \emph{Smooth}, \emph{Blocks}) unterscheiden sich durch \acc{multiplikative Faktoren} auf die drei sichtbaren Flächen jedes Voxels (oben, beleuchtete Seite, dunkle Seite). Die Funktion \code{shadeHex(hex, factor)} parst das Hex in $(R,G,B)$ und multipliziert jeden Kanal mit Clamping in $[0, 255]$ --- das Ergebnis ist ein Tönung über die Rohtextur des Blocks:
+\[
+R' = \mathrm{clamp}(R \cdot f),\quad
+G' = \mathrm{clamp}(G \cdot f),\quad
+B' = \mathrm{clamp}(B \cdot f)
+\]
+Das ist eine \emph{lineare Approximation} der idealen Lambertschen Beleuchtungsfunktion,
+\[
+I \;=\; \max\bigl(0,\;\mathbf{n}\cdot\mathbf{l}\bigr)\cdot \mathit{Textur},
+\]
+wobei die drei Faktoren dem Kosinus des Winkels zwischen der Flächennormale und einer festen Lichtrichtung entsprechen. In \emph{Smooth} sind die Faktoren ähnlich (ähnliche Flächen); in \emph{Classic} unterscheiden sie sich mehr (starker Kontrast, der Look von Vanilla-Minecraft). \emph{Blocks} führt zusätzlich eine geometrische Einrückung ein --- konstante Translation jeder Fläche nach innen, um die Grenzen zwischen Voxeln auch dann sichtbar zu machen, wenn benachbarte Voxel dieselbe Textur teilen. Für emissive Blöcke wird der Lambert-Term durch eine Konstante $I = \mathit{emissive\_factor} \cdot \mathit{Textur}$ ersetzt.
+
+% =============================================================================
+\section{Übergang: von der stetigen Mathematik zum In-Game-Bau}
+
+Die fünfzehn vorangegangenen Abschnitte beschreiben die \emph{stetig-zu-diskret}-Pipeline, die Block Round mit seinem Schwesterprojekt Pixel Round teilt: von der impliziten Ellipsengleichung bis zur Kamera, die das Ergebnis einfängt. Die verbleibenden sechs Abschnitte beschreiben, was \acc{spezifisch} für Block Round ist --- die zusätzliche Mathematikschicht, die durch die Tatsache eingeführt wird, dass die gerenderten Zellen nicht abstrakte Pixel sind, sondern \emph{Minecraft-Blöcke}, jeder mit sechs texturierten Flächen, einem Gewicht im Inventar und einem Zeitaufwand zum Sammeln und Platzieren.
+
+Das sind keine kosmetischen Erwägungen. Die Entscheidung, mit Blocktexturen zu rendern, ändert das operative Problem: Statt \emph{ein PNG zu exportieren}, muss der Nutzer \emph{die Silhouette in einen Platzierungsplan übersetzen}. Der mathematische Inhalt der nächsten Abschnitte beschäftigt sich genau mit dieser Übersetzung: Inventar-Arithmetik, Flächenzahl-Optimierung, schichtweise Zerlegung und Ausnutzung der Symmetrie zur Reduktion der Kosten von $N$ Platzierungen auf $N/8 + 7$ Befehlsaufrufe.
+
+\clearpage
+
+% =============================================================================
+\section{Arithmetik des Minecraft-Inventars}
+
+Ein Minecraft-Spieler trägt Items in einem 36-Slot-\emph{Inventar} in einem $9 \times 4$-Raster. Jeder Slot hält bis zu $64$ Items desselben Typs (ein \emph{Stack} oder \emph{Pack}). Der Spieler hat auch Zugriff auf \emph{Lagerung}: Einzeltruhe $27$ Slots, Doppeltruhe $54$ Slots. Die Arithmetik, die eine Zielblockzahl in einen Sammelplan übersetzt, ist daher ein \emph{Aufrundungs-Divisions}-Problem.
+
+\subsection{Einzelner Slot, einzelner Stack, voller Pack}
+Der \emph{Stack} ist die elementare Einheit der Inventar-Buchführung. Jeder Stack enthält höchstens $64$ Items. Die Umrechnung von Blockzahl $N$ in Packs ist
+
+\subsection{Lagerung: Truhen, Doppeltruhen, Shulker-Boxen}
+Um zu berechnen, wie viele \emph{Doppeltruhen} ein Bau erfordert, dividiere durch $54$ Slots $\times$ $64$ Items/Slot $= 3\,456$ Items pro Doppeltruhe:
+\[
+\text{Packs}:\quad N_{\mathrm{packs}} \;=\; \left\lceil \dfrac{N}{64} \right\rceil
+\qquad
+\text{Doppeltruhen}:\quad N_{\mathrm{dc}} \;=\; \left\lceil \dfrac{N}{3456} \right\rceil
+\]
+Eine \emph{Einzeltruhe} hält $27 \times 64 = 1\,728$ Items. Eine \emph{Shulker-Box} (tragbarer Behälter) hält $27 \times 64 = 1\,728$ Items, kann aber selbst \emph{in} einem Truhenslot gelagert werden, sodass eine mit $54$ Shulker-Boxen gefüllte Doppeltruhe bis zu $54 \times 1\,728 = 93\,312$ Items hält. Für Megabauten ist die relevante Kapazitätseinheit die \emph{shulker-beladene Doppeltruhe}.
+
+\subsection{Referenztabelle: kanonische Kugeln}
+Die Tabelle wandelt die kanonischen gefüllten-Kugel-Volumen in Sammelpläne um. Die letzte Spalte schlägt einen Baukontext für jeden Durchmesser vor:
+
+\vspace{0.4em}
+\begin{center}
+\begin{tabular}{@{}lrrll@{}}
+\toprule
+\textbf{Durchmesser} & \textbf{V (Blöcke)} & \textbf{Packs} & \textbf{Lagerung} & \textbf{Typischer Bau} \\
+\midrule
+D=8   &   268 &  5  &  1 DT & Hüttendach, Brunnenkuppel  \\
+D=12  &   904 & 15  &  1 DT & Wachturm-Spitze \\
+D=16  &  2145 & 34  &  1 DT & Dorfglocke, Bibliotheks-Kuppel \\
+D=20  &  4189 & 66  &  2 DT & Observatoriums-Kuppel \\
+D=24  &  7238 & 114 &  3 DT & Tempel-Kuppel \\
+D=32  & 17156 & 269 &  5 DT & Kathedral-Kuppel, World-Boss-Arena \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Die \emph{Stacks-und-Rest}-Darstellung $N = q \cdot 64 + r$, die der Info-Chip von Block Round zeigt, spiegelt wider, wie das Survival-Inventar partielle Stacks anzeigt: der Spieler sieht $q$ volle Slots plus einen Slot, der $r$ zeigt. Für $D=16$ druckt der Chip \enquote{$2\,145$ ($33 \times 64 + 33$)}, was dem Spieler sagt, $33$ Slots vollständig zu füllen plus einen Slot mit $33$ Items --- genau $34$ Slots.
+
+% =============================================================================
+\section{Kontur-Overlay und Zählung freiliegender Flächen}
+
+Block Round zeichnet standardmäßig einen \emph{schwarzen Kontur} (Highlight-Overlay) an den Kanten jeder sichtbaren Voxelfläche. Visuell ähnelt das dem \enquote{F3+G}-Chunk-Grenzen-Stil des In-Game-Debug-Overlays, auf Voxel-Ebene skaliert. Mathematisch implementiert das Overlay die Visualisierung der \acc{Zählung freiliegender Flächen}: eine Zahl, die Survival-Bauer verwenden, um den Fortschritt Block für Block zu validieren.
+
+\subsection{Was als freiliegende Fläche zählt}
+Eine Fläche des Voxels $\mathbf{v}$, geteilt mit dem Nachbarn $\mathbf{n}$, ist \emph{freiliegend}, wenn und nur wenn $\mathbf{n} \notin V_{\mathrm{solid}}$ (der Nachbar ist leer). Jeder solide Voxel trägt zwischen $0$ (vollständig begraben) und $6$ (isoliert) Flächen bei. Die Gesamtzahl $F_{\mathrm{exp}}$ ist das diskrete Analogon der \emph{Oberfläche}.
+
+\subsection{Rand-Detektionsformel}
+Ein Voxel liegt am Rand, wenn mindestens einer seiner sechs Flächen-Nachbarn außerhalb des Soliden ist:
+\[
+b(i,j,k) \;=\; f(i,j,k) \;\wedge\; \bigl(\neg f(i{\pm}1,j,k)\,\vee\,\neg f(i,j{\pm}1,k)\,\vee\,\neg f(i,j,k{\pm}1)\bigr)
+\]
+Es ist derselbe Randoperator wie der 2D-dünne Algorithmus, erweitert auf 3D, und das Overlay zeichnet einfach die Würfelkanten-Linien jedes Randvoxels. Für Glas und Eis ist der Standardwert OFF; für Bruchstein, Stein, Diamant und andere undurchsichtige Blöcke ON.
+
+\subsection{Freiliegende Flächenzahl als Survival-Heuristik}
+Für Survival-Bauer ist die relevante Zählung nicht das Gesamtvolumen $V$, sondern die \emph{freiliegenden Flächen} $F_{\mathrm{exp}}$, weil das das von außen Sichtbare ist. Die Gesamtsumme ist gleich sechsmal die Randvoxel-Zahl minus zweimal die Anzahl der Flächen-Adjazenzen unter Randvoxeln:
+\[
+F_{\mathrm{exp}} \;=\; \sum_{\mathbf{v}\in V_{\mathrm{solid}}}\;\sum_{\mathbf{n}\in N_6(\mathbf{v})}\!\!\bigl[\mathbf{v}+\mathbf{n}\notin V_{\mathrm{solid}}\bigr]
+\]
+Für eine Kugel $D=16$ (gefüllter Modus), $V = 2\,145$, $V_{\mathrm{Rand}} \approx 432$, $F_{\mathrm{exp}} \approx 1\,184$ sichtbare Flächen --- der Bau braucht nur etwa $432$ \emph{sichtbare} Blöcke; die restlichen $1\,713$ sind Inneres und können mit dem billigsten verfügbaren Block (Erde, Bruchstein) gefüllt werden. Das Overlay erlaubt es dem Bauer, einen fehlenden Block in der Schale sofort zu erkennen.
+
+% =============================================================================
+\section{Schichtweiser Bau (horizontale Zerlegung)}
+
+In Minecraft schreitet der Bau \emph{in horizontalen Schichten} voran: der Spieler steht auf einer Schicht, platziert die Blöcke der Schicht darüber, dann steigt einen Block höher. Das 3D-Ellipsoid-Problem versteht man also am besten als \emph{Stapel von 2D-Ellipsen}, eine pro Schicht:
+\[
+\text{\text{Schicht}(k)} \;=\; \bigl\{\,(i,j)\;:\;a_x(i)^2 + a_y(j)^2 \leq 1 - a_z(k)^2\,\bigr\}
+\]
+
+Für jede ganzzahlige Schicht $k$ von $-r_z$ bis $+r_z$ ist die Querschnittsfläche selbst eine Ellipse mit verkleinerten Halbachsen $r_x(k)$ und $r_y(k)$:
+\[
+r_x(k) \;=\; r_x\,\sqrt{\,1 - \left(\dfrac{k}{r_z}\right)^{\!2}\,},
+\qquad
+r_y(k) \;=\; r_y\,\sqrt{\,1 - \left(\dfrac{k}{r_z}\right)^{\!2}\,}
+\]
+Das reduziert das 3D-Problem darauf, \emph{den 2D-Algorithmus der vorigen Abschnitte eine Schicht nach der anderen zu berechnen} und die Ergebnisse zu stapeln. Kognitiv ist das eine massive Vereinfachung: Statt drei mentale Koordinaten zu verfolgen, verfolgt der Bauer zwei Koordinaten pro Schicht plus den Schichtindex.
+
+\begin{minec}
+\textbf{Minecraft-Mapping.} Für eine Kugel $D=16$ ($r_z = 8$) ist die Äquatorial-Schicht ($k=0$) der vollständige Bresenham-Kreis $D=16$ ($\approx 200$ Blöcke). Die nächste Schicht ($k=1$) ist ein $D=15{,}97$-Kreis. Bei $k=4$ ist die Schicht ein $D=13{,}86$-Kreis ($\approx 148$ Blöcke), bei $k=7$ ein $D=7{,}48$-Kreis ($\approx 43$ Blöcke). Die Pole ($k = \pm 8$) sind eine einzelne Block-Kappe.
+\end{minec}
+
+Der Info-Chip von Block Round zeigt diese Schicht-Zählung im 3D-Modus, wenn der Nutzer den Mittel-Hilfslinien-Button (Taste \code{C}) aktiviert. Die horizontalen Scheiben werden als durchscheinendes gelbes Kreuz am Äquator und an jeder $r_z/2$-Unterteilung gezeichnet.
+
+% =============================================================================
+\section{Optimierung durch oktaedrische Symmetrie ($O_h$)}
+
+Eine im Ursprung zentrierte Kugel ist invariant unter der Wirkung der \acc{oktaedrischen Gruppe} $O_h$ der Ordnung $48$. Die Voxelisierung der Kugel bewahrt eine Untergruppe der Ordnung $48$, die von den drei Koordinaten-Reflexionen und den drei $\pi/2$-Rotationen um jede Achse erzeugt wird. Für praktische Bauzwecke ist die relevante Untergruppe die Ordnungs-$8$-\emph{Oktant}-Reflexionsgruppe $\mathbb{Z}_2^3$, erzeugt durch $x \mapsto -x$, $y \mapsto -y$, $z \mapsto -z$. Die Voxelmenge in einem Oktanten bestimmt die ganze Kugel:
+\[
+V_{\mathrm{total}} \;\approx\; 8\,V_{\mathrm{octant}}\;\;\Longrightarrow\;\;
+\text{Reduktion}\;=\;\frac{N - N/8}{N} \;=\; 87{,}5\%
+\]
+
+Das ist die größte mathematische Optimierung, die einem Minecraft-Bauer zur Verfügung steht. Statt manuell $N$ Blöcke zu platzieren, platziert der Bauer $N/8$ Blöcke im positiven Oktanten und gibt dann sieben \cmd{/clone}-Befehle (Vanilla) oder \cmd{//copy + //paste}-Befehle (WorldEdit) mit geeigneten Reflexionen.
+
+\subsection{Konkrete Befehlsfolge}
+Für eine Kugel $D=24$ ($r=12$, $V = 7\,238$ Blöcke) zentriert in Weltkoordinaten $(0,72,0)$, baue zuerst den positiven Oktanten ($+x, +y, +z$-Region, $\approx 905$ Blöcke), dann emittiere:
+
+\begin{minec}
+\cmd{/clone 0 72 0 12 84 12 \textasciitilde\,\textasciitilde\,\textasciitilde\ filtered minecraft:stone}\\
+\cmd{/clone 0 72 0 12 84 12 -12 72 0 mode:masked} \quad (Refl.\ \(-x\))\\
+\cmd{/clone 0 72 0 12 84 12 0 60 0 mode:masked} \quad\quad (Refl.\ \(-y\))\\
+\cmd{/clone 0 72 0 12 84 12 0 72 -12 mode:masked} \quad (Refl.\ \(-z\))\\
+\cmd{/clone -12 72 0 -1 84 12 mode:masked} \quad\quad\quad\;\; (Oktant \(-x,-y\))\\
+\cmd{/clone 0 60 -12 12 71 -1 mode:masked} \quad\quad\quad (Oktant \(-y,-z\))\\
+\cmd{/clone -12 72 -12 -1 84 -1 mode:masked} \quad\;\; (Oktant \(-x,-z\))\\
+\cmd{/clone -12 60 -12 -1 71 -1 mode:masked} \quad\;\; (Oktant \(-x,-y,-z\))
+\end{minec}
+
+Jedes \cmd{/clone} kostet etwa $50$\,ms Serverzeit, also schließen die sieben Reflexionen in weniger als einer halben Sekunde ab. Die manuelle Platzierung der $905$ Oktant-Blöcke dauert etwa $15$\,min im Survival oder $45$\,s im Creative mit Brush. Die vollständige Platzierung von $7\,238$ Blöcken ohne Symmetrie würde $\approx 2$\,h im Survival oder $6$\,min im Creative dauern.
+
+\subsection{Zeitkosten-Vergleich}
+Sei $T_{\mathrm{block}}$ die Platzierungszeit pro Block (typischerweise $1{-}2$\,s im Survival, $0{,}1{-}0{,}5$\,s im Creative) und $T_{\mathrm{clone}}$ die Befehlszeit pro Clone ($\approx 50$\,ms). Die Gesamtzeit mit und ohne Symmetrie ist:
+\[
+T_{\mathrm{octant}} \;+\; 7\,T_{\mathrm{clone}}
+\quad\ll\quad
+T_{\mathrm{full}}
+\]
+Für $N = 7\,238$ im Survival ($T_{\mathrm{block}} = 2$\,s, $T_{\mathrm{clone}} = 0{,}05$\,s): voll = $14\,476$\,s $\approx 4$\,h $1$\,min; Oktant + Clones = $1\,810$\,s + $0{,}35$\,s $\approx 30$\,min. Ein Faktor-$8$-Speedup, der genau zur Ordnung der Reflexions-Untergruppe passt. Die volle oktaedrische Gruppe $O_h$ der Ordnung $48$ könnte prinzipiell weiter reduzieren, erfordert aber eine $45°$-rotierte Baufläche, selten den Setup-Aufwand wert.
+
+% =============================================================================
+\section{Blocktexturen und visuelle Komposition}
+
+Ein Minecraft-Block ist keine flach gefärbte Zelle, sondern ein \emph{Würfel mit sechs texturierten Flächen}. Block Round rendert jedes Voxel mit seinen sechs kanonischen Flächentexturen, die aus dem Vanilla-Resource-Pack abgetastet werden. Mathematisch ist die Texturierungs-Operation ein \emph{UV-Mapping}: jede Fläche des Einheitswürfels wird durch $[0,1]^2$-Koordinaten parametrisiert, und die entsprechende Textur wird an diesen UVs abgetastet.
+
+\subsection{Die sechs Flächen und das UV-Mapping}
+Für jede Voxelfläche konsultiert der Renderer das Block-Modell:
+\[
+\text{Fläche}\;\in\;\{\,\text{oben},\;\text{Seite},\;\text{unten}\,\}
+\qquad
+\mathrm{UV}: [0,1]^2 \to \text{pixels}
+\]
+
+Die meisten Blöcke (Stein, Bruchstein, Diamantblock, Eichenholzbretter) verwenden die \emph{gleiche Textur auf allen sechs Flächen}. Mehrflächige Blöcke (Grasblock, Kürbis, Heuballen, Quarzsäule, alle Holzstämme, Werkbank, Ofen, Bücherregal, TNT) verwenden \emph{unterschiedliche Texturen} oben, an den Seiten und unten: Grasblock hat grünes Oben, Gras-Erde-Seite und reine Erde unten; ein Eichenstamm hat den Holzmaserring oben und unten und Rinde an den vier Seiten. Entscheidend: die \emph{Mathematik, welche Voxel zu platzieren sind}, hängt nicht von der verwendeten Textur ab --- die Silhouette einer Diamantkugel und einer Bruchsteinkugel desselben Durchmessers ist identisch. Die Texturentscheidung ist eine \emph{rein ästhetische} Schicht, angewendet nachdem der geometrische Algorithmus fertig ist.
+
+\subsection{Blockfamilien und Töne}
+Für den Survival-Bauer, der aus den Dutzenden verfügbarer Blöcke wählt, ist die relevante Frage nicht der Texturindex, sondern die \emph{Tonalitätsfamilie}: hell/dunkel, warm/kühl, einheitlich/gemustert. Die Tabelle klassifiziert die häufigsten Blöcke in Block-Round-Bauten:
+
+\vspace{0.4em}
+\begin{center}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Block} & \textbf{Familie} & \textbf{Ton} & \textbf{Typische Verwendung} \\
+\midrule
+cobblestone        & Stein  & grau  & rustikale Mauern, Verliese \\
+stone              & Stein  & grau  & saubere Mauern, Sockel \\
+oak\_planks        & Holz   & beige   & Böden, Innenraum-Abschluss \\
+quartz\_block      & Quarz    & weiß   & Tempel, moderne Kuppeln \\
+sandstone          & Sand   & beige   & Wüsten, Pyramiden \\
+deepslate          & Stein  & dunkel  & Unterirdisch, Akzente \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Gradienten durch Block-Mischung}
+Obwohl ein einzelner Blocktyp einen Ton liefert, können \emph{Gradienten} durch Wechsel zwischen zwei oder drei Blocktypen pro Schicht erzielt werden. Eine klassische Technik ist der \emph{Stein-zu-Quarz}-Gradient auf einer Kuppel: untere Schichten Glatter Stein, äquatoriale Schichten eine verrauschte Mischung aus Glattem Stein und Diorit, obere Schichten Quarz. Jede Schicht bleibt vom selben Block-Round-Algorithmus berechnet; was sich ändert, ist das Per-Voxel-Textur-Lookup. Die \emph{Random}-Block-Option von Block Round implementiert eine solche prozedurale Mischung standardmäßig (Grasoberteil, Erde darunter, vereinzelte Erze in der Mitte, Tiefenschiefer nahe Grundgestein). Die Mathematik ist dieselbe wie die Schichtzerlegung von Abschnitt~19; nur das \enquote{Block-Tag} pro Voxel ändert sich.
+
+% =============================================================================
+\section{Fazit}
+
+Dieses Dokument beschrieb systematisch die in Block Round verwendeten mathematischen Grundlagen. In etwa tausend Zeilen JavaScript-Code plus den unterstützenden Textur- und Audio-Pipelines integriert das Projekt Beiträge aus mehreren theoretischen Bereichen:
+
+\begin{itemize}[leftmargin=1.3em,itemsep=0.25em,topsep=0.4em]
+  \item \acc{Analytische Geometrie}: implizite Gleichungen der Ellipse und des Ellipsoids als primäres Zugehörigkeitskriterium.
+  \item \acc{Klassische Rasterungsalgorithmen}: Bresenham in Mittelpunkt-Formulierung mit Pitteway/Kappel-Erweiterung für Ellipsen.
+  \item \acc{Digitale Topologie}: diskrete Randoperatoren, Konzepte 4-, 6- und 26-Zusammenhang, Scheibenkomposition und Zählung freiliegender Flächen.
+  \item \acc{Integralrechnung}: Volumen des Ellipsoids als Dreifachintegral und sein diskretes Gegenstück (Zählmaß über Voxel).
+  \item \acc{Lineare Algebra}: Schnittebenen, definiert durch lineare Ungleichungen, und dreidimensionale perspektivische Projektion.
+  \item \acc{Trigonometrie}: Parametrisierung der Kamera in Kugelkoordinaten und automatische Distanzanpassung in Abhängigkeit vom FOV.
+  \item \acc{Kombinatorische Inventar-Arithmetik}: Aufrundungs-Divisions-Buchführung von Packs zu $64$ und Doppeltruhen zu $3\,456$ Items, mit der Stacks-und-Rest-Darstellung des Info-Chips.
+  \item \acc{Gruppensymmetrie}: Ausnutzung der oktaedrischen Gruppe $O_h$ und ihrer Ordnungs-$8$-Reflexions-Untergruppe $\mathbb{Z}_2^3$ zur Reduktion der Baukosten um den Faktor $8$ via \cmd{/clone}.
+\end{itemize}
+
+Die zentrale Beobachtung, die die Studie formuliert, ist die folgende: Auf einem diskreten Gitter \acc{existiert keine einzige korrekte Darstellung} einer stetigen Kurve. Jeder in diesem Dokument dargestellte Algorithmus entspricht einer eigenen mathematischen Definition des Zell-Einschluss-Kriteriums, und jede Definition produziert eine Silhouette mit eigenen formalen Eigenschaften --- Glätte beim Euklidischen Algorithmus, Stufenmuster bei Bresenham, größere Abdeckung beim Eckabdeckungskriterium. Die Wahl des Algorithmus ist daher eine technische Entscheidung, die die beabsichtigte visuelle Repräsentation, die gewünschten metrischen Eigenschaften und --- speziell für Block Round --- die Inventar- und Zeitkosten des physischen In-Game-Baus berücksichtigen muss.
+
+Block Round besetzt eine kleine, aber mathematisch reichhaltige Nische im Minecraft-Tooling-Ökosystem: Es liegt zwischen rein geometrischen Tools (WorldEdit, Litematica) und rein visuellen Tools (Resource Packs, Shader) und bietet eine explizite, ableitbare und reproduzierbare Brücke von der stetigen Gleichung zum diskreten Platzierungsplan. Das Schwesterprojekt Pixel Round bietet dieselben Algorithmen ohne die Minecraft-Schicht, geeignet für traditionelle Pixel-Art- und Voxel-Art-Anwendungen. Zusammen veranschaulichen die beiden Projekte, wie dieselbe stetig-zu-diskret-Pipeline radikal verschiedene künstlerische und konstruktive Arbeitsabläufe unterstützt.
+
+\clearpage
+
+% =============================================================================
+\section*{\color{accent}Anhang A: Bau-Referenztabellen und durchgearbeitetes Beispiel}
+\addcontentsline{toc}{section}{Anhang A: Bau-Referenztabellen und durchgearbeitetes Beispiel}
+
+Dieser Anhang fasst die am häufigsten benutzten numerischen und Befehlsreferenzen für Block-Round-Nutzer zusammen. Die Daten konsolidieren die Tabellen pro Abschnitt und die durchgearbeiteten Beispiele aus dem gesamten Dokument, organisiert als einseitige Nachschlagereferenz für Bauplanung, Befehlssyntax und ein durchgängiges Beispiel.
+
+\subsection*{A.1 Umfassende Kugel-Referenz (gefüllt, hohl, Packs)}
+Die Tabelle erweitert die kanonischen Kugel-Tabellen aus Abschnitt~10 und~17 um die Hohlkugel-Variante (\emph{dünner} Modus) neben dem gefüllten Volumen. Die Hohlschalen-Werte nehmen eine Schale von einem Voxel an und werden unter dem Euklidischen Algorithmus berechnet; der dicke Modus fügt etwa $10{-}15\%$ mehr Blöcke hinzu, um diagonale Spalten zu schließen (siehe Abschnitt~12).
+
+\vspace{0.4em}
+\begin{center}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+\textbf{D} & \textbf{Gefüllt (V)} & \textbf{Hohl (Schale)} & \textbf{Packs gefüllt} & \textbf{Packs hohl} \\
+\midrule
+8   &   268 &   170 &  5  &  3  \\
+10  &   523 &   316 &  9  &  5  \\
+12  &   904 &   500 & 15  &  8  \\
+14  &  1437 &   744 & 23  & 12  \\
+16  &  2145 &  1042 & 34  & 17  \\
+18  &  3052 &  1338 & 48  & 21  \\
+20  &  4189 &  1648 & 66  & 26  \\
+24  &  7238 &  2400 & 114 & 38  \\
+28  & 11494 &  3296 & 180 & 52  \\
+32  & 17156 &  4332 & 269 & 68  \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Für einen Survival-Bauer ist die \emph{hohl}-Spalte üblicherweise relevant: nur die sichtbare Schale braucht den dedizierten texturierten Block, während das Innere (falls überhaupt erwünscht) mit dem billigsten Material gefüllt werden kann. Die Spalte Packs-gefüllt zeigt den Gesamtvorrat für eine vollständig gefüllte Kugel; Packs-hohl ist das realistische Minimum für eine hohle Kuppel.
+
+\subsection*{A.2 WorldEdit- / Vanilla-Befehlsreferenz}
+Die Tabelle fasst die WorldEdit- und Vanilla-Minecraft-Befehle zusammen, die für den Bau von Block-Round-Ausgaben im Spiel am relevantesten sind. WorldEdit-Befehle setzen voraus, dass der Spieler einen Zauberstab (standardmäßig Holzaxt) hält und eine Region ausgewählt hat; Vanilla-Befehle funktionieren ohne Mod, erfordern aber Koordinatenargumente.
+
+\vspace{0.4em}
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Befehl} & \textbf{Mod / Herkunft} & \textbf{Ergebnis} \\
+\midrule
+\cmd{//sphere stone 8}     & WorldEdit & gefüllte Kugel r=8 (Euklidisch)  \\
+\cmd{//hsphere stone 8}    & WorldEdit & hohle Kugel r=8 (nur Schale)  \\
+\cmd{//cyl stone 8 16}     & WorldEdit & Zylinder r=8, h=16  \\
+\cmd{//ellipsoid st. 10 5 10} & WorldEdit & Ellipsoid 10\,$\times$\,5\,$\times$\,10  \\
+\cmd{/fill ... stone}      & Vanilla & Box mit einem Blocktyp füllen  \\
+\cmd{/clone ... mode:masked} & Vanilla & Region an neuen Ort kopieren  \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Für Litematica-Nutzer ist der Arbeitsablauf anders: anstatt Befehle auszuführen, wird die Schematic-Datei (Block Round exportiert \code{.schem}, Sponge-Format v2) in das Litematica-Mod geladen, das dann einen durchscheinenden Geist der Figur anzeigt, den der Spieler Block für Block platziert. Das ist das nächstgelegene Survival-Mode-Äquivalent zur WorldEdit-Creative-Erfahrung.
+
+\subsection*{A.3 Durchgearbeitetes Beispiel: D=20-Kuppel aus Quarz auf einem Tempel}
+Als vollständig durchgearbeitetes Beispiel angenommen, ein Bauer wünscht eine Quarzkuppel von $D=20$ auf einem bestehenden Steintempel. Die Tempelspitze ist $11 \times 11$ Blöcke, zentriert in $(0,80,0)$. Die Kuppel ist die obere Hälfte einer Kugel vom Radius $r=10$, am $Y=0$-Plan geschnitten. Der Plan:
+
+\begin{enumerate}[leftmargin=1.6em,itemsep=0.3em,topsep=0.3em]
+  \item \textbf{Mit Block Round planen.} App öffnen, 3D-Modus, Kugel, Größe $D=20$, Schnittachse $Y$ bei $50\%$. Quarzblock im Picker wählen. Info-Chip meldet $V_{\mathrm{Kuppel}} \approx 2\,126$ Blöcke ($\approx 34$ Packs, $1$ Doppeltruhe mit $1\,330$ Items im zweiten verbleibend).
+  \item \textbf{Ressourcen sammeln.} $34$ Packs Quarzblock = $\lceil 2\,126/4 \rceil = 532$ Quarzblöcke $\times 4$ Netherquarz je = $2\,128$ Netherquarz. Schmelzen oder handeln nach Bedarf.
+  \item \textbf{Algorithmus wählen.} Für eine von unten gesehene Quarzkuppel gibt der Euklidische Algorithmus die glatteste Silhouette; für eine Kuppel auf einem entlegenen Berg liest der Schwellwert-Algorithmus sauberer. Block Round verwendet standardmäßig Euklidisch.
+  \item \textbf{Kuppel positionieren.} Die ebene Fläche der Kuppel muss mit dem Tempel-Top übereinstimmen. Die Bounding Box ist $20 \times 10 \times 20$ Blöcke; das Zentrum bei $(0,80,0)$ platzieren, sodass die ebene (Schnitt-)Fläche bei $y=80$ und der Kuppelscheitel bei $y=89$ liegt.
+  \item \textbf{Mit Symmetrie bauen.} Den $+x, +z$-Quadranten der Kuppel bauen ($\approx 530$ Blöcke). \cmd{/clone 0 80 0 10 89 10 -10 80 0 mode:masked} ausführen, um an $x$ zu spiegeln; dann \cmd{/clone -10 80 0 10 89 10 0 80 -10 mode:masked} für die $z$-Spiegelung. Gesamtdauer: $\sim 10$ Minuten im Survival.
+  \item \textbf{Polieren.} See-Laternen an Scheitel und an den vier Himmelsrichtungen des Äquators für emissive Beleuchtung hinzufügen (Block Round rendert diese mit ihrer Emissionskarte beim MC-Lichtlevel $15$). Optional das Edge-Overlay (Taste \code{G}) umschalten, um die Kuppelschale auf Lücken zu prüfen, bevor die letzten Blöcke gesetzt werden.
+\end{enumerate}
+
+Die Mathematik jedes Schritts ist genau das, was die vorangegangenen zweiundzwanzig Abschnitte beschreiben: implizite Ellipsoid-Gleichung, Euklidische Voxelisierung, Y-Achsen-Schnitt, oktaedrische Symmetriereduktion via \cmd{/clone}, Inventar-Arithmetik zur Übersetzung des Volumens in Packs und Truhen. Der Anhang ist daher keine neue Theorie --- er ist eine Erinnerung daran, dass jedes theoretische Konzept dieses Dokuments auf eine einzige, konkrete Entscheidung im Bauplanungsworkflow abgebildet wird.
+
+\subsection*{A.4 Tastaturkürzel-Referenz}
+
+Die Block-Round-App stellt einen kleinen Satz Tastaturkürzel bereit, die die Eck-Buttons auf der Leinwand spiegeln. Sie sind unten zur schnellen Referenz aufgelistet; die Kürzel sind global (kein Eingabefeld muss Fokus haben) und funktionieren in 2D- und 3D-Modus, sofern nicht anders angegeben.
+
+\vspace{0.4em}
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Taste} & \textbf{Schaltet um} & \textbf{Anmerkungen} \\
+\midrule
+\code{G} & Kanten-Overlay  & schwarze Umrandung auf jeder Voxelfläche \\
+\code{C} & Mittel-Hilfslinien  & durchscheinendes gelbes Kreuz an Achsen \\
+\code{D} & PNG herunterladen  & aktuelle Leinwand als PNG-Bild \\
+\code{I} & Info-Chip  & Blockanzahl und Pack-Aufschlüsselung \\
+\code{M} & 2D/3D-Umschaltung  & wechselt zwischen flach und voxel \\
+\code{S} & Ton an/aus  & Umgebungs-Block-Platzierungstöne \\
+\code{T} & Tag/Nacht-Thema  & verdunkelt Hintergrund, hält Kacheln lesbar \\
+\code{Ctrl+Z / Y} & Rückgängig/Wiederholen  & durchläuft die Figur-Änderungs-Historie \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Die Kürzel \code{G} (Raster) und \code{C} (Mittel-Hilfslinien) sind während der Bauvalidierung besonders nützlich: \code{G} zeigt, ob jedes Voxel der Schale an Ort und Stelle ist (ein fehlender Block bricht das Overlay-Muster), und \code{C} bestätigt, dass die Schnitte korrekt auf den Figurachsen zentriert sind.
+
+Für das \code{Ctrl+Z}-Rückgängig: Block Round durchläuft jede figurändernde Bearbeitung (Schieberegler, Renderingmodus, Algorithmus, Form, Achse, Block, Modus-Umschaltung), schließt aber bewusst rein visuelle Umschaltungen aus (Kamera, Edge-Overlay, Mittelkreuz, Thema, Ton). Diese Trennung hält den Undo-Stack mit Bearbeitungen gefüllt, die der Nutzer wahrscheinlich rückgängig machen will.
+
+\subsection*{A.5 Glossar der Schlüsselbegriffe}
+
+Schnellreferenz für die technischen Begriffe, die sich durch dieses Dokument ziehen. Jeder Eintrag rekapituliert kurz das Konzept und verweist auf den Abschnitt, in dem es im Detail entwickelt wird.
+
+\begin{itemize}[leftmargin=1.4em,itemsep=0.18em,topsep=0.3em]
+  \item \textbf{Voxel} --- Einheitskubus in 3D, analog zum Pixel in 2D. Jeder Minecraft-Block ist ein Voxel. Siehe Abschnitt~2.
+  \item \textbf{Pack (Stack)} --- in Minecraft ein Stapel von 64 identischen Items, der einen Inventarslot belegt. Siehe Abschnitt~17.
+  \item \textbf{Doppeltruhe} --- zwei benachbarte Truhen, zu einem 54-Slot-Container verschmolzen. Hält bis zu $3\,456$ Items. Siehe Abschnitt~17.
+  \item \textbf{Shulker-Box} --- tragbarer 27-Slot-Container, der selbst in einem Truhenslot gelagert werden kann. Siehe Abschnitt~17.
+  \item \textbf{Schale} --- die äußere, ein-Voxel-dicke Schicht einer festen Figur. Die relevante Oberfläche für Survival-Bauer. Siehe Abschnitte~7 und~18.
+  \item \textbf{Oktant} --- eine der acht Regionen des 3D-Raums, erhalten durch Schnitt der drei koordinatenbezogenen Halbräume. Verwendet in der Symmetrie-Optimierung. Siehe Abschnitt~20.
+  \item \textbf{UV-Mapping} --- eine 2D-Parametrisierung einer 3D-Fläche, verwendet um ein Texturbild auf jede Fläche eines Voxels abzubilden. Siehe Abschnitt~21.
+  \item \textbf{Bresenham} --- inkrementeller Rasterisierungsalgorithmus von 1965, der nur Ganzzahlarithmetik verwendet. Siehe Abschnitt~5.
+  \item \textbf{Schwellwert} --- Rasterisierungskriterium, das eine Zelle einschließt, wenn eine ihrer Ecken innerhalb der Ellipse liegt. Siehe Abschnitt~6.
+  \item \textbf{Euklidisch} --- Rasterisierungskriterium, das eine Zelle einschließt, wenn ihr Mittelpunkt innerhalb der Ellipse liegt. Siehe Abschnitt~4.
+  \item \textbf{Easter Egg} --- eine versteckte Funktion, ausgelöst durch eine spezifische Eingabe. In Block Round: der Eichenbaum und der Creeper, beide bei Schiebereglerwert 15.
+  \item \textbf{Schematic} --- eine serialisierte Strukturdatei (Sponge Schematic v2, \code{.schem}), ladbar durch WorldEdit, Litematica oder MCEdit.
+\end{itemize}
+
+Dieses Glossar bleibt absichtlich kürzer als ein vollständiges mathematisches Lexikon. Leser, die eine tiefere Abdeckung der zugrundeliegenden Mathematik suchen (digitale Topologie, Integralrechnung, Gruppentheorie usw.), werden auf die entsprechenden Abschnitte dieses Dokuments verwiesen.
+
+\subsection*{A.6 Ausblick und Grenzen des Modells}
+
+Das in diesem Dokument vorgestellte Block-Round-Modell deckt die statische Voxelisierung von Ellipsen, Ellipsoiden und ihren Schnitten sowie die durch die Minecraft-Schicht eingeführten praktischen Überlegungen ab. Es behandelt keine dynamischen Probleme --- sich bewegende Figuren, animierte Voxel-Übergänge, Wechselwirkungen mit Fluidsimulation --- da diese einen kontinuierlich-zeitlichen Rahmen außerhalb des Geltungsbereichs der diskreten Rasterung erfordern. Eine natürliche Erweiterung ist die \emph{Animation auf Schematic-Ebene}: eine Folge statischer Voxelisierungen, durch Interpolation verbunden, die Block Round bereits als \code{.schem}-Strom exportieren kann, der von Litematica-Skripten gelesen werden kann.
+
+Eine weitere offene Richtung ist die \emph{exakte volumenerhaltende Voxelisierung}: die aktuelle diskrete Zählung $V_{\mathrm{disc}}$ konvergiert nur asymptotisch zum stetigen Volumen $V_{\mathrm{cont}}$. Für Anwendungen, in denen die exakte Zählung der stetigen Formel entsprechen muss (z.\,B.\ Rendering-Wettbewerbe, mathematische Kunst mit strengen Blockbudgets), ist eine zusätzliche Verfeinerungsschicht erforderlich --- etwa durch leichtes Anpassen des Radius, sodass die diskrete Zählung einen Zielwert trifft. Block Round implementiert diese Verfeinerung derzeit nicht, aber die zugrundeliegende Mathematik ist unkompliziert: $V_{\mathrm{disc}}(r) = V_{\mathrm{Ziel}}$ numerisch nach $r$ lösen.
+
+Schließlich die \emph{Ausnutzung höherer Symmetrie}: das vorliegende Dokument behandelt die Reflexions-Untergruppe der Ordnung $8$ von $O_h$, aber die vollständige Gruppe der Ordnung $48$ enthält Rotationen, die im Prinzip eine $\times 48$-Beschleunigung erlauben würden. Das praktische Hindernis ist, dass In-Game-Befehle in achsenausgerichteten Regionen arbeiten und die Ausnutzung der Rotationssymmetrien eine $45°$-gedrehte Baufläche erfordert. Server-Mods, die Auswahlboxen intern drehen (z.\,B.\ FAWE), können dies prinzipiell erreichen, aber Mainstream-Tooling stellt es noch nicht zur Verfügung. Eine Referenzimplementierung, die $\times 48$-Beschleunigung auf einem Vanilla-Server demonstriert, wäre ein natürliches Folgeprojekt zur vorliegenden Arbeit.
+
+\subsection*{A.7 Weitere Referenzen und externe Ressourcen}
+
+Die in diesem Dokument entwickelten mathematischen Konzepte haben jeweils gut etablierte eigene Literaturen. Für Leser, die Primärquellen oder tiefere algorithmische Hintergründe suchen, werden folgende Einstiegspunkte empfohlen:
+
+\begin{itemize}[leftmargin=1.4em,itemsep=0.2em,topsep=0.3em]
+  \item J.~E.~Bresenham, \emph{Algorithm for computer control of a digital plotter}, IBM Systems Journal, vol.~4 no.~1, 1965 --- die ursprüngliche Arbeit zur Ganzzahl-Rasterung, in diesem Dokument erweitert.
+  \item M.~L.~V.~Pitteway, \emph{Algorithm for drawing ellipses or hyperbolae with a digital plotter}, Computer Journal, vol.~10, 1967 --- verallgemeinert Bresenham auf beliebige Kegelschnitte.
+  \item A.~Kappel, \emph{An ellipse-drawing algorithm for raster displays}, ACM Comm.\ vol.~28, 1985 --- die in Abschnitt~5 verwendete elliptische Zwei-Regionen-Formulierung.
+  \item R.~Klette und A.~Rosenfeld, \emph{Digital Geometry: Geometric Methods for Digital Picture Analysis}, Morgan Kaufmann, 2004 --- Standardreferenz für digitale Topologie und die Randoperatoren der Abschnitte~7 und~18.
+  \item WorldEdit-Dokumentation, \emph{enginehub.org/worldedit/} --- offizielle Befehlsreferenz für die in diesem Dokument verwendeten Befehle \cmd{//sphere}, \cmd{//hsphere}, \cmd{//ellipsoid}, \cmd{//copy}.
+  \item Sponge Schematic Specification v2, \emph{github.com/SpongePowered/Schematic-Specification} --- das Dateiformat, das Block Round als \code{.schem} exportiert.
+\end{itemize}
+
+Die in Abschnitt~22 aufgelisteten acht theoretischen Gebiete haben jeweils Lehrbuch-Niveau-Behandlungen, die weit über das hinausgehen, was ein einzelnes technisches Dokument zusammenfassen kann. Der Beitrag von Block Round liegt nicht in der Theorie selbst, sondern in der spezifischen Synthese: Anwendung der klassischen Rasterung auf die texturierte Voxel-Minecraft-Umgebung mit den expliziten Inventar- und Symmetriekostenüberlegungen, die in rein geometrischen Tools üblicherweise weggelassen werden.
+
+Eine abschließende Bemerkung zur Reproduzierbarkeit: die gesamte Pipeline dieses Dokuments --- Build-Skript, Übersetzungen, LaTeX-Vorlage, Pro-Locale-Tabellen --- ist im \code{docs_math/}-Verzeichnis des Projekt-Repositorys enthalten. Erneutes Ausführen von \code{python build.py} auf einem System mit XeLaTeX/MiKTeX erzeugt dieses PDF exakt, in jeder der neun unterstützten Sprachen. Das Schwesterprojekt Pixel Round folgt der gleichen Struktur und ermöglicht den direkten Side-by-Side-Vergleich der texturierten und nicht-texturierten Varianten.
+
+\vspace{1.2em}
+
+\begin{center}
+{\sffamily\bfseries\color{accent}Ende des Dokuments}
+\end{center}
+
+\vspace{0.6em}
+
+Block Round wird von Vinícius Rodrigues de Souza gepflegt. Das Schwesterprojekt Pixel Round ist unter \emph{github.com/ViniSouza128/pixel-round} verfügbar; das aktuelle Block-Round-Repository ist unter \emph{github.com/ViniSouza128/block-round}.
+
+Kommentare, Korrekturen und Übersetzungsverbesserungen sind über den Issue-Tracker des Projekt-Repositorys willkommen. Korrekturlesen durch Muttersprachler der acht nicht-englischen Locales wird besonders geschätzt, da die Lokalisierungen mit erheblicher Überprüfung vorbereitet wurden, aber die technisch-mathematische Terminologie von muttersprachlicher Korrektur profitiert.
+
+\end{document}
