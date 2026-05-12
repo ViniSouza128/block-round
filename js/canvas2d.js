@@ -524,8 +524,11 @@ function updateInfoChip(){
     areaEl.textContent = voxelVolume(Dx, Dy, Dz);
   }
   if (blocksEl) blocksEl.textContent = _formatStacks(window._lastBlockCount || 0);
-  algoEl.textContent = state.mcBlock === 'random' ? 'Random' :
-                       (MC_BLOCKS[state.mcBlock]?.name || state.mcBlock);
+  /* Block name pulled from the i18n table so the chip follows the locale.
+     Falls back to MC_BLOCKS[key].name when tBlock isn't loaded yet. */
+  algoEl.textContent = (typeof window.tBlock === 'function')
+    ? window.tBlock(state.mcBlock)
+    : (state.mcBlock === 'random' ? 'Random' : (MC_BLOCKS[state.mcBlock]?.name || state.mcBlock));
 }
 
 function downloadPNG(){

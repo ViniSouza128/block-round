@@ -40,6 +40,7 @@ function buildMCList(){
     tile.dataset.block = key;
     tile.title = b.name;
     if (key !== 'random' && b.src) tile.style.backgroundImage = `url('${b.src}')`;
+    if (typeof window.tBlock === 'function') tile.title = window.tBlock(key);
     host.appendChild(tile);
   });
 
@@ -368,9 +369,7 @@ function setupClickDelegation(){
     // canvas-frame background gradient swap. Session-only; nothing
     // persists across reloads.
     if (a === 'lang'){
-      const next = (typeof getLocale === 'function' && getLocale() === 'pt') ? 'en' : 'pt';
-      if (typeof setLocale === 'function') setLocale(next);
-      document.getElementById('html-root')?.setAttribute('lang', next === 'pt' ? 'pt-BR' : 'en');
+      if (typeof cycleLocale === 'function') cycleLocale();
       Sfx.click();
       return;
     }
@@ -608,23 +607,38 @@ function setupSliders(){
 }
 
 /* ---------- PREFS -------------------------------------------------------- */
+/* The `t` parameter here shadows the global window.t() helper. We grab
+   a reference to the i18n function first so the existing closure name
+   `t` (the changed element) stays as-is without touching call sites. */
 function setupPrefs(){
+  const tr = (k) => (typeof window.t === 'function' ? window.t(k) : k);
   document.querySelectorAll('[data-pref]').forEach(t => {
     t.addEventListener('change', () => {
       const k = t.dataset.pref;
+      if (k === 'locale'){
+        /* Locale picker in Settings → routed through setLocale() so the
+           toolbar button label, document title, info page, etc. all update
+           in one shot. Persisted to localStorage by i18n.js. */
+        if (typeof setLocale === 'function') setLocale(t.value);
+        Sfx.click();
+        return;
+      }
       if (k === 'sound'){
         Sfx.setEnabled(t.checked);
         // Keep the toolbar button's icon + pressed state aligned with
         // the Settings checkbox so changing one surface updates both.
         document.body.classList.toggle('sound-off', !t.checked);
         document.querySelector('[data-act=sound]')?.classList.toggle('active', !t.checked);
-        toast(t.checked ? (typeof window.t==='function'?window.t('sounds_on'):'Sounds on') : (typeof window.t==='function'?window.t('sounds_off'):'Sounds off'));
+        toast(tr(t.checked ? 'sounds_on' : 'sounds_off'));
       } else if (k in state){
         state[k] = t.checked;
         const btn = document.querySelector(`[data-act=${k}]`);
         if (btn) btn.classList.toggle('active', t.checked);
         redraw();
-        toast(`${k} ${t.checked ? 'on' : 'off'}`);
+        /* Per-pref toast key (grid_on/off, center_on/off). Falls back
+           to "<key> on/off" if i18n hasn't loaded yet. */
+        const key = k + (t.checked ? '_on' : '_off');
+        toast(tr(key) === key ? `${k} ${t.checked ? 'on' : 'off'}` : tr(key));
       }
       Sfx.click();
       savePrefs();

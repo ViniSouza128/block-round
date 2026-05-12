@@ -10,7 +10,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="description" content="Block Round — Minecraft-flavoured pixel-perfect generator. Not affiliated with Mojang/Microsoft.">
 <meta name="theme-color" content="#1a1208">
-<title>Block Round</title>
+<title>Block Round — pixel-perfect rounded shape generator</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="apple-touch-icon" href="favicon.svg">
@@ -24,13 +24,13 @@
 
   <!-- UNIFIED TOPBAR: brand (L) · toggles (C) · info/settings (R, no theme) -->
   <div class="topbar">
-    <a class="brand" data-act="logo" aria-label="Block Round home" title="Block Round">
+    <a class="brand" data-act="logo" aria-label="Block Round home" title="Block Round" data-i18n-title="brand_title" data-i18n-aria="brand_aria">
       <svg class="mark" width="24" height="24" viewBox="0 0 24 24" fill="#FFEC4F" stroke="#1a0e04" stroke-width="2" shape-rendering="crispEdges">
         <polygon points="12,3 21,8 21,17 12,22 3,17 3,8"/>
         <polyline points="3,8 12,13 21,8" fill="none"/>
         <line x1="12" y1="13" x2="12" y2="22"/>
       </svg>
-      <span class="title">Block Round</span>
+      <span class="title" data-i18n="brand">Block Round</span>
     </a>
     <div class="center">
       <div class="mode-strip">
@@ -43,9 +43,10 @@
       </div>
     </div>
     <div class="actions">
-      <!-- Language toggle -->
-      <button class="icon-btn lang-btn" data-act="lang" title="Switch to Portuguese (PT)" aria-label="Switch language" data-i18n-title="lang_toggle_title">
-        <span class="lang-lbl" data-i18n="lang_label">PT</span>
+      <!-- Language toggle. Label shows the CURRENT locale (e.g. "PT-BR" while
+           in Portuguese); clicking cycles through AVAILABLE_LOCALES in i18n.js. -->
+      <button class="icon-btn lang-btn" data-act="lang" title="Change language" aria-label="Change language" data-i18n-title="lang_toggle_title">
+        <span class="lang-lbl">EN-US</span>
       </button>
       <!-- Sound toggle. Lives to the LEFT of the theme button so the most
            context-changing controls (audio, visual) sit together at the
@@ -169,51 +170,11 @@
       </div>
     </div>
 
-    <!-- INFO -->
+    <!-- INFO — content is rendered from js/i18n.js TR[locale].info on
+         initI18N() and every setLocale() call. Empty by default so a
+         hard refresh doesn't briefly show stale English text. -->
     <div class="route" data-route="info" hidden>
-      <div class="route-pad">
-        <h2 class="section-title">Info</h2>
-        <p class="section-sub">A Minecraft-flavoured pixel-perfect generator for rounded shapes.</p>
-
-        <h3 class="ds-h2" style="margin-top:28px;">1. What it is</h3>
-        <div class="help-list">
-          <div class="help-item"><p>Browser-based generator for pixel shapes (2D) and voxel shapes (3D) rendered with Minecraft block textures. Pick a block, dial in a size, get a PNG. No installation, no account, no backend.</p></div>
-        </div>
-
-        <h3 class="ds-h2" style="margin-top:28px;">2. Modes &amp; shapes</h3>
-        <div class="help-list">
-          <div class="help-item"><h3>2D · Circle / Ellipse</h3><p>Circle (single <b>Size</b>) or Ellipse (<b>Width</b> + <b>Height</b>) tiled with the chosen block texture.</p></div>
-          <div class="help-item"><h3>3D · Sphere / Ellipsoid</h3><p>Voxel sphere (single <b>Size</b>) or Ellipsoid (<b>W</b> + <b>H</b> + <b>D</b>). Each visible voxel is textured.</p></div>
-          <div class="help-item"><h3>Cut (3D)</h3><p>Slice along the <b>X</b>, <b>Y</b> or <b>⟋</b> (45° diagonal) axis. Switching axis restores the full figure — only one cuts at a time. Slider max scales to the chosen axis.</p></div>
-        </div>
-
-        <h3 class="ds-h2" style="margin-top:28px;">3. Algorithms (2D)</h3>
-        <div class="help-list">
-          <div class="help-item"><h3>Euclidean</h3><p>Distance test at pixel centres. Smoothest contour.</p></div>
-          <div class="help-item"><h3>Bresenham</h3><p>Classic midpoint algorithm. Stair-stepped pixel-art look.</p></div>
-          <div class="help-item"><h3>Threshold</h3><p>Corner-coverage. Chunkier silhouette at the same size.</p></div>
-        </div>
-
-        <h3 class="ds-h2" style="margin-top:28px;">4. Controls</h3>
-        <div class="help-list">
-          <div class="help-item"><h3>Mode &amp; shape</h3><p><b>2D / 3D</b> and <b>Circle / Ellipse</b> (Sphere / Ellipsoid in 3D) toggles at the top.</p></div>
-          <div class="help-item"><h3>Block picker</h3><p>Click any block tile in the picker strip below the canvas. <b>Random</b> mixes natural blocks across cells. Arrow keys walk the picker after selection.</p></div>
-          <div class="help-item"><h3>Pinch &amp; rotate</h3><p>Two fingers zoom; in 3D the midpoint also rotates. Mouse wheel zooms; in 3D click-drag rotates. Double-click resets the camera (3D) or zoom (2D).</p></div>
-          <div class="help-item"><h3>Grid &amp; wireframe</h3><p>The grid corner button toggles a cell grid in 2D and a per-voxel edge overlay in 3D. Default is OFF for transparent blocks (Glass / Ice) and ON for everything else — preferences are kept separately.</p></div>
-          <div class="help-item"><h3>Sound &amp; theme</h3><p>The <b>speaker</b> button in the topbar mutes all sounds (placement clicks, fuse, easter-egg samples). The <b>sun / moon</b> button toggles a night mood that dims background panels only — text and block tiles stay bright.</p></div>
-          <div class="help-item"><h3>Undo / Redo</h3><p><span class="key">Ctrl+Z</span> undoes the last figure-changing edit; any of <span class="key">Ctrl+Y</span> / <span class="key">Ctrl+Shift+Z</span> / <span class="key">Ctrl+Alt+Z</span> redoes. Visual-only toggles (camera, edges, theme, sound) are not tracked.</p></div>
-          <div class="help-item"><h3>Exports</h3><p>The top-right corner has <b>PNG</b> (current canvas) and <b>.schem</b> (Sponge Schematic v2, gzipped NBT) — the latter loads in WorldEdit, Litematica and MCEdit.</p></div>
-          <div class="help-item"><h3>Easter eggs</h3><p>An oak <b>tree</b> grows on top of the figure when any size slider hits <b>15</b> with Grass Block / Dirt / Random selected. A <b>creeper</b> stands on top instead when the slider is at 15 with <b>TNT</b> selected — and slowly turns to lock eyes with the camera every ~16 s, glowing primed-white as it fires the TNT fuse.</p></div>
-          <div class="help-item"><h3>Keyboard</h3><p><span class="key">G</span> Grid &nbsp; <span class="key">C</span> Center &nbsp; <span class="key">D</span> Download PNG &nbsp; <span class="key">I</span> Info chip &nbsp; <span class="key">M</span> 2D/3D &nbsp; <span class="key">S</span> Sound &nbsp; <span class="key">T</span> Night &nbsp; <span class="key">Ctrl+Z</span> Undo &nbsp; <span class="key">Ctrl+Y</span> Redo</p></div>
-        </div>
-
-        <h3 class="ds-h2" style="margin-top:28px;">5. Trademarks &amp; credits</h3>
-        <div class="help-list">
-          <div class="help-item"><h3>Not affiliated</h3><p><b>Block Round is not affiliated with, endorsed by, or sponsored by Mojang Studios or Microsoft.</b> "Minecraft" is a trademark of Mojang Synergies AB.</p></div>
-          <div class="help-item"><h3>Block textures</h3><p>Block textures are property of Mojang/Microsoft. See <code>LICENSE</code> &amp; <code>NOTICE.md</code>.</p></div>
-          <div class="help-item"><h3>Source</h3><p>All Rights Reserved on code. Repository: <code>github.com/ViniSouza128/block-round</code>.</p></div>
-        </div>
-      </div>
+      <div class="route-pad"></div>
     </div>
 
     <!-- SETTINGS (no theme picker — single MC theme) -->
@@ -222,6 +183,10 @@
         <h2 class="section-title" data-i18n="settings_h2">Settings</h2>
         <p class="section-sub" data-i18n="settings_sub">Session-only — every reload starts at the defaults.</p>
         <div class="settings-grid">
+          <div class="setting-row">
+            <div class="lbl-grp"><label data-i18n="setting_lang_lbl">Language</label><span class="desc" data-i18n="setting_lang_desc">Interface language</span></div>
+            <select class="lang-select" data-pref="locale"></select>
+          </div>
           <div class="setting-row">
             <div class="lbl-grp"><label data-i18n="setting_sounds_lbl">Sounds</label><span class="desc" data-i18n="setting_sounds_desc">Sound feedback on interactions</span></div>
             <label class="toggle-sw"><input type="checkbox" data-pref="sound" checked><span class="slider"></span></label>
