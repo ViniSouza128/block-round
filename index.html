@@ -47,6 +47,14 @@
            context-changing controls (audio, visual) sit together at the
            right edge of the topbar. State is mirrored to the Settings
            sound checkbox via the click handler in ui.js. -->
+      <!-- Asset pack toggle — temporary A/B test button.
+           Shows "MC" (Mojang assets) or "FREE" (CC0 pack). -->
+      <button class="icon-btn asset-pack-btn" data-act="asset-pack"
+              title="Switch to Free CC0 assets (test)"
+              aria-label="Toggle asset pack" aria-pressed="false">
+        <span class="ap-mc">MC</span><span class="ap-free">FREE</span>
+        <span class="ap-badge">TEST</span>
+      </button>
       <button class="icon-btn" data-act="sound" title="Toggle sound (S)" aria-label="Toggle sound">
         <svg class="snd-on-ico"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="4,9 4,15 9,15 14,20 14,4 9,9" fill="currentColor" stroke="none"/><path d="M17 8c1.5 1.2 1.5 6.8 0 8"/><path d="M19.5 5.5c3 2.6 3 10.4 0 13"/></svg>
         <svg class="snd-off-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="4,9 4,15 9,15 14,20 14,4 9,9" fill="currentColor" stroke="none"/><line x1="17" y1="9" x2="22" y2="14"/><line x1="22" y1="9" x2="17" y2="14"/></svg>
@@ -244,12 +252,15 @@
 
 <script src="js/textures.js"></script>
 <script src="js/sounds.js"></script>
+<script src="js/textures_free.js"></script>
+<script src="js/sounds_free.js"></script>
 <script src="js/state.js"></script>
 <script src="js/algorithms.js"></script>
 <script src="js/audio.js"></script>
 <script src="js/canvas2d.js"></script>
 <script src="js/canvas3d.js"></script>
 <script src="js/schematic.js"></script>
+<script src="js/asset_toggle.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/main.js"></script>
 
