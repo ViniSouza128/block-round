@@ -569,6 +569,11 @@ const CREEPER_BODY_H  = 0.75;
 const CREEPER_HEAD_H  = 0.5;
 
 function creeperIsActive(){
+  // Free asset pack disables the creeper easter egg entirely — the creeper
+  // skin atlas is a procedural redraw, but the *character* itself is still
+  // Mojang IP. We only summon it under the MC pack toggle so the free pack
+  // is 100 % free of Minecraft-flavoured entities.
+  if (window.ASSET_PACK === 'free') return false;
   if (state.mcBlock !== 'tnt') return false;
   if (state.shape === 'circle')  return state.size === 15;
   /* ellipsoid */                return state.width === 15 || state.height === 15 || state.depth === 15;
