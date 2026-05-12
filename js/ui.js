@@ -338,7 +338,7 @@ const BLOCK_SOUND_CATEGORY = {
 function isToolToggle(el){
   if (!el) return false;
   if (el.dataset.route || el.dataset.act === 'logo') return false;
-  if (el.dataset.act === 'info-chip' || el.dataset.act === 'theme' || el.dataset.act === 'sound') return false;
+  if (el.dataset.act === 'info-chip' || el.dataset.act === 'theme' || el.dataset.act === 'sound' || el.dataset.act === 'asset-pack') return false;
   return !!(el.dataset.render || el.dataset.algo
          || el.dataset.mode   || el.dataset.shape || el.dataset.axis
          || el.dataset.block  || el.dataset.act);
@@ -381,6 +381,12 @@ function setupClickDelegation(){
     // muted-speaker icon via body.sound-off, and surfaces a toast so
     // the user sees what happened (the most-likely-relevant feedback
     // sound is muted itself when going from on→off, hence the toast).
+    if (a === 'asset-pack'){
+      if (typeof onAssetPackToggle === 'function') onAssetPackToggle();
+      toast(`Assets: ${window.ASSET_PACK === 'free' ? 'Free CC0' : 'MC (Mojang)'}`);
+      return;
+    }
+
     if (a === 'sound'){
       const next = !Sfx.isEnabled();
       Sfx.setEnabled(next);

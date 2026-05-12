@@ -82,6 +82,27 @@ const Sfx = (() => {
     // out-last the user's attention span.
     tnt: () => {
       if (!on) return;
+      // Free pack: synthesise a fuse hiss with filtered noise + pitch sweep.
+      if (window.ASSET_PACK === 'free'){
+        const c = ensure(); if (!c) return;
+        try { _tntSource && _tntSource.stop(); } catch(_) {}
+        const dur = 3.5;
+        const len = Math.floor(c.sampleRate * dur);
+        const buf = c.createBuffer(1, len, c.sampleRate);
+        const d = buf.getChannelData(0);
+        for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / len * 1.2);
+        const src2 = c.createBufferSource(); src2.buffer = buf;
+        const lp = c.createBiquadFilter(); lp.type = 'bandpass';
+        lp.frequency.setValueAtTime(900, c.currentTime);
+        lp.frequency.linearRampToValueAtTime(300, c.currentTime + dur);
+        lp.Q.value = 0.8;
+        const g2 = c.createGain(); g2.gain.value = 0.45;
+        src2.connect(lp); lp.connect(g2); g2.connect(c.destination);
+        src2.onended = () => { if (_tntSource === src2) _tntSource = null; };
+        _tntSource = src2;
+        src2.start();
+        return;
+      }
       const c = ensure(); if (!c) return;
       const src = window.MC_SFX && window.MC_SFX.tnt_fuse;
       if (!src) return;
@@ -110,6 +131,20 @@ const Sfx = (() => {
     // sound is just a re-pitched slime jump anyway.
     slime: () => {
       if (!on) return;
+      // Free pack: synthesise a springy boing (pitch-descending tone burst).
+      if (window.ASSET_PACK === 'free'){
+        const c = ensure(); if (!c) return;
+        const o = c.createOscillator();
+        const g2 = c.createGain();
+        o.type = 'sine';
+        o.frequency.setValueAtTime(520, c.currentTime);
+        o.frequency.exponentialRampToValueAtTime(80, c.currentTime + 0.45);
+        g2.gain.setValueAtTime(0.35, c.currentTime);
+        g2.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.5);
+        o.connect(g2); g2.connect(c.destination);
+        o.start(); o.stop(c.currentTime + 0.5);
+        return;
+      }
       const c = ensure(); if (!c) return;
       const src = window.MC_SFX && window.MC_SFX.slime_jump;
       if (!src) return;
