@@ -34,26 +34,56 @@ def euclidean_2d(D):
     return cells
 
 def bresenham_2d(D):
-    R = int(round(D / 2.0))
-    contour = set()
-    x, y, d = 0, R, 1 - R
+    """Port fiel de fillBresenham (js/algorithms.js) para D arbitrario.
+
+    Centro (cx, cy) = (D/2, D/2). Para D par, cx eh inteiro (=isEX True);
+    para D impar, cx eh meio (=isEX False). Algoritmo:
+    1. integer-radius midpoint loop no octante 0-45°,
+    2. span fill horizontal por linha.
+    """
+    Gx = Gy = D
+    cx = cy = D / 2.0
+    rx = D / 2.0
+    isEX = (cx == int(cx))
+    iR = int(rx)
+    if iR < 1:
+        return set()
+    rMin = [Gx] * Gy
+    rMax = [-1] * Gy
+
+    def span(row, lo, hi):
+        if row < 0 or row >= Gy or lo > hi: return
+        l = max(0, lo); r = min(Gx - 1, hi)
+        if l > r: return
+        if l < rMin[row]: rMin[row] = l
+        if r > rMax[row]: rMax[row] = r
+
+    x, y, d = 0, iR, 1 - iR
     while x <= y:
-        offset = 0 if D % 2 else 0
-        for sx in (-1, 1):
-            for sy in (-1, 1):
-                contour.add((R + sx*x - (1 if sx < 0 else 0), R + sy*y - (1 if sy < 0 else 0)))
-                contour.add((R + sx*y - (1 if sx < 0 else 0), R + sy*x - (1 if sy < 0 else 0)))
-        if d < 0: d += 2*x + 3
-        else:    d += 2*(x - y) + 5; y -= 1
+        if isEX:
+            cxi, cyi = int(cx), int(cy)
+            span(cyi - y,     cxi - x, cxi + x - 1)
+            span(cyi + y - 1, cxi - x, cxi + x - 1)
+            span(cyi - x - 1, cxi - y, cxi + y - 1)
+            span(cyi + x,     cxi - y, cxi + y - 1)
+        else:
+            gcx, gcy = int(cx), int(cy)
+            span(gcy + y, gcx - x, gcx + x)
+            span(gcy - y, gcx - x, gcx + x)
+            span(gcy + x, gcx - y, gcx + y)
+            span(gcy - x, gcx - y, gcx + y)
+        if d < 0:
+            d += 2*x + 3
+        else:
+            d += 2*(x - y) + 5
+            y -= 1
         x += 1
+
     cells = set()
-    by_row = {}
-    for (i, j) in contour:
-        if 0 <= i < D and 0 <= j < D:
-            by_row.setdefault(j, []).append(i)
-    for j, xs in by_row.items():
-        for i in range(min(xs), max(xs)+1):
-            cells.add((i, j))
+    for j in range(Gy):
+        for i in range(rMin[j], rMax[j] + 1):
+            if 0 <= i < Gx:
+                cells.add((i, j))
     return cells
 
 def threshold_2d(D):
