@@ -11,13 +11,18 @@
 /* Bump CACHE whenever any SHELL file changes. The activate handler deletes
    stale caches on the next visit, so a single-character bump here is what
    ships fixes to repeat visitors. */
-const CACHE = 'block-round-v11';
+const CACHE = 'block-round-v12';
 const SHELL = [
   './',
   './index.html',
   './style.css',
   './manifest.json',
   './favicon.svg',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
+  './icons/icon-192-maskable.png',
+  './icons/icon-512-maskable.png',
+  './icons/apple-touch-icon.png',
   './js/flipbook.js',
   './js/i18n.js',
   './js/state.js',
