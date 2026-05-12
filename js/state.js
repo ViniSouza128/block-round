@@ -232,6 +232,10 @@ const RANDOM_POOL = ['grass','dirt','stone','cobble','oak','sand'];
 /* ---------- IMAGE CACHE -------------------------------------------------- */
 /* Lazily loads block textures from MC_TEX data URIs. Cached by key. */
 const _imgCache = new Map();
+
+/* Called by asset_toggle.js when the active texture pack changes. */
+function clearImgCache(){ _imgCache.clear(); }
+
 function loadBlockImage(key){
   if (key === 'random') return null;
   if (_imgCache.has(key)) return _imgCache.get(key);
