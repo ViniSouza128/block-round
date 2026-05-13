@@ -139,42 +139,37 @@ const TR = {
     /* ---- info page (structured) ---- */
     info: {
       h2:  'Info',
-      sub: 'A Minecraft-flavoured pixel-perfect generator for rounded shapes.',
+      sub: 'A Minecraft-flavoured pixel-perfect generator for rounded shapes — circles, ellipses, spheres and ellipsoids rendered with real block textures.',
       sections: [
-        { h3: '1. What it is', items: [
-          { p: 'Browser-based generator for pixel shapes (2D) and voxel shapes (3D) rendered with Minecraft block textures. Pick a block, dial in a size, get a PNG. No installation, no account, no backend.' },
+        { h3: '1. Quick start', items: [
+          { p: '<b>1.</b> Pick a mode at the top — <b>2D / 3D</b> — then a shape (<b>Circle / Ellipse</b> or <b>Sphere / Ellipsoid</b>). <br><b>2.</b> Choose a block from the picker strip below the canvas. <br><b>3.</b> Drag the sliders to set the integer dimensions and hit the corner buttons to download a PNG or a Sponge Schematic (<code>.schem</code>).' },
         ]},
-        { h3: '2. Modes & shapes', items: [
-          { h: '2D · Circle / Ellipse',   p: 'Circle (single <b>Size</b>) or Ellipse (<b>Width</b> + <b>Height</b>) tiled with the chosen block texture.' },
-          { h: '3D · Sphere / Ellipsoid', p: 'Voxel sphere (single <b>Size</b>) or Ellipsoid (<b>W</b> + <b>H</b> + <b>D</b>). Each visible voxel is textured.' },
-          { h: 'Cut (3D)',                p: 'Slice along the <b>X</b>, <b>Y</b> or <b>⟋</b> (45° diagonal) axis. Switching axis restores the full figure — only one cuts at a time. Slider max scales to the chosen axis.' },
+        { h3: '2. Documents', items: [
+          { h: 'Math companion (PDF)',       p: 'Full derivation of the implicit ellipse / ellipsoid equations, the three rasterization algorithms, voxelization, planar cuts, Lambertian shading and five Minecraft-specific extensions (inventory packs, exposed faces, layer construction, <code>/clone</code> symmetry, texture UVs). <a href="docs_math/Block_Round_Math_en-US.pdf" target="_blank" rel="noopener">Open Block_Round_Math_en-US.pdf →</a>' },
+          { h: 'Classroom lesson plan (PDF)',p: 'Five-period instructional sequence aligned to the Brazilian curriculum (BNCC / ENEM / OBMEP), with five regional adaptations and a Litematica build tutorial. <a href="docs_aula/Plano_de_Aula_pt-BR.pdf" target="_blank" rel="noopener">Open Plano_de_Aula_pt-BR.pdf →</a>' },
+          { h: 'All documents',              p: 'The math companion ships in 9 languages — browse <a href="docs_math/" target="_blank" rel="noopener">docs_math/</a> (math, 9 locales) and <a href="docs_aula/" target="_blank" rel="noopener">docs_aula/</a> (lesson plan).' },
         ]},
-        { h3: '3. Algorithms (2D)', items: [
+        { h3: '3. Modes & shapes', items: [
+          { h: '2D · Circle / Ellipse',   p: 'Circle uses one <b>Size</b>; Ellipse uses <b>Width</b> + <b>Height</b>. The canvas tiles the chosen block texture into every cell of the rasterized shape.' },
+          { h: '3D · Sphere / Ellipsoid', p: 'Sphere uses one <b>Size</b>; Ellipsoid uses <b>W</b> + <b>H</b> + <b>D</b>. Each visible voxel is rendered as a textured Minecraft block.' },
+          { h: 'Cut (3D)',                p: 'Slice along <b>X</b>, <b>Y</b> or <b>⟋</b> (45° diagonal). Switching axis restores the full figure — only one cut at a time. The slider max scales to the chosen axis.' },
+        ]},
+        { h3: '4. Algorithms (2D)', items: [
           { h: 'Euclidean', p: 'Distance test at pixel centres. Smoothest contour.' },
-          { h: 'Bresenham', p: 'Classic midpoint algorithm. Stair-stepped pixel-art look.' },
-          { h: 'Threshold', p: 'Corner-coverage. Chunkier silhouette at the same size.' },
+          { h: 'Bresenham', p: 'Integer midpoint algorithm. Stair-stepped pixel-art look.' },
+          { h: 'Threshold', p: 'Corner-coverage test. Chunkiest silhouette — any cell with a corner inside fills.' },
         ]},
-        { h3: '4. Controls', items: [
-          { h: 'Mode & shape',     p: '<b>2D / 3D</b> and <b>Circle / Ellipse</b> (Sphere / Ellipsoid in 3D) toggles at the top.' },
-          { h: 'Block picker',     p: 'Click any block tile in the picker strip below the canvas. <b>Random</b> mixes natural blocks across cells. Arrow keys walk the picker after selection.' },
-          { h: 'Pinch & rotate',   p: 'Two fingers zoom; in 3D the midpoint also rotates. Mouse wheel zooms; in 3D click-drag rotates. Double-click resets the camera (3D) or zoom (2D).' },
-          { h: 'Grid & wireframe', p: 'The grid corner button toggles a cell grid in 2D and a per-voxel edge overlay in 3D. Default is OFF for transparent blocks (Glass / Ice) and ON for everything else — preferences are kept separately.' },
-          { h: 'Sound & theme',    p: 'The <b>speaker</b> button in the topbar mutes all sounds (placement clicks, fuse, easter-egg samples). The <b>sun / moon</b> button toggles a night mood that dims background panels only — text and block tiles stay bright.' },
-          { h: 'Language',         p: 'The <b>language</b> button at the right side of the topbar (and the picker in Settings) swaps the interface between supported locales. Choice is remembered across reloads.' },
-          { h: 'Undo / Redo',      p: '<span class="key">Ctrl+Z</span> undoes the last figure-changing edit; any of <span class="key">Ctrl+Y</span> / <span class="key">Ctrl+Shift+Z</span> / <span class="key">Ctrl+Alt+Z</span> redoes. Visual-only toggles (camera, edges, theme, sound) are not tracked.' },
-          { h: 'Exports',          p: 'The top-right corner has <b>PNG</b> (current canvas) and <b>.schem</b> (Sponge Schematic v2, gzipped NBT) — the latter loads in WorldEdit, Litematica and MCEdit.' },
-          { h: 'Easter eggs',      p: 'An oak <b>tree</b> grows on top of the figure when any size slider hits <b>15</b> with Grass Block / Dirt / Random selected. A <b>creeper</b> stands on top instead when the slider is at 15 with <b>TNT</b> selected — and slowly turns to lock eyes with the camera every ~16 s, glowing primed-white as it fires the TNT fuse.' },
-          { h: 'Keyboard',         p: '<span class="key">G</span> Grid &nbsp; <span class="key">C</span> Center &nbsp; <span class="key">D</span> Download PNG &nbsp; <span class="key">I</span> Info chip &nbsp; <span class="key">M</span> 2D/3D &nbsp; <span class="key">S</span> Sound &nbsp; <span class="key">T</span> Night &nbsp; <span class="key">Ctrl+Z</span> Undo &nbsp; <span class="key">Ctrl+Y</span> Redo' },
+        { h3: '5. Controls', items: [
+          { h: 'Pinch & rotate', p: 'Two fingers zoom (in 3D the midpoint also rotates). Mouse wheel zooms; in 3D click-drag rotates. Double-click resets the camera (3D) or zoom (2D).' },
+          { h: 'Grid & edges',   p: 'The grid corner button toggles a cell grid in 2D and a per-voxel edge overlay in 3D. The default is OFF for transparent blocks (Glass / Ice) and ON otherwise.' },
+          { h: 'Exports',        p: 'Top-right corner has <b>PNG</b> (current canvas) and <b>.schem</b> (Sponge Schematic v2, gzipped NBT). The schematic opens directly in WorldEdit, Litematica and MCEdit.' },
+          { h: 'Easter eggs',    p: 'An oak <b>tree</b> grows on top of the figure when a size slider hits <b>15</b> with Grass Block / Dirt / Random selected. A <b>creeper</b> takes its place with <b>TNT</b> selected — it slowly turns to face the camera every ~16 s, glowing primed-white as it lights the fuse.' },
+          { h: 'Keyboard',       p: '<span class="key">G</span> Grid &nbsp; <span class="key">C</span> Center &nbsp; <span class="key">D</span> Download PNG &nbsp; <span class="key">I</span> Info chip &nbsp; <span class="key">M</span> 2D/3D &nbsp; <span class="key">S</span> Sound &nbsp; <span class="key">T</span> Night &nbsp; <span class="key">Ctrl+Z</span> Undo &nbsp; <span class="key">Ctrl+Y</span> Redo' },
         ]},
-        { h3: '5. Trademarks & credits', items: [
-          { h: 'Not affiliated',   p: '<b>Block Round is not affiliated with, endorsed by, or sponsored by Mojang Studios or Microsoft.</b> "Minecraft" is a trademark of Mojang Synergies AB.' },
-          { h: 'Block textures',   p: 'Block textures are property of Mojang/Microsoft. See <code>LICENSE</code> &amp; <code>NOTICE.md</code>.' },
-          { h: 'Source',           p: 'All Rights Reserved on code. Repository: <code>github.com/ViniSouza128/block-round</code>.' },
-        ]},
-        { h3: '6. Documents', items: [
-          { h: 'Math companion (PDF)',       p: 'In-depth derivation of the implicit ellipse / ellipsoid equations, the three 2D rasterization algorithms, voxelization, cuts, Lambertian shading and the five Minecraft-specific extensions (inventory arithmetic, exposed-face counting, layer-by-layer construction, octahedral-symmetry /clone optimization, block-texture UV mapping). <a href="docs_math/Block_Round_Math_en-US.pdf" target="_blank" rel="noopener">Open Block_Round_Math_en-US.pdf →</a>' },
-          { h: 'Math — all locales',         p: 'The math companion is available in 9 languages (each PDF ≥25 pages): <a href="docs_math/" target="_blank" rel="noopener">docs_math/</a>.' },
-          { h: 'Classroom lesson plan (PDF)',p: 'Five-period instructional sequence for the 3rd year of Brazilian high school. 58 pages, 21 figures, aligned to BNCC / ENEM / OBMEP, with five regional adaptations. <a href="docs_aula/Plano_de_Aula_pt-BR.pdf" target="_blank" rel="noopener">Open Plano_de_Aula_pt-BR.pdf →</a>' },
+        { h3: '6. About', items: [
+          { h: 'Stack & offline',  p: 'Vanilla JavaScript + Canvas 2D + three.js. No framework, no build step. PWA-installable — works offline once visited. Only the chosen locale persists in <code>localStorage</code>.' },
+          { h: 'Not affiliated',   p: '<b>Block Round is not affiliated with, endorsed by, or sponsored by Mojang Studios or Microsoft.</b> "Minecraft" is a trademark of Mojang Synergies AB. Block textures remain property of Mojang/Microsoft — see <code>LICENSE</code> &amp; <code>NOTICE.md</code>.' },
+          { h: 'License & source', p: 'All Rights Reserved on code. Repository: <a href="https://github.com/ViniSouza128/block-round" target="_blank" rel="noopener">github.com/ViniSouza128/block-round</a>. Sibling project (texture-free pixel art): <a href="https://github.com/ViniSouza128/pixel-round" target="_blank" rel="noopener">Pixel Round</a>.' },
         ]},
       ],
     },
@@ -306,42 +301,37 @@ const TR = {
     /* ---- info page (structured) ---- */
     info: {
       h2:  'Informações',
-      sub: 'Um gerador pixel-perfeito de formas arredondadas com estética Minecraft.',
+      sub: 'Gerador pixel-perfeito de formas arredondadas com estética Minecraft — círculos, elipses, esferas e elipsoides renderizados com texturas reais de bloco.',
       sections: [
-        { h3: '1. O que é', items: [
-          { p: 'Gerador no navegador para formas em pixels (2D) e em voxels (3D) com texturas de blocos do Minecraft. Escolha um bloco, ajuste o tamanho e baixe um PNG. Sem instalação, sem cadastro e sem backend.' },
+        { h3: '1. Início rápido', items: [
+          { p: '<b>1.</b> Escolha um modo no topo — <b>2D / 3D</b> — e uma forma (<b>Círculo / Elipse</b> ou <b>Esfera / Elipsoide</b>). <br><b>2.</b> Selecione um bloco no seletor abaixo do canvas. <br><b>3.</b> Ajuste os sliders e use os botões de canto pra baixar PNG ou Sponge Schematic (<code>.schem</code>).' },
         ]},
-        { h3: '2. Modos & formas', items: [
-          { h: '2D · Círculo / Elipse',      p: 'Círculo (apenas <b>Tamanho</b>) ou Elipse (<b>Largura</b> + <b>Altura</b>) preenchidos com a textura do bloco escolhido.' },
-          { h: '3D · Esfera / Elipsoide',    p: 'Esfera de voxels (apenas <b>Tamanho</b>) ou Elipsoide (<b>L</b> + <b>A</b> + <b>P</b>). Cada voxel visível recebe textura.' },
-          { h: 'Corte (3D)',                 p: 'Corte ao longo do eixo <b>X</b>, <b>Y</b> ou <b>⟋</b> (diagonal 45°). Trocar o eixo restaura a figura — apenas um corte por vez. O máximo do slider se ajusta ao eixo escolhido.' },
+        { h3: '2. Documentos', items: [
+          { h: 'Documento matemático (PDF)', p: 'Derivação completa das equações implícitas da elipse e do elipsóide, dos três algoritmos de rasterização, voxelização, cortes, sombreamento Lambertiano e das cinco extensões específicas do Minecraft (packs de inventário, faces expostas, construção por camadas, simetria via <code>/clone</code>, mapeamento UV). <a href="docs_math/Block_Round_Math_pt-BR.pdf" target="_blank" rel="noopener">Abrir Block_Round_Math_pt-BR.pdf →</a>' },
+          { h: 'Plano de aula (PDF)',        p: 'Sequência didática de 5 aulas pro 3.º ano do EM brasileiro, alinhada à BNCC / ENEM / OBMEP, com cinco adaptações regionais e tutorial Litematica pra construção real. <a href="docs_aula/Plano_de_Aula_pt-BR.pdf" target="_blank" rel="noopener">Abrir Plano_de_Aula_pt-BR.pdf →</a>' },
+          { h: 'Todos os documentos',        p: 'O documento matemático está disponível em 9 idiomas — navegue por <a href="docs_math/" target="_blank" rel="noopener">docs_math/</a> (matemática, 9 locales) e <a href="docs_aula/" target="_blank" rel="noopener">docs_aula/</a> (plano de aula).' },
         ]},
-        { h3: '3. Algoritmos (2D)', items: [
-          { h: 'Euclidiano', p: 'Teste de distância no centro de cada pixel. Contorno mais suave.' },
-          { h: 'Bresenham',  p: 'Algoritmo clássico do ponto médio. Visual escadinha em pixel-art.' },
-          { h: 'Limiar',     p: 'Cobertura por canto. Silhueta mais "blocada" no mesmo tamanho.' },
+        { h3: '3. Modos & formas', items: [
+          { h: '2D · Círculo / Elipse',   p: 'Círculo usa só <b>Tamanho</b>; Elipse usa <b>Largura</b> + <b>Altura</b>. O canvas preenche cada célula da forma rasterizada com a textura do bloco escolhido.' },
+          { h: '3D · Esfera / Elipsoide', p: 'Esfera usa só <b>Tamanho</b>; Elipsoide usa <b>L</b> + <b>A</b> + <b>P</b>. Cada voxel visível é renderizado como um bloco texturizado.' },
+          { h: 'Corte (3D)',              p: 'Corte ao longo de <b>X</b>, <b>Y</b> ou <b>⟋</b> (diagonal 45°). Trocar o eixo restaura a figura inteira — só um corte por vez. O máximo do slider se ajusta ao eixo escolhido.' },
         ]},
-        { h3: '4. Controles', items: [
-          { h: 'Modo & forma',       p: 'Botões <b>2D / 3D</b> e <b>Círculo / Elipse</b> (Esfera / Elipsoide em 3D) no topo.' },
-          { h: 'Seletor de blocos',  p: 'Clique em qualquer bloco na faixa abaixo do canvas. <b>Aleatório</b> mistura blocos naturais entre as células. As setas do teclado percorrem o seletor depois da seleção.' },
-          { h: 'Pinçar & rotacionar',p: 'Dois dedos dão zoom; em 3D o ponto médio também rotaciona. A roda do mouse dá zoom; em 3D clique-arraste rotaciona. Duplo clique reseta a câmera (3D) ou o zoom (2D).' },
-          { h: 'Grade & wireframe',  p: 'O botão de grade alterna a grade de células em 2D e a sobreposição de arestas por voxel em 3D. O padrão é OFF para blocos transparentes (Vidro / Gelo) e ON para o resto — as preferências são separadas.' },
-          { h: 'Som & tema',         p: 'O botão de <b>alto-falante</b> no topo silencia todos os sons (cliques de posicionamento, pavio, easter-eggs). O botão de <b>sol / lua</b> alterna um modo noturno que escurece apenas os painéis de fundo — texto e blocos seguem nítidos.' },
-          { h: 'Idioma',             p: 'O botão de <b>idioma</b> à direita do topo (e o seletor em Configurações) troca o idioma da interface entre os disponíveis. A escolha fica salva entre as recargas.' },
-          { h: 'Desfazer / Refazer', p: '<span class="key">Ctrl+Z</span> desfaz a última alteração da figura; <span class="key">Ctrl+Y</span> / <span class="key">Ctrl+Shift+Z</span> / <span class="key">Ctrl+Alt+Z</span> refaz. Toggles visuais (câmera, arestas, tema, som) não entram no histórico.' },
-          { h: 'Exportações',        p: 'O canto superior direito tem <b>PNG</b> (canvas atual) e <b>.schem</b> (Sponge Schematic v2, NBT compactado) — o segundo abre no WorldEdit, Litematica e MCEdit.' },
-          { h: 'Easter eggs',        p: 'Uma <b>árvore</b> de carvalho nasce em cima da figura quando qualquer slider de tamanho chega a <b>15</b> com Grama / Terra / Aleatório selecionado. Um <b>creeper</b> aparece no lugar com <b>TNT</b> selecionado em 15 — ele vira lentamente para fitar a câmera a cada ~16 s, brilhando de branco quando aciona o pavio.' },
-          { h: 'Teclado',            p: '<span class="key">G</span> Grade &nbsp; <span class="key">C</span> Centro &nbsp; <span class="key">D</span> Baixar PNG &nbsp; <span class="key">I</span> Chip de info &nbsp; <span class="key">M</span> 2D/3D &nbsp; <span class="key">S</span> Som &nbsp; <span class="key">T</span> Noite &nbsp; <span class="key">Ctrl+Z</span> Desfazer &nbsp; <span class="key">Ctrl+Y</span> Refazer' },
+        { h3: '4. Algoritmos (2D)', items: [
+          { h: 'Euclidiano', p: 'Teste de distância no centro do pixel. Contorno mais suave.' },
+          { h: 'Bresenham',  p: 'Algoritmo do ponto médio inteiro. Visual escadinha pixel-art.' },
+          { h: 'Limiar',     p: 'Cobertura por canto. Silhueta mais "blocada" — qualquer célula com canto dentro é preenchida.' },
         ]},
-        { h3: '5. Marcas & créditos', items: [
-          { h: 'Sem afiliação',  p: '<b>Block Round não é afiliado, endossado ou patrocinado pela Mojang Studios ou pela Microsoft.</b> "Minecraft" é uma marca registrada da Mojang Synergies AB.' },
-          { h: 'Texturas',       p: 'As texturas dos blocos são propriedade da Mojang/Microsoft. Veja <code>LICENSE</code> &amp; <code>NOTICE.md</code>.' },
-          { h: 'Código-fonte',   p: 'Todos os direitos reservados sobre o código. Repositório: <code>github.com/ViniSouza128/block-round</code>.' },
+        { h3: '5. Controles', items: [
+          { h: 'Pinçar & rotacionar', p: 'Dois dedos dão zoom (em 3D o ponto médio também rotaciona). A roda do mouse dá zoom; em 3D clique-arraste rotaciona. Duplo clique reseta a câmera (3D) ou o zoom (2D).' },
+          { h: 'Grade & arestas',     p: 'O botão de grade alterna a grade de células em 2D e o overlay de arestas por voxel em 3D. Padrão OFF para blocos transparentes (Vidro / Gelo) e ON pro resto.' },
+          { h: 'Exportações',         p: 'O canto superior direito tem <b>PNG</b> (canvas atual) e <b>.schem</b> (Sponge Schematic v2, NBT compactado). O schematic abre direto no WorldEdit, Litematica e MCEdit.' },
+          { h: 'Easter eggs',         p: 'Uma <b>árvore</b> de carvalho nasce em cima da figura quando um slider chega em <b>15</b> com Grama / Terra / Aleatório selecionado. Um <b>creeper</b> ocupa o lugar com <b>TNT</b> selecionado — vira devagar pra fitar a câmera a cada ~16 s, brilhando branco quando acende o pavio.' },
+          { h: 'Teclado',             p: '<span class="key">G</span> Grade &nbsp; <span class="key">C</span> Centro &nbsp; <span class="key">D</span> Baixar PNG &nbsp; <span class="key">I</span> Chip de info &nbsp; <span class="key">M</span> 2D/3D &nbsp; <span class="key">S</span> Som &nbsp; <span class="key">T</span> Noite &nbsp; <span class="key">Ctrl+Z</span> Desfazer &nbsp; <span class="key">Ctrl+Y</span> Refazer' },
         ]},
-        { h3: '6. Documentos', items: [
-          { h: 'Documento matemático (PDF)', p: 'Desenvolvimento completo das equações implícitas da elipse e do elipsóide, dos três algoritmos 2D de rasterização, voxelização, cortes, sombreamento Lambertiano e das cinco extensões específicas do Minecraft (aritmética de inventário, contagem de faces expostas, construção camada-por-camada, otimização por simetria octaédrica via /clone, mapeamento UV das texturas de bloco). <a href="docs_math/Block_Round_Math_pt-BR.pdf" target="_blank" rel="noopener">Abrir Block_Round_Math_pt-BR.pdf →</a>' },
-          { h: 'Documento — outros idiomas', p: 'O documento matemático está disponível em 9 idiomas (cada PDF tem ≥25 páginas): <a href="docs_math/" target="_blank" rel="noopener">docs_math/</a>.' },
-          { h: 'Plano de aula (PDF)',        p: 'Sequência didática de 5 aulas para o 3.º ano do Ensino Médio brasileiro. 58 páginas, 21 figuras, alinhado à BNCC (EM13MAT307/308/309/404), ENEM e OBMEP, com adaptações regionais para escolas urbanas/interior/IFs/campo/indígenas-quilombolas/EJA e tutorial Litematica para construção real no Minecraft. <a href="docs_aula/Plano_de_Aula_pt-BR.pdf" target="_blank" rel="noopener">Abrir Plano_de_Aula_pt-BR.pdf →</a>' },
+        { h3: '6. Sobre', items: [
+          { h: 'Stack & offline',     p: 'JavaScript puro + Canvas 2D + three.js. Sem framework, sem build step. Instalável como PWA — funciona offline depois da primeira visita. Só a locale escolhida fica em <code>localStorage</code>.' },
+          { h: 'Sem afiliação',       p: '<b>Block Round não é afiliado, endossado ou patrocinado pela Mojang Studios ou pela Microsoft.</b> "Minecraft" é marca registrada da Mojang Synergies AB. Texturas de bloco continuam sendo propriedade da Mojang/Microsoft — veja <code>LICENSE</code> &amp; <code>NOTICE.md</code>.' },
+          { h: 'Licença & código',    p: 'Todos os direitos reservados sobre o código. Repositório: <a href="https://github.com/ViniSouza128/block-round" target="_blank" rel="noopener">github.com/ViniSouza128/block-round</a>. Projeto irmão (pixel art sem texturas): <a href="https://github.com/ViniSouza128/pixel-round" target="_blank" rel="noopener">Pixel Round</a>.' },
         ]},
       ],
     },

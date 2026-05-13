@@ -5,29 +5,121 @@
 <title>Block Round — Planos de aula (PDF)</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="index,follow">
-<meta name="description" content="Block Round — planos de aula em PDF. Sequência didática para o Ensino Médio brasileiro, articulando geometria analítica, voxel art e construção em Minecraft.">
+<meta name="description" content="Block Round — planos de aula em PDF. Sequência didática para o Ensino Médio brasileiro articulando geometria analítica, voxel art e construção real no Minecraft. Alinhado à BNCC, ENEM e OBMEP, com cinco adaptações regionais e tutorial Litematica.">
 <style>
-  :root{--bg:#f2ede2;--surface:#fbf6e9;--border:#d8d1bc;--text:#1f1f23;--muted:#4e4e58;--accent:#5b8e3f;--accent-dim:rgba(91,142,63,.12)}
-  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Inter,-apple-system,Segoe UI,system-ui,sans-serif;line-height:1.6}
+  :root{
+    --bg:#1a1208;
+    --surface:#2a1808;
+    --surface-hi:#3a2410;
+    --border:#3a2410;
+    --border-strong:#1a0e04;
+    --text:#FFF4D0;
+    --text-strong:#FFFFFF;
+    --text-muted:#FFE8A8;
+    --accent:#FFEC4F;
+    --accent-light:#FFF4A0;
+    --accent-dim:rgba(255,236,79,.20);
+    --shadow:1px 1px 0 #1a0e04;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html,body{
+    background:#1a1208 url('../textures/dirt.png') center/24px;
+    image-rendering:pixelated;
+    color:var(--text);
+    font-family:Inter,-apple-system,Segoe UI,system-ui,sans-serif;
+    line-height:1.65;
+    min-height:100vh;
+  }
   main{max-width:820px;margin:0 auto;padding:48px 28px 80px}
-  header a.back{color:var(--muted);text-decoration:none;font-size:14px;letter-spacing:.04em;text-transform:uppercase;font-weight:700}
+
+  header a.back{
+    color:var(--text-muted);
+    text-decoration:none;
+    font-family:'Press Start 2P',monospace;
+    font-size:11px;letter-spacing:.04em;text-transform:uppercase;
+    text-shadow:var(--shadow);
+  }
   header a.back:hover{color:var(--accent)}
-  h1{font-size:38px;font-weight:800;color:var(--accent);margin:14px 0 6px;letter-spacing:-.01em}
-  .sub{color:var(--muted);font-size:16px;margin-bottom:32px}
-  .card{display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin:10px 0;text-decoration:none;color:var(--text);transition:.12s ease-out;font-size:15px;gap:10px}
-  .card:hover{border-color:var(--accent);background:var(--accent-dim);transform:translateY(-1px)}
-  .card.soon{opacity:.55;cursor:default;pointer-events:none}
-  .card .head{display:flex;align-items:center;flex:1;min-width:0}
-  .card .locale{font-weight:700;letter-spacing:.04em;font-size:13px;color:var(--accent);text-transform:uppercase;display:inline-block;min-width:72px}
-  .card.soon .locale{color:var(--muted)}
-  .card .ctx{color:var(--muted);font-size:13px;margin-left:10px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .card .arrow{color:var(--accent);font-weight:700;flex-shrink:0}
-  .card.soon .arrow{color:var(--muted);font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:600}
-  section.about{margin-top:42px;padding-top:24px;border-top:1px solid var(--border);color:var(--muted);font-size:14px}
-  section.about p{margin:8px 0}
-  section.about a{color:var(--accent);text-decoration:none}
-  section.about a:hover{text-decoration:underline}
-  code{background:var(--surface);border:1px solid var(--border);padding:1px 6px;border-radius:4px;font-family:JetBrains Mono,SFMono-Regular,Consolas,monospace;font-size:12px}
+  h1{
+    font-family:'Press Start 2P',monospace;
+    font-size:22px;color:var(--accent);
+    text-shadow:2px 2px 0 #1a0e04;
+    margin:18px 0 10px;letter-spacing:.02em;line-height:1.4;
+  }
+  .sub{
+    color:var(--text);text-shadow:var(--shadow);
+    font-size:15px;margin-bottom:32px;max-width:680px;
+  }
+
+  .card{
+    display:flex;align-items:center;justify-content:space-between;
+    background:url('../textures/stone.png') center/24px;
+    border:3px solid var(--border);
+    outline:2px solid var(--border-strong);outline-offset:-3px;
+    image-rendering:pixelated;
+    padding:14px 18px;margin:10px 0;
+    text-decoration:none;color:var(--text);
+    transition:background .14s ease-out, transform .14s ease-out;
+    font-size:14px;gap:10px;
+  }
+  .card:hover{
+    background:url('../textures/stone.png') center/24px,var(--accent-dim);
+    background-blend-mode:overlay;
+    transform:translateX(2px);
+  }
+  .card.soon{opacity:.45;cursor:default;pointer-events:none}
+  .card .head{display:flex;align-items:center;flex:1;min-width:0;gap:12px}
+  .card .locale{
+    font-family:'Press Start 2P',monospace;
+    font-weight:700;letter-spacing:.04em;font-size:10px;
+    color:var(--accent);text-shadow:var(--shadow);
+    text-transform:uppercase;display:inline-block;min-width:74px;
+  }
+  .card.soon .locale{color:var(--text-muted)}
+  .card .ctx{
+    color:var(--text-muted);text-shadow:var(--shadow);
+    font-size:12px;flex:1;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .card .arrow{
+    color:var(--accent);font-weight:700;flex-shrink:0;
+    text-shadow:var(--shadow);font-size:18px;
+  }
+  .card.soon .arrow{
+    color:var(--text-muted);font-size:10px;
+    font-family:'Press Start 2P',monospace;
+    letter-spacing:.06em;text-transform:uppercase;
+  }
+
+  section.about{
+    margin-top:42px;padding:22px;
+    background:url('../textures/stone.png') center/24px;
+    border:3px solid var(--border);
+    outline:2px solid var(--border-strong);outline-offset:-3px;
+    image-rendering:pixelated;
+    color:var(--text);
+    font-size:13px;
+  }
+  section.about p{margin:8px 0;text-shadow:var(--shadow)}
+  section.about a{
+    color:var(--accent);
+    text-decoration:none;
+    border-bottom:1px solid var(--accent-dim);
+    text-shadow:var(--shadow);
+  }
+  section.about a:hover{
+    color:var(--accent-light);
+    border-bottom-color:var(--accent);
+    background:var(--accent-dim);
+  }
+  code{
+    display:inline-block;
+    background:#1a0e04;
+    border:1px solid var(--border);
+    padding:2px 7px;
+    font-family:'JetBrains Mono',SFMono-Regular,Consolas,monospace;
+    font-size:11px;color:var(--accent);text-shadow:none;
+  }
 </style>
 </head>
 <body>
@@ -38,7 +130,7 @@
     <p class="sub">Sequência didática de cinco aulas para o 3.º ano do Ensino Médio, articulando geometria analítica, voxel art e construção real no Minecraft. O plano em português brasileiro é a implementação de referência (58 páginas, 21 figuras, 5 aulas, 8 exercícios, tutorial Litematica). As demais localizações virão depois, cada uma <em>adaptada</em> — não traduzida — ao currículo, exame nacional e cultura visual de cada país.</p>
   </header>
 
-  <a class="card" href="Plano_de_Aula_pt-BR.pdf"><span class="head"><span class="locale">pt-BR</span><span class="ctx">Brasil · 3.º ano EM · BNCC · ENEM · OBMEP</span></span><span class="arrow">→</span></a>
+  <a class="card" href="Plano_de_Aula_pt-BR.pdf"><span class="head"><span class="locale">pt-BR</span><span class="ctx">Brasil · 3.º ano EM · BNCC · ENEM · OBMEP · 58 págs · 21 figuras</span></span><span class="arrow">→</span></a>
 
   <a class="card soon"><span class="head"><span class="locale">en-US</span><span class="ctx">USA · Grade 12 · Common Core · AP / SAT context</span></span><span class="arrow">em breve</span></a>
   <a class="card soon"><span class="head"><span class="locale">es-ES</span><span class="ctx">España · 2.º Bachillerato · LOMLOE · EvAU</span></span><span class="arrow">em breve</span></a>
@@ -50,9 +142,10 @@
   <a class="card soon"><span class="head"><span class="locale">ko-KR</span><span class="ctx">대한민국 · 고3 · 2022 개정 교육과정 · 수능</span></span><span class="arrow">em breve</span></a>
 
   <section class="about">
-    <p><strong>Recompilar:</strong> <code>cd docs_aula &amp;&amp; xelatex Plano_de_Aula_pt-BR.tex</code> (duas passagens para TOC + refs). Requer XeLaTeX com <code>tcolorbox</code>, <code>needspace</code>, <code>subcaption</code>.</p>
-    <p>O plano pt-BR integra 21 figuras geradas pelo Block Round (algoritmos Euclidiano/Bresenham/Limiar, modos preenchido/fino/grosso, 3D em isométrica, cortes Y/X/diagonal, e várias texturas de bloco demonstrando o diferencial Block Round). Sequência de 5 aulas: Aula 1 (problematização), Aula 2 (3 algoritmos), Aula 3 (3D + patrimônio cultural brasileiro), Aula 4 (aritmética de inventário + simetria octaédrica), Aula 5 (construção real no Minecraft via Litematica). Apêndices: roteiro de demonstração, 8 exercícios, adaptação totalmente analógica, glossário, tutorial Litematica.</p>
-    <p><strong>Companion técnico:</strong> <a href="../docs_math/">docs_math/</a> contém o documento matemático em 9 idiomas (≥25 páginas cada).</p>
+    <p><strong>Recompilar:</strong> <code>cd docs_aula &amp;&amp; xelatex Plano_de_Aula_pt-BR.tex</code> (duas passagens para TOC + referências cruzadas). Requer XeLaTeX com <code>tcolorbox</code>, <code>needspace</code>, <code>subcaption</code>, <code>tabularx</code>.</p>
+    <p>O plano pt-BR integra 21 figuras geradas pelo Block Round (algoritmos Euclidiano/Bresenham/Limiar, modos preenchido/fino/grosso, 3D em isométrica, cortes Y/X/diagonal, várias texturas de bloco). Sequência de 5 aulas: <em>Aula 1</em> problematização · <em>Aula 2</em> três algoritmos · <em>Aula 3</em> 3D + patrimônio cultural brasileiro · <em>Aula 4</em> aritmética de inventário + simetria octaédrica · <em>Aula 5</em> construção real no Minecraft via Litematica. Apêndices: roteiro de demonstração, 8 exercícios, adaptação totalmente analógica, glossário, tutorial Litematica passo-a-passo.</p>
+    <p><strong>Companion técnico:</strong> o <a href="../docs_math/">documento matemático em 9 idiomas</a> cobre rasterização discreta, voxelização, simetria octaédrica e aritmética de inventário em nível universitário (≥25 páginas cada).</p>
+    <p><a href="../docs_math/">← Documento matemático</a> · <a href="https://github.com/ViniSouza128/block-round">Source on GitHub</a></p>
     <p>© 2026 Vinícius Rodrigues de Souza. All Rights Reserved.</p>
   </section>
 </main>

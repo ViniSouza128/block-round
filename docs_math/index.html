@@ -2,52 +2,163 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Block Round — Math companion (PDF)</title>
+<title>Block Round — Documents (math + lesson plan)</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="index,follow">
-<meta name="description" content="Block Round technical math companion. PDFs in 9 languages covering ellipse and ellipsoid equations, three rasterization algorithms, voxelization, planar cuts, Lambertian shading, inventory arithmetic for Minecraft packs and double chests, exposed-face counting, layer-by-layer construction, and octahedral-symmetry optimization via /clone.">
+<meta name="description" content="Block Round documentation hub. Math companion in 9 languages and Brazilian classroom lesson plan, covering implicit ellipse/ellipsoid equations, rasterization, voxelization, planar cuts, Lambertian shading, inventory packs, exposed-face counting, layer-by-layer construction and octahedral-symmetry /clone optimization.">
 <style>
-  :root{--bg:#f2ede2;--surface:#fbf6e9;--border:#d8d1bc;--text:#1f1f23;--muted:#4e4e58;--accent:#5b8e3f;--accent-dim:rgba(91,142,63,.12)}
-  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Inter,-apple-system,Segoe UI,system-ui,sans-serif;line-height:1.6}
-  main{max-width:780px;margin:0 auto;padding:48px 28px 80px}
-  header a.back{color:var(--muted);text-decoration:none;font-size:14px;letter-spacing:.04em;text-transform:uppercase;font-weight:700}
+  :root{
+    --bg:#1a1208;
+    --surface:#2a1808;
+    --surface-hi:#3a2410;
+    --border:#3a2410;
+    --border-strong:#1a0e04;
+    --text:#FFF4D0;
+    --text-strong:#FFFFFF;
+    --text-muted:#FFE8A8;
+    --accent:#FFEC4F;
+    --accent-light:#FFF4A0;
+    --accent-dim:rgba(255,236,79,.20);
+    --shadow:1px 1px 0 #1a0e04;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html,body{
+    background:#1a1208 url('../textures/dirt.png') center/24px;
+    image-rendering:pixelated;
+    color:var(--text);
+    font-family:Inter,-apple-system,Segoe UI,system-ui,sans-serif;
+    line-height:1.65;
+    min-height:100vh;
+  }
+  main{max-width:820px;margin:0 auto;padding:48px 28px 80px}
+
+  header a.back{
+    color:var(--text-muted);
+    text-decoration:none;
+    font-family:'Press Start 2P',monospace;
+    font-size:11px;letter-spacing:.04em;text-transform:uppercase;
+    text-shadow:var(--shadow);
+  }
   header a.back:hover{color:var(--accent)}
-  h1{font-size:38px;font-weight:800;color:var(--accent);margin:14px 0 6px;letter-spacing:-.01em}
-  .sub{color:var(--muted);font-size:16px;margin-bottom:36px}
-  .card{display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin:10px 0;text-decoration:none;color:var(--text);transition:.12s ease-out;font-size:15px}
-  .card:hover{border-color:var(--accent);background:var(--accent-dim);transform:translateY(-1px)}
-  .card .locale{font-weight:700;letter-spacing:.04em;font-size:13px;color:var(--accent);text-transform:uppercase;display:inline-block;min-width:72px}
-  .card .name{font-family:JetBrains Mono,SFMono-Regular,Consolas,monospace;color:var(--muted);font-size:13px;margin-left:10px}
-  .card .arrow{color:var(--accent);font-weight:700}
-  section.about{margin-top:42px;padding-top:24px;border-top:1px solid var(--border);color:var(--muted);font-size:14px}
-  section.about p{margin:8px 0}
-  section.about a{color:var(--accent);text-decoration:none}
-  section.about a:hover{text-decoration:underline}
-  code{background:var(--surface);border:1px solid var(--border);padding:1px 6px;border-radius:4px;font-family:JetBrains Mono,SFMono-Regular,Consolas,monospace;font-size:12px}
+  h1{
+    font-family:'Press Start 2P',monospace;
+    font-size:22px;color:var(--accent);
+    text-shadow:2px 2px 0 #1a0e04;
+    margin:18px 0 10px;letter-spacing:.02em;line-height:1.4;
+  }
+  .sub{
+    color:var(--text);text-shadow:var(--shadow);
+    font-size:15px;margin-bottom:32px;max-width:680px;
+  }
+
+  h2{
+    font-family:'Press Start 2P',monospace;
+    font-size:13px;color:var(--accent);
+    text-shadow:var(--shadow);
+    margin:36px 0 14px;letter-spacing:.02em;
+  }
+  h2:first-of-type{margin-top:8px}
+
+  .card{
+    display:flex;align-items:center;justify-content:space-between;
+    background:url('../textures/stone.png') center/24px;
+    border:3px solid var(--border);
+    outline:2px solid var(--border-strong);outline-offset:-3px;
+    image-rendering:pixelated;
+    padding:14px 18px;margin:8px 0;
+    text-decoration:none;color:var(--text);
+    transition:background .14s ease-out, transform .14s ease-out;
+    font-size:14px;gap:10px;
+  }
+  .card:hover{
+    background:url('../textures/stone.png') center/24px,var(--accent-dim);
+    background-blend-mode:overlay;
+    transform:translateX(2px);
+  }
+  .card .head{display:flex;align-items:center;flex:1;min-width:0;gap:12px}
+  .card .locale{
+    font-family:'Press Start 2P',monospace;
+    font-weight:700;letter-spacing:.04em;font-size:10px;
+    color:var(--accent);text-shadow:var(--shadow);
+    text-transform:uppercase;display:inline-block;min-width:74px;
+  }
+  .card .name{
+    font-family:'JetBrains Mono',SFMono-Regular,Consolas,monospace;
+    color:var(--text-muted);
+    text-shadow:var(--shadow);
+    font-size:12px;flex:1;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .card .ctx{
+    color:var(--text-muted);text-shadow:var(--shadow);
+    font-size:12px;flex:1;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .card .arrow{
+    color:var(--accent);font-weight:700;flex-shrink:0;
+    text-shadow:var(--shadow);font-size:18px;
+  }
+
+  section.about{
+    margin-top:42px;padding:22px;
+    background:url('../textures/stone.png') center/24px;
+    border:3px solid var(--border);
+    outline:2px solid var(--border-strong);outline-offset:-3px;
+    image-rendering:pixelated;
+    color:var(--text);
+    font-size:13px;
+  }
+  section.about p{margin:8px 0;text-shadow:var(--shadow)}
+  section.about a{
+    color:var(--accent);
+    text-decoration:none;
+    border-bottom:1px solid var(--accent-dim);
+    text-shadow:var(--shadow);
+  }
+  section.about a:hover{
+    color:var(--accent-light);
+    border-bottom-color:var(--accent);
+    background:var(--accent-dim);
+  }
+  code{
+    display:inline-block;
+    background:#1a0e04;
+    border:1px solid var(--border);
+    padding:2px 7px;
+    font-family:'JetBrains Mono',SFMono-Regular,Consolas,monospace;
+    font-size:11px;color:var(--accent);text-shadow:none;
+  }
 </style>
 </head>
 <body>
 <main>
   <header>
     <a class="back" href="../">← Block Round</a>
-    <h1>Math companion</h1>
-    <p class="sub">A Matemática do Projeto — full technical companion in nine languages. Covers the implicit ellipse and ellipsoid equations, three rasterization algorithms (Euclidean, Bresenham, threshold) with derivations, voxel volume, planar cuts including the 45° diagonal, spherical-coordinate camera, auto-zoom by bounding sphere, Lambertian shading approximation, plus five Minecraft-specific extensions: block-texture UV mapping, inventory arithmetic (packs of 64 and double chests of 3,456 items), highlight-overlay exposed-face counting, layer-by-layer horizontal decomposition, and octahedral-symmetry construction-cost reduction via <code>/clone</code>.</p>
+    <h1>Documents</h1>
+    <p class="sub">A full math companion in nine languages and a Brazilian classroom lesson plan. Covers the implicit ellipse and ellipsoid equations, three 2D rasterization algorithms (Euclidean, Bresenham, threshold), voxelization, planar cuts (including the 45° diagonal), Lambertian shading and five Minecraft-specific extensions: inventory packs of 64 with double-chest arithmetic, exposed-face counting, layer-by-layer construction, octahedral-symmetry <code>/clone</code> optimization, and block-texture UV mapping.</p>
   </header>
 
-  <a class="card" href="Block_Round_Math_en-US.pdf"><span><span class="locale">en-US</span><span class="name">Block_Round_Math_en-US.pdf</span></span><span class="arrow">→</span></a>
-  <a class="card" href="Block_Round_Math_es-ES.pdf"><span><span class="locale">es-ES</span><span class="name">Block_Round_Math_es-ES.pdf</span></span><span class="arrow">→</span></a>
-  <a class="card" href="Block_Round_Math_pt-BR.pdf"><span><span class="locale">pt-BR</span><span class="name">Block_Round_Math_pt-BR.pdf</span></span><span class="arrow">→</span></a>
-  <a class="card" href="Block_Round_Math_fr-FR.pdf"><span><span class="locale">fr-FR</span><span class="name">Block_Round_Math_fr-FR.pdf</span></span><span class="arrow">→</span></a>
-  <a class="card" href="Block_Round_Math_de-DE.pdf"><span><span class="locale">de-DE</span><span class="name">Block_Round_Math_de-DE.pdf</span></span><span class="arrow">→</span></a>
-  <a class="card" href="Block_Round_Math_zh-CN.pdf"><span><span class="locale">zh-CN</span><span class="name">Block_Round_Math_zh-CN.pdf</span></span><span class="arrow">→</span></a>
-  <a class="card" href="Block_Round_Math_ja-JP.pdf"><span><span class="locale">ja-JP</span><span class="name">Block_Round_Math_ja-JP.pdf</span></span><span class="arrow">→</span></a>
-  <a class="card" href="Block_Round_Math_ru-RU.pdf"><span><span class="locale">ru-RU</span><span class="name">Block_Round_Math_ru-RU.pdf</span></span><span class="arrow">→</span></a>
-  <a class="card" href="Block_Round_Math_ko-KR.pdf"><span><span class="locale">ko-KR</span><span class="name">Block_Round_Math_ko-KR.pdf</span></span><span class="arrow">→</span></a>
+  <h2>Math companion (PDF, 9 locales)</h2>
+
+  <a class="card" href="Block_Round_Math_en-US.pdf"><span class="head"><span class="locale">en-US</span><span class="name">Block_Round_Math_en-US.pdf</span></span><span class="arrow">→</span></a>
+  <a class="card" href="Block_Round_Math_es-ES.pdf"><span class="head"><span class="locale">es-ES</span><span class="name">Block_Round_Math_es-ES.pdf</span></span><span class="arrow">→</span></a>
+  <a class="card" href="Block_Round_Math_pt-BR.pdf"><span class="head"><span class="locale">pt-BR</span><span class="name">Block_Round_Math_pt-BR.pdf</span></span><span class="arrow">→</span></a>
+  <a class="card" href="Block_Round_Math_fr-FR.pdf"><span class="head"><span class="locale">fr-FR</span><span class="name">Block_Round_Math_fr-FR.pdf</span></span><span class="arrow">→</span></a>
+  <a class="card" href="Block_Round_Math_de-DE.pdf"><span class="head"><span class="locale">de-DE</span><span class="name">Block_Round_Math_de-DE.pdf</span></span><span class="arrow">→</span></a>
+  <a class="card" href="Block_Round_Math_zh-CN.pdf"><span class="head"><span class="locale">zh-CN</span><span class="name">Block_Round_Math_zh-CN.pdf</span></span><span class="arrow">→</span></a>
+  <a class="card" href="Block_Round_Math_ja-JP.pdf"><span class="head"><span class="locale">ja-JP</span><span class="name">Block_Round_Math_ja-JP.pdf</span></span><span class="arrow">→</span></a>
+  <a class="card" href="Block_Round_Math_ru-RU.pdf"><span class="head"><span class="locale">ru-RU</span><span class="name">Block_Round_Math_ru-RU.pdf</span></span><span class="arrow">→</span></a>
+  <a class="card" href="Block_Round_Math_ko-KR.pdf"><span class="head"><span class="locale">ko-KR</span><span class="name">Block_Round_Math_ko-KR.pdf</span></span><span class="arrow">→</span></a>
+
+  <h2>Classroom lesson plan (PDF)</h2>
+
+  <a class="card" href="../docs_aula/Plano_de_Aula_pt-BR.pdf"><span class="head"><span class="locale">pt-BR</span><span class="ctx">Brasil · 3.º ano EM · BNCC · ENEM · OBMEP · 58 págs · 21 figuras</span></span><span class="arrow">→</span></a>
 
   <section class="about">
-    <p><strong>Rebuilding:</strong> <code>cd docs_math &amp;&amp; python build.py</code> (requires XeLaTeX/MiKTeX with <code>unicode-math</code>, <code>polyglossia</code>, <code>xeCJK</code>, <code>tcolorbox</code>, <code>needspace</code>).</p>
-    <p>Each PDF is ≥25 pages. Math content is identical across locales; only the prose varies.</p>
-    <p><strong>Companion project:</strong> a neutral pixel-art variant of the same algorithms is at <a href="https://github.com/ViniSouza128/pixel-round">Pixel Round</a>.</p>
+    <p><strong>Rebuilding:</strong> <code>cd docs_math &amp;&amp; python build.py</code> (requires XeLaTeX/MiKTeX with <code>unicode-math</code>, <code>polyglossia</code>, <code>xeCJK</code>, <code>tcolorbox</code>, <code>needspace</code>, <code>tabularx</code>, <code>xurl</code>).</p>
+    <p>Each math PDF is ≥25 pages and embeds 8 figures from <code>img/</code> plus a full bibliography in the local language; mathematical content is identical across locales — only the prose and bibliography comments change.</p>
+    <p>The lesson plan PT-BR uses 16 figures captured from the app, full BNCC alignment (EM13MAT307/308/309/404), and includes five regional adaptations (urbanas / interior / IFs / campo / indígenas-quilombolas) plus a Litematica build tutorial for in-game construction.</p>
+    <p><a href="../docs_aula/">Lesson plan landing →</a> · <a href="https://github.com/ViniSouza128/block-round">Source on GitHub</a> · <a href="https://github.com/ViniSouza128/pixel-round">Sibling project: Pixel Round</a></p>
     <p>© 2026 Vinícius Rodrigues de Souza. All Rights Reserved.</p>
   </section>
 </main>
