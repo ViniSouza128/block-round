@@ -332,31 +332,184 @@ PALETA_MOSS = {
 # PALETA_MUSHROOM_RED     = { ... }
 
 # ---------------------------------------------------------------------------
-# Rodada 3 — Terrain / Surfaces / Nether / Ice / End (placeholders)
+# Rodada 3 — Coloridos / areia / gelo / nether / end
 # ---------------------------------------------------------------------------
 
-# PALETA_SAND             = { ... } # 10_sand_sandstone
-# PALETA_SANDSTONE        = { ... }
-# PALETA_RED_SANDSTONE    = { ... }
-# PALETA_ICE              = { ... } # 11_ice_snow
-# PALETA_ICE_BLUE         = { ... }
-# PALETA_SNOW             = { ... }
-# PALETA_DIRT             = { ... } # 12_dirt_grass_surfaces
-# PALETA_GRASS            = { ... }
-# PALETA_PODZOL           = { ... }
-# PALETA_MYCELIUM         = { ... }
-# PALETA_MOSS             = { ... }
-# PALETA_NETHER_RACK      = { ... } # 13_nether
-# PALETA_NETHER_BRICKS    = { ... }
-# PALETA_MAGMA            = { ... } # strip 16x48
-# PALETA_SOUL_SAND        = { ... }
-# PALETA_SHROOMLIGHT      = { ... }
-# PALETA_CRYING_OBSIDIAN  = { ... }
-# PALETA_END_STONE        = { ... } # 14_end_obsidian
-# PALETA_OBSIDIAN         = { ... }
-# PALETA_BONE             = { ... } # 18_mushroom_bone parcial
-# PALETA_GLOWSTONE        = { ... } # 22_misc parcial
-# PALETA_SPONGE           = { ... }
+# 04_wools — 8 cores. Convencao identica para que `gerar_wool_base(paleta)`
+# em gen_wools.py funcione com qualquer uma. Tons: claro (highlight da
+# malha) > base > escuro (sombra entre fibras).
+PALETA_WOOL_WHITE = {
+    'base':   (224, 224, 224, 255),
+    'claro':  (244, 244, 244, 255),
+    'escuro': (180, 180, 180, 255),
+}
+PALETA_WOOL_BLACK = {
+    'base':   (44,  44,  48,  255),
+    'claro':  (68,  68,  72,  255),
+    'escuro': (24,  24,  28,  255),
+}
+PALETA_WOOL_RED = {
+    'base':   (172, 60,  60,  255),
+    'claro':  (208, 92,  92,  255),
+    'escuro': (130, 38,  38,  255),
+}
+PALETA_WOOL_ORANGE = {
+    'base':   (212, 132, 52,  255),
+    'claro':  (240, 168, 84,  255),
+    'escuro': (172, 96,  28,  255),
+}
+PALETA_WOOL_YELLOW = {
+    'base':   (220, 200, 70,  255),
+    'claro':  (240, 226, 116, 255),
+    'escuro': (180, 158, 38,  255),
+}
+PALETA_WOOL_GREEN = {
+    'base':   (94,  152, 64,  255),
+    'claro':  (124, 188, 86,  255),
+    'escuro': (62,  114, 44,  255),
+}
+PALETA_WOOL_BLUE = {
+    'base':   (62,  72,  168, 255),
+    'claro':  (96,  108, 208, 255),
+    'escuro': (40,  48,  130, 255),
+}
+PALETA_WOOL_LIGHT_BLUE = {
+    'base':   (104, 162, 202, 255),
+    'claro':  (148, 200, 226, 255),
+    'escuro': (76,  130, 172, 255),
+}
+
+# 10_sand_sandstone — 5 PNGs com paleta beige compartilhada.
+PALETA_SAND = {
+    'base':    (220, 200, 148, 255),  # beige claro uniforme
+    'claro':   (240, 222, 174, 255),
+    'escuro':  (190, 170, 116, 255),
+    'grao':    (170, 150, 100, 255),  # graozinho mais escuro pontual
+}
+PALETA_SANDSTONE = {
+    'base':    (216, 200, 152, 255),  # beige medio
+    'claro':   (236, 222, 178, 255),
+    'escuro':  (180, 162, 116, 255),
+    'ranhura': (152, 136, 96,  255),  # linha vertical sutil
+    'moldura': (128, 110, 76,  255),  # borda escura do sandstone_top
+}
+PALETA_RED_SANDSTONE = {
+    'base':    (208, 110, 56,  255),  # versao quente
+    'claro':   (236, 152, 92,  255),
+    'escuro':  (170, 80,  36,  255),
+    'ranhura': (132, 60,  24,  255),
+    'moldura': (108, 46,  18,  255),
+}
+
+# 11_ice_snow — translucidos (alpha < 255 quando aplicavel).
+PALETA_ICE = {
+    'base':    (172, 212, 240, 180),  # translucido
+    'claro':   (212, 234, 248, 200),
+    'escuro':  (134, 178, 218, 220),
+    'crack':   (96,  148, 196, 240),  # rachadura
+}
+PALETA_ICE_PACKED = {
+    'base':    (180, 218, 240, 255),  # opaco
+    'claro':   (212, 234, 248, 255),
+    'escuro':  (140, 178, 212, 255),
+    'destaque':(232, 244, 252, 255),
+}
+PALETA_ICE_BLUE = {
+    'base':    (110, 162, 222, 255),  # azul saturado
+    'claro':   (164, 204, 244, 255),
+    'escuro':  (74,  120, 184, 255),
+    'destaque':(232, 246, 255, 255),
+}
+PALETA_SNOW = {
+    'base':    (245, 246, 250, 255),  # branco quase puro
+    'claro':   (255, 255, 255, 255),
+    'escuro':  (212, 220, 234, 255),  # leve sombra azulada
+}
+
+# 22 (parcial) — granulares
+PALETA_GRAVEL = {
+    'base':    (138, 134, 134, 255),
+    'claro':   (172, 168, 168, 255),
+    'escuro':  (90,  86,  86,  255),
+    'pedra_branca': (212, 208, 208, 255),
+    'pedra_preta':  (48,  44,  44,  255),
+}
+PALETA_SOUL_SAND = {
+    'base':    (98,  76,  56,  255),
+    'claro':   (132, 106, 76,  255),
+    'escuro':  (60,  46,  34,  255),
+    'rosto':   (32,  22,  16,  255),  # buracos sugerindo rostos
+}
+
+# 21_translucent (parcial) — glass (resto vai pra rodada 4: honey, slime)
+PALETA_GLASS = {
+    'moldura_externa': (210, 228, 236, 255),
+    'moldura_interna': (172, 200, 218, 220),
+    'highlight':       (240, 248, 252, 255),
+    'transparente':    (0, 0, 0, 0),
+}
+
+# 13_nether — 5 PNGs (soul_sand fica em granulares acima).
+PALETA_NETHER_RACK = {
+    'base':    (124, 50,  44,  255),  # vermelho-tijolo medio
+    'claro':   (164, 78,  68,  255),
+    'escuro':  (88,  34,  30,  255),
+    'pedra':   (60,  22,  20,  255),
+}
+PALETA_NETHER_BRICKS = {
+    'tijolo':  (54,  20,  22,  255),
+    'tijolo_claro': (78, 34, 36, 255),
+    'tijolo_escuro':(34, 12, 14, 255),
+    'rejunte': (22,  8,   10,  255),
+}
+PALETA_MAGMA = {
+    'pedra':       (52,  28,  22,  255),  # rocha escura
+    'pedra_clara': (84,  46,  32,  255),
+    'lava':        (240, 130, 40,  255),  # laranja brilhante
+    'lava_quente': (255, 196, 88,  255),  # amarelo-quente
+    'lava_escura': (180, 76,  20,  255),
+}
+PALETA_SHROOMLIGHT = {
+    'base':    (240, 168, 64,  255),  # laranja brilhante
+    'claro':   (252, 220, 130, 255),
+    'escuro':  (200, 124, 32,  255),
+    'cap':     (252, 240, 180, 255),  # parte mais luminosa
+}
+PALETA_CRYING_OBSIDIAN = {
+    'base':    (40,  18,  56,  255),  # roxo escuro
+    'claro':   (62,  32,  82,  255),
+    'escuro':  (22,  10,  32,  255),
+    'lagrima': (200, 50,  180, 255),  # magenta vivo
+    'lagrima_claro': (240, 130, 220, 255),
+}
+
+# 14_end_obsidian + 22 parcial (glowstone)
+PALETA_END_STONE = {
+    'base':    (216, 218, 162, 255),  # amarelo-palido
+    'claro':   (236, 236, 196, 255),
+    'escuro':  (180, 184, 124, 255),
+    'sombra':  (148, 150, 96,  255),
+}
+PALETA_OBSIDIAN = {
+    'base':    (28,  20,  44,  255),  # roxo-quase-preto
+    'claro':   (52,  36,  74,  255),
+    'escuro':  (16,  10,  26,  255),
+    'reflexo': (84,  68,  110, 255),
+}
+PALETA_GLOWSTONE = {
+    'base':    (216, 158, 60,  255),  # dourado-laranja
+    'claro':   (252, 220, 130, 255),
+    'escuro':  (172, 116, 36,  255),
+    'gota':    (252, 244, 196, 255),  # ponto luminoso
+}
+
+# Resto vai pra rodada 4:
+# PALETA_BEDROCK / PALETA_BRICKS / PALETA_SPONGE
+# PALETA_HONEY / PALETA_SLIME
+# PALETA_HAY / PALETA_MELON / PALETA_PUMPKIN
+# PALETA_MUSHROOM_BROWN / PALETA_MUSHROOM_RED / PALETA_BONE
+# PALETA_BOOKSHELF / PALETA_CRAFTING / PALETA_FURNACE
+# PALETA_QUARTZ / PALETA_PRISMARINE / PALETA_SEA_LANTERN
 
 # ---------------------------------------------------------------------------
 # Rodada 4 — Crafted / Colored / Translucent / Quartz / Prismarine
