@@ -334,16 +334,12 @@ const BLOCK_SOUND_CATEGORY = {
   snow_block:'snow',
 };
 
-/* Non-navigation tool toggle. Used to auto-return to the canvas when the
-   user clicks any of these while on Info or Settings. */
-function isToolToggle(el){
-  if (!el) return false;
-  if (el.dataset.route || el.dataset.act === 'logo') return false;
-  if (el.dataset.act === 'info-chip' || el.dataset.act === 'theme' || el.dataset.act === 'sound' || el.dataset.act === 'asset-pack') return false;
-  return !!(el.dataset.render || el.dataset.algo
-         || el.dataset.mode   || el.dataset.shape || el.dataset.axis
-         || el.dataset.block  || el.dataset.act);
-}
+/* Reserved hook for future explicit "kick back to tool" behaviors.
+   The original auto-bounce was removed: clicking ANY control while on
+   Info/Settings now keeps the user on that page (the action still runs:
+   lang cycles, blocks are picked, modes change in the background, etc.).
+   The user navigates back to the tool surface via the logo or the Info/
+   Settings toggle button. */
 
 /* ---------- CLICK DELEGATION --------------------------------------------- */
 let prevStyle3D = 'classic'; // for wireframe toggle (only relevant for grid btn)
@@ -356,10 +352,6 @@ function setupClickDelegation(){
       const next = (state.route === t.dataset.route && t.dataset.route !== 'tool') ? 'tool' : t.dataset.route;
       goRoute(next);
       return;
-    }
-
-    if (state.route !== 'tool' && isToolToggle(t)){
-      goRoute('tool');
     }
 
     const a = t.dataset.act;

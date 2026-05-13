@@ -703,6 +703,50 @@ body.mode3d .three-canvas{display:block;}
 .toast.out{animation:toastout .25s ease forwards;}
 @keyframes toastout{to{opacity:0; transform:translateY(20px);}}
 
+/* ---------- FREE ASSET PACK · LIGHT-SURFACE CONTRAST FIX -----------------
+   When the Free CC0 pack is active, panel surfaces (.help-item, .setting-row,
+   .info-chip, etc.) are tiled with the light `iron_block` texture. The
+   default cream-on-dark text + dark code-pill from style.css produces poor
+   contrast on that light surface — yellow titles get lost in the iron's
+   sheen and the `#1a0e04` code box is jarringly dark.
+
+   Below we invert the relevant pieces: deep wood-brown text with a warm
+   highlight, cream code pills with a wood border, and link colors that
+   stay readable but keep the accent feel. MC mode is untouched — these
+   selectors only fire under `body.asset-free`. ------------------------- */
+body.asset-free .help-item h3,
+body.asset-free .setting-row .lbl-grp label{
+  color:#2a1808;
+  text-shadow:1px 1px 0 rgba(255,236,79,.55);
+}
+body.asset-free .help-item p,
+body.asset-free .setting-row .lbl-grp .desc,
+body.asset-free .info-chip{
+  color:#1a0e04;
+  text-shadow:1px 1px 0 rgba(255,255,255,.45);
+}
+body.asset-free .help-item code,
+body.asset-free .help-item .key,
+body.asset-free .key{
+  background:#FFF4D0;
+  border:1px solid #3a2410;
+  color:#2a1808;
+  text-shadow:none;
+}
+body.asset-free .help-item a{
+  color:#2a1808;
+  border-bottom-color:rgba(42,24,8,.35);
+  text-shadow:1px 1px 0 rgba(255,255,255,.45);
+}
+body.asset-free .help-item a:hover{
+  color:#3a2410;
+  background:rgba(255,236,79,.30);
+  border-bottom-color:#2a1808;
+}
+body.asset-free .help-item a:focus-visible{
+  outline-color:#2a1808;
+}
+
 /* ---------- REDUCED MOTION --------------------------------------------- */
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{
