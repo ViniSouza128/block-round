@@ -160,26 +160,175 @@ PALETA_GEM_EMERALD = {
 # PALETA_GRAVEL           = { ... }
 
 # ---------------------------------------------------------------------------
-# Rodada 2 — Wood / Organic plant (placeholders)
+# Rodada 2 — Wood / Organic plant
 # ---------------------------------------------------------------------------
 
-# PALETA_PLANKS_OAK       = { ... } # 01_planks
-# PALETA_PLANKS_BIRCH     = { ... }
-# PALETA_PLANKS_SPRUCE    = { ... }
-# PALETA_PLANKS_JUNGLE    = { ... }
-# PALETA_PLANKS_ACACIA    = { ... }
-# PALETA_PLANKS_DARK_OAK  = { ... }
-# PALETA_LOG_OAK          = { ... } # 02_logs (side+top variantes)
-# PALETA_LOG_BIRCH        = { ... }
-# PALETA_LOG_SPRUCE       = { ... }
-# PALETA_LOG_JUNGLE       = { ... }
-# PALETA_LOG_ACACIA       = { ... }
-# PALETA_LOG_DARK_OAK     = { ... }
-# PALETA_LEAVES_OAK       = { ... } # 03_leaves
-# PALETA_HAY              = { ... } # 17_crops_organic
+# 01_planks — 6 madeiras. Convencao de chaves identica entre todas para
+# que `gerar_planks_base(paleta)` em gen_planks.py funcione com qualquer
+# uma. Tons: claro (highlight) > base > escuro (sombra) > separador.
+# 'no_escuro' = nucleo do no; 'no_claro' = halo do no.
+PALETA_PLANKS_OAK = {
+    'claro':     (196, 158, 108, 255),
+    'base':      (172, 132, 86,  255),  # marrom-mel
+    'escuro':    (132, 96,  56,  255),
+    'separador': (88,  60,  34,  255),
+    'no_escuro': (104, 70,  38,  255),
+    'no_claro':  (140, 102, 64,  255),
+}
+PALETA_PLANKS_BIRCH = {
+    'claro':     (236, 222, 178, 255),
+    'base':      (216, 198, 152, 255),  # creme palido
+    'escuro':    (180, 158, 110, 255),
+    'separador': (132, 110, 72,  255),
+    'no_escuro': (140, 116, 76,  255),
+    'no_claro':  (190, 168, 122, 255),
+}
+PALETA_PLANKS_SPRUCE = {
+    'claro':     (134, 102, 70,  255),
+    'base':      (108, 80,  54,  255),  # marrom escuro frio
+    'escuro':    (74,  54,  36,  255),
+    'separador': (52,  36,  24,  255),
+    'no_escuro': (62,  44,  28,  255),
+    'no_claro':  (88,  64,  44,  255),
+}
+PALETA_PLANKS_JUNGLE = {
+    'claro':     (192, 144, 102, 255),
+    'base':      (166, 118, 80,  255),  # russet quente
+    'escuro':    (130, 86,  56,  255),
+    'separador': (90,  58,  36,  255),
+    'no_escuro': (102, 68,  42,  255),
+    'no_claro':  (140, 96,  62,  255),
+}
+PALETA_PLANKS_ACACIA = {
+    'claro':     (220, 130, 88,  255),
+    'base':      (188, 104, 66,  255),  # terracota laranja-vermelho
+    'escuro':    (148, 76,  46,  255),
+    'separador': (104, 50,  28,  255),
+    'no_escuro': (118, 60,  34,  255),
+    'no_claro':  (160, 86,  54,  255),
+}
+PALETA_PLANKS_DARK_OAK = {
+    'claro':     (94,  72,  50,  255),
+    'base':      (70,  52,  34,  255),  # marrom frio profundo
+    'escuro':    (44,  32,  20,  255),
+    'separador': (24,  16,  10,  255),
+    'no_escuro': (32,  22,  14,  255),
+    'no_claro':  (54,  40,  26,  255),
+}
+
+# 02_logs — cada paleta tem chaves para casca (lateral) e miolo (top).
+# Casca: cor_externa estriada verticalmente. Miolo: aneis concentricos
+# que reusam os tons da paleta de planks da mesma especie.
+# 'banda' (opcional): list de y onde desenhar listras escuras (so birch).
+PALETA_LOG_OAK = {
+    'casca_base':   (104, 78,  48,  255),
+    'casca_claro':  (134, 104, 68,  255),
+    'casca_escuro': (72,  52,  32,  255),
+    'casca_no':     (52,  36,  22,  255),
+    # miolo (top) reusa planks oak
+    'miolo_centro': PALETA_PLANKS_OAK['claro'],
+    'miolo_anel':   PALETA_PLANKS_OAK['base'],
+    'miolo_escuro': PALETA_PLANKS_OAK['escuro'],
+    'miolo_borda':  PALETA_PLANKS_OAK['separador'],
+}
+PALETA_LOG_BIRCH = {
+    'casca_base':   (224, 218, 200, 255),  # branco icone
+    'casca_claro':  (244, 240, 224, 255),
+    'casca_escuro': (180, 172, 152, 255),
+    'casca_no':     (40,  38,  34,  255),  # listras pretas birch
+    'bandas':       [2, 6, 10, 13],         # y das listras pretas
+    'miolo_centro': PALETA_PLANKS_BIRCH['claro'],
+    'miolo_anel':   PALETA_PLANKS_BIRCH['base'],
+    'miolo_escuro': PALETA_PLANKS_BIRCH['escuro'],
+    'miolo_borda':  PALETA_PLANKS_BIRCH['separador'],
+}
+PALETA_LOG_SPRUCE = {
+    'casca_base':   (62,  44,  28,  255),
+    'casca_claro':  (88,  66,  46,  255),
+    'casca_escuro': (40,  28,  18,  255),
+    'casca_no':     (28,  20,  12,  255),
+    'miolo_centro': PALETA_PLANKS_SPRUCE['claro'],
+    'miolo_anel':   PALETA_PLANKS_SPRUCE['base'],
+    'miolo_escuro': PALETA_PLANKS_SPRUCE['escuro'],
+    'miolo_borda':  PALETA_PLANKS_SPRUCE['separador'],
+}
+PALETA_LOG_JUNGLE = {
+    'casca_base':   (108, 88,  56,  255),
+    'casca_claro':  (138, 116, 76,  255),
+    'casca_escuro': (76,  60,  38,  255),
+    'casca_no':     (48,  38,  24,  255),
+    'miolo_centro': PALETA_PLANKS_JUNGLE['claro'],
+    'miolo_anel':   PALETA_PLANKS_JUNGLE['base'],
+    'miolo_escuro': PALETA_PLANKS_JUNGLE['escuro'],
+    'miolo_borda':  PALETA_PLANKS_JUNGLE['separador'],
+}
+PALETA_LOG_ACACIA = {
+    'casca_base':   (108, 96,  86,  255),  # acacia tem casca cinza
+    'casca_claro':  (140, 124, 110, 255),
+    'casca_escuro': (74,  64,  56,  255),
+    'casca_no':     (44,  36,  30,  255),
+    'miolo_centro': PALETA_PLANKS_ACACIA['claro'],
+    'miolo_anel':   PALETA_PLANKS_ACACIA['base'],
+    'miolo_escuro': PALETA_PLANKS_ACACIA['escuro'],
+    'miolo_borda':  PALETA_PLANKS_ACACIA['separador'],
+}
+PALETA_LOG_DARK_OAK = {
+    'casca_base':   (52,  38,  24,  255),
+    'casca_claro':  (74,  56,  36,  255),
+    'casca_escuro': (32,  22,  14,  255),
+    'casca_no':     (16,  10,  6,   255),
+    'miolo_centro': PALETA_PLANKS_DARK_OAK['claro'],
+    'miolo_anel':   PALETA_PLANKS_DARK_OAK['base'],
+    'miolo_escuro': PALETA_PLANKS_DARK_OAK['escuro'],
+    'miolo_borda':  PALETA_PLANKS_DARK_OAK['separador'],
+}
+
+# 03_leaves — verde-medio cluster com folhas claras + alpha nas bordas.
+PALETA_LEAVES_OAK = {
+    'base':       (62,  118, 50,  255),
+    'claro':      (96,  158, 72,  255),
+    'escuro':     (40,  84,  34,  255),
+    'borda':      (32,  68,  28,  255),
+    'transparente': (0, 0, 0, 0),
+}
+
+# 12_dirt_grass_surfaces
+PALETA_DIRT = {
+    'base':       (130, 90,  58,  255),  # marrom dominante
+    'claro':      (162, 116, 78,  255),
+    'escuro':     (96,  66,  42,  255),
+    'pedrinha':   (74,  52,  34,  255),  # raizes/pedrinhas escuras
+    'raiz_clara': (188, 142, 96,  255),  # ocasional toque mais claro
+}
+PALETA_GRASS = {
+    'base':       (90,  158, 60,  255),  # verde puro grama
+    'claro':      (122, 196, 78,  255),
+    'escuro':     (62,  124, 44,  255),
+    'borda':      (52,  100, 38,  255),  # transicao com dirt no side
+}
+PALETA_PODZOL = {
+    'base':       (138, 92,  52,  255),  # laranja escuro
+    'claro':      (174, 132, 82,  255),
+    'escuro':     (96,  60,  32,  255),
+    'agulha':     (216, 180, 132, 255),  # agulhas claras esparsas
+}
+PALETA_MYCELIUM = {
+    'base':       (108, 92,  112, 255),  # roxo escuro
+    'claro':      (142, 122, 148, 255),
+    'escuro':     (76,  62,  86,  255),
+    'ponto':      (180, 168, 180, 255),  # pontinhos cinza-claros
+}
+PALETA_MOSS = {
+    'base':       (66,  112, 50,  255),  # verde musgo
+    'claro':      (102, 152, 76,  255),
+    'escuro':     (44,  82,  36,  255),
+    'borda':      (32,  62,  28,  255),
+}
+
+# PALETA_HAY              = { ... } # 17_crops_organic — rodada 4
 # PALETA_MELON            = { ... }
 # PALETA_PUMPKIN          = { ... }
-# PALETA_MUSHROOM_BROWN   = { ... } # 18_mushroom_bone parcial
+# PALETA_MUSHROOM_BROWN   = { ... } # 18_mushroom_bone parcial — rodada 4
 # PALETA_MUSHROOM_RED     = { ... }
 
 # ---------------------------------------------------------------------------
