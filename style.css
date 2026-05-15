@@ -289,10 +289,14 @@ body.sound-off .icon-btn[data-act="sound"] .snd-off-ico{ display:inline-block; }
   gap:0;
 }
 .asset-pack-btn .ap-mc,
-.asset-pack-btn .ap-free{ line-height:1; }
+.asset-pack-btn .ap-free,
+.asset-pack-btn .ap-pix { line-height:1; }
 .asset-pack-btn .ap-free{ display:none; }
+.asset-pack-btn .ap-pix { display:none; }
 .asset-pack-btn.asset-free .ap-mc  { display:none; }
 .asset-pack-btn.asset-free .ap-free{ display:inline; }
+.asset-pack-btn.asset-pixelart .ap-mc  { display:none; }
+.asset-pack-btn.asset-pixelart .ap-pix { display:inline; }
 .asset-pack-btn .ap-badge{
   position:absolute; top:2px; right:2px;
   font-size:6px; font-weight:800; letter-spacing:.05em;
@@ -744,6 +748,40 @@ body.asset-free .help-item a:hover{
   border-bottom-color:#2a1808;
 }
 body.asset-free .help-item a:focus-visible{
+  outline-color:#2a1808;
+}
+
+/* ---------- PIXELART PACK text contrast (mirrors asset-free rules) -------- */
+body.asset-pixelart .help-item h3,
+body.asset-pixelart .setting-row .lbl-grp label{
+  color:#2a1808;
+  text-shadow:1px 1px 0 rgba(255,236,79,.55);
+}
+body.asset-pixelart .help-item p,
+body.asset-pixelart .setting-row .lbl-grp .desc,
+body.asset-pixelart .info-chip{
+  color:#1a0e04;
+  text-shadow:1px 1px 0 rgba(255,255,255,.45);
+}
+body.asset-pixelart .help-item code,
+body.asset-pixelart .help-item .key,
+body.asset-pixelart .key{
+  background:#FFF4D0;
+  border:1px solid #3a2410;
+  color:#2a1808;
+  text-shadow:none;
+}
+body.asset-pixelart .help-item a{
+  color:#2a1808;
+  border-bottom-color:rgba(42,24,8,.35);
+  text-shadow:1px 1px 0 rgba(255,255,255,.45);
+}
+body.asset-pixelart .help-item a:hover{
+  color:#3a2410;
+  background:rgba(255,236,79,.30);
+  border-bottom-color:#2a1808;
+}
+body.asset-pixelart .help-item a:focus-visible{
   outline-color:#2a1808;
 }
 

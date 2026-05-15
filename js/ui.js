@@ -382,7 +382,8 @@ function setupClickDelegation(){
     // sound is muted itself when going from on→off, hence the toast).
     if (a === 'asset-pack'){
       if (typeof onAssetPackToggle === 'function') onAssetPackToggle();
-      toast(`Assets: ${window.ASSET_PACK === 'free' ? 'Free CC0' : 'MC (Mojang)'}`);
+      const _packLabel = { mc:'MC (Mojang)', free:'Free CC0', pixelart:'Pixel-Art CC0' };
+      toast(`Assets: ${_packLabel[window.ASSET_PACK] || window.ASSET_PACK}`);
       return;
     }
 

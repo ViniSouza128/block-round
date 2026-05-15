@@ -503,13 +503,163 @@ PALETA_GLOWSTONE = {
     'gota':    (252, 244, 196, 255),  # ponto luminoso
 }
 
-# Resto vai pra rodada 4:
-# PALETA_BEDROCK / PALETA_BRICKS / PALETA_SPONGE
-# PALETA_HONEY / PALETA_SLIME
-# PALETA_HAY / PALETA_MELON / PALETA_PUMPKIN
-# PALETA_MUSHROOM_BROWN / PALETA_MUSHROOM_RED / PALETA_BONE
-# PALETA_BOOKSHELF / PALETA_CRAFTING / PALETA_FURNACE
-# PALETA_QUARTZ / PALETA_PRISMARINE / PALETA_SEA_LANTERN
+# ---------------------------------------------------------------------------
+# Rodada 4 — Multi-face / emissivos / exoticos
+# ---------------------------------------------------------------------------
+
+# 17_crops_organic — pumpkin, hay, melon
+PALETA_PUMPKIN = {
+    'laranja_base':   (220, 130, 36,  255),
+    'laranja_claro':  (240, 168, 70,  255),
+    'laranja_escuro': (172, 92,  20,  255),
+    'ranhura':        (134, 70,  16,  255),
+    'talo_verde':     (78,  118, 50,  255),
+    'talo_claro':     (110, 160, 72,  255),
+    'talo_escuro':    (52,  84,  34,  255),
+    'recorte':        (32,  20,  14,  255),  # face_off — interior dos olhos/boca
+}
+
+PALETA_HAY = {
+    'base':       (200, 168, 60,  255),
+    'claro':      (232, 204, 92,  255),
+    'escuro':     (160, 132, 36,  255),
+    'fio':        (134, 108, 28,  255),  # palhinha individual
+    'amarra':     (104, 80,  20,  255),  # cordas amarrando o feno (side)
+}
+
+PALETA_MELON = {
+    'verde_base':   (102, 158, 42,  255),
+    'verde_claro':  (138, 196, 64,  255),
+    'verde_escuro': (74,  118, 28,  255),
+    'listra':       (52,  82,  22,  255),  # listra escura vertical
+    'listra_clara': (172, 218, 92,  255),
+}
+
+# 16_quartz — 3 faces compartilham branco quartz
+PALETA_QUARTZ = {
+    'base':    (236, 232, 224, 255),  # branco-creme
+    'claro':   (250, 248, 244, 255),
+    'escuro':  (208, 202, 192, 255),
+    'veining': (188, 180, 168, 255),  # vein interno
+    'simbolo': (172, 162, 148, 255),  # linha decorativa do top
+    'moldura': (164, 156, 142, 255),  # borda no top
+}
+
+# 18_mushroom_bone (parcial)
+PALETA_BONE = {
+    'base':    (228, 224, 200, 255),  # marfim
+    'claro':   (244, 240, 218, 255),
+    'escuro':  (188, 182, 156, 255),
+    'sombra':  (148, 142, 116, 255),
+    'nervura': (172, 164, 140, 255),  # nervura vertical
+}
+PALETA_MUSHROOM_BROWN = {
+    'base':    (146, 96,  64,  255),
+    'claro':   (180, 124, 86,  255),
+    'escuro':  (108, 70,  44,  255),
+    'pinta':   (210, 168, 124, 255),  # pintinhas claras
+}
+PALETA_MUSHROOM_RED = {
+    'base':    (192, 50,  44,  255),
+    'claro':   (228, 88,  76,  255),
+    'escuro':  (146, 30,  26,  255),
+    'pinta':   (240, 224, 210, 255),  # pintinhas brancas (icone amanita)
+}
+
+# 15_prismarine_sea
+PALETA_PRISMARINE = {
+    'base':         (98,  168, 158, 255),  # ciano-turquesa
+    'claro':        (138, 198, 188, 255),
+    'escuro':       (62,  124, 116, 255),
+    'rejunte':      (38,  82,  78,  255),  # entre tijolos
+    'tijolo_meio':  (80,  148, 138, 255),
+    # variante "dark"
+    'dark_base':    (40,  76,  72,  255),
+    'dark_claro':   (62,  104, 96,  255),
+    'dark_escuro':  (24,  50,  46,  255),
+}
+
+# sea_lantern — strip 16x80 = 5 frames de luminosidade pulsante.
+# Cada frame ganha uma "intensidade" diferente do brilho central.
+PALETA_SEA_LANTERN = {
+    'base':         (200, 226, 230, 255),  # branco-azulado base
+    'claro':        (232, 246, 248, 255),
+    'escuro':       (148, 188, 198, 255),
+    'cristal':      (180, 222, 232, 255),  # cristais menos brilhantes
+    'cristal_glow': (252, 254, 248, 255),  # auge do brilho
+}
+
+# 19_crafted_workstations — bookshelf, crafting_table, furnace
+PALETA_BOOKSHELF = {
+    'madeira':       PALETA_PLANKS_OAK['base'],
+    'madeira_claro': PALETA_PLANKS_OAK['claro'],
+    'madeira_escuro':PALETA_PLANKS_OAK['separador'],
+    'paginas':       (228, 218, 184, 255),  # bordo dourado das paginas
+    'paginas_sombra':(184, 174, 138, 255),
+    # capas dos livros (4 cores harmonicas com o pack)
+    'capa_vermelha': (168, 56,  56,  255),
+    'capa_azul':     (56,  78,  158, 255),
+    'capa_verde':    (74,  124, 60,  255),
+    'capa_amarela':  (192, 162, 58,  255),
+    'capa_marrom':   (108, 70,  44,  255),
+}
+
+PALETA_CRAFTING = {
+    'madeira':       PALETA_PLANKS_OAK['base'],
+    'madeira_claro': PALETA_PLANKS_OAK['claro'],
+    'madeira_escuro':PALETA_PLANKS_OAK['separador'],
+    'gaveta':        (108, 76,  44,  255),
+    'gaveta_escuro': (74,  50,  28,  255),
+    'metal':         (172, 172, 176, 255),  # ferramentas
+    'metal_escuro':  (108, 108, 112, 255),
+    'cabo_madeira':  (140, 96,  56,  255),  # cabo de ferramenta
+}
+
+PALETA_FURNACE = {
+    'pedra_base':   PALETA_STONE['meio'],
+    'pedra_claro':  PALETA_STONE['meio_claro'],
+    'pedra_escuro': PALETA_STONE['meio_escuro'],
+    'moldura':      PALETA_STONE['escuro'],
+    'abertura':     (24,  22,  22,  255),  # buraco escuro
+    'grelha':       (60,  56,  56,  255),  # barras horizontais
+    'topo_circulo': (78,  78,  82,  255),  # circulo central do top
+}
+
+# 21_translucent — slime, honey (3 faces)
+PALETA_SLIME = {
+    'base':       (130, 188, 90,  170),  # gel verde translucido
+    'claro':      (160, 218, 120, 180),
+    'escuro':     (96,  150, 64,  200),
+    'bolha':      (210, 240, 180, 200),  # bolha clara dentro do gel
+    'borda':      (76,  126, 50,  220),  # borda mais opaca
+}
+PALETA_HONEY = {
+    'base':       (240, 178, 56,  170),  # mel ambar translucido
+    'claro':      (252, 210, 110, 180),
+    'escuro':     (200, 138, 26,  200),
+    'brilho':     (255, 234, 160, 200),
+    'borda':      (172, 110, 16,  220),
+}
+
+# 22_misc — bedrock, bricks, sponge
+PALETA_BEDROCK = {
+    'base':    (78,  76,  82,  255),  # cinza escuro
+    'claro':   (108, 106, 112, 255),
+    'escuro':  (46,  44,  50,  255),
+    'mancha':  (24,  22,  28,  255),  # quase preto
+}
+PALETA_BRICKS = {
+    'tijolo':        (170, 90,  68,  255),  # vermelho tijolo
+    'tijolo_claro':  (200, 116, 88,  255),
+    'tijolo_escuro': (130, 64,  44,  255),
+    'rejunte':       (88,  84,  78,  255),  # cinza
+}
+PALETA_SPONGE = {
+    'base':    (228, 220, 96,  255),  # amarelo
+    'claro':   (244, 238, 132, 255),
+    'escuro':  (188, 178, 60,  255),
+    'furo':    (124, 108, 36,  255),  # poro escuro
+}
 
 # ---------------------------------------------------------------------------
 # Rodada 4 — Crafted / Colored / Translucent / Quartz / Prismarine

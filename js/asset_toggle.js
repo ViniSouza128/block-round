@@ -2,20 +2,20 @@
    Block Round — js/asset_toggle.js
    All Rights Reserved on code.
 
-   Temporary A/B test toggle: switches between the original Minecraft textures
-   (MC pack — Mojang property) and the CC0 free asset pack (OGA textures +
-   Kenney sounds + procedural fills).
+   Three-way toggle: original Minecraft textures (MC), CC0 free asset pack
+   (FREE), and CC0 pixel-art pack (PIX).
 
    Depends on (loaded before this file):
-     js/textures.js    → window.MC_TEX
-     js/sounds.js      → window.MC_SFX
-     js/textures_free.js → window.FREE_TEX
-     js/sounds_free.js   → window.FREE_SFX
-     js/state.js       → MC_BLOCKS, clearImgCache()
-     js/canvas3d.js    → clearTexCache3D()
+     js/textures.js         → window.MC_TEX
+     js/sounds.js           → window.MC_SFX
+     js/textures_free.js    → window.FREE_TEX
+     js/textures_pixelart.js → window.PIXELART_TEX
+     js/sounds_free.js      → window.FREE_SFX
+     js/state.js            → MC_BLOCKS, clearImgCache()
+     js/canvas3d.js         → clearTexCache3D()
    ============================================================================ */
 
-window.ASSET_PACK = 'mc';   // 'mc' | 'free'
+window.ASSET_PACK = 'mc';   // 'mc' | 'free' | 'pixelart'
 
 /* Maps each MC_BLOCKS picker key to the primary MC_TEX key used for its
    background-image / 2D canvas source.  Must stay in sync with state.js. */
@@ -161,19 +161,22 @@ const _UI_OVERRIDE_MAP = {
 };
 const _UI_STYLE_ID = 'asset-pack-ui-override';
 
-function _applyUiOverride(){
+function _applyUiOverride(pack){
   let el = document.getElementById(_UI_STYLE_ID);
   if (!el){
     el = document.createElement('style');
     el.id = _UI_STYLE_ID;
     document.head.appendChild(el);
   }
+  // For pixelart pack, remap selectors to body.asset-pixelart
+  const bodyClass = pack === 'pixelart' ? 'asset-pixelart' : 'asset-free';
   const lines = [];
   Object.entries(_UI_OVERRIDE_MAP).forEach(([texKey, sels]) => {
     const uri = (window.MC_TEX && window.MC_TEX[texKey]) || '';
     if (!uri) return;
     sels.forEach(sel => {
-      lines.push(`${sel} { background-image: url('${uri}') !important; }`);
+      const remapped = sel.replace('body.asset-free', `body.${bodyClass}`);
+      lines.push(`${remapped} { background-image: url('${uri}') !important; }`);
     });
   });
   el.textContent = lines.join('\n');
@@ -235,24 +238,37 @@ function _doAssetSwap(pack){
   // active, it reads "MC". Previously this was set in onAssetPackToggle
   // AFTER the async swap fired, which meant the label could lag by one
   // click in the VT capture.
-  const isFree = pack === 'free';
   document.querySelectorAll('[data-act="asset-pack"]').forEach(btn => {
-    btn.classList.toggle('asset-free', isFree);
-    btn.title = isFree ? 'Switch to MC assets (Mojang)' : 'Switch to Free CC0 assets (test)';
-    btn.setAttribute('aria-pressed', String(isFree));
+    btn.classList.toggle('asset-free',     pack === 'free');
+    btn.classList.toggle('asset-pixelart', pack === 'pixelart');
+    const titles = {
+      mc:       'Switch to Free CC0 assets (test)',
+      free:     'Switch to Pixel-Art CC0 assets (test)',
+      pixelart: 'Switch to MC assets (Mojang)',
+    };
+    btn.title = titles[pack] || titles.mc;
+    btn.setAttribute('aria-pressed', String(pack !== 'mc'));
   });
 
   if (pack === 'free'){
     _applyTexPack(window.FREE_TEX || {});
-    // Overwrite MC_SFX place keys with Kenney sounds
     const freeSfx = window.FREE_SFX || {};
     Object.keys(freeSfx).forEach(k => { window.MC_SFX[k] = freeSfx[k]; });
     document.body.classList.add('asset-free');
-    _applyUiOverride();
+    document.body.classList.remove('asset-pixelart');
+    _applyUiOverride('free');
+  } else if (pack === 'pixelart'){
+    _applyTexPack(window.PIXELART_TEX || {});
+    const freeSfx = window.FREE_SFX || {};
+    Object.keys(freeSfx).forEach(k => { window.MC_SFX[k] = freeSfx[k]; });
+    document.body.classList.remove('asset-free');
+    document.body.classList.add('asset-pixelart');
+    _applyUiOverride('pixelart');
   } else {
     _restoreTexPack(_mcTexOrig);
     Object.keys(_mcSfxOrig).forEach(k => { window.MC_SFX[k] = _mcSfxOrig[k]; });
     document.body.classList.remove('asset-free');
+    document.body.classList.remove('asset-pixelart');
     _removeUiOverride();
   }
 
@@ -336,6 +352,6 @@ function switchAssetPack(pack){
    inside _doAssetSwap so it stays in lock-step with window.ASSET_PACK
    (and gets captured correctly by the View Transition snapshot). */
 function onAssetPackToggle(){
-  const next = window.ASSET_PACK === 'mc' ? 'free' : 'mc';
-  switchAssetPack(next);
+  const cycle = { mc: 'free', free: 'pixelart', pixelart: 'mc' };
+  switchAssetPack(cycle[window.ASSET_PACK] || 'free');
 }
